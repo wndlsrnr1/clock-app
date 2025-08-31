@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Clock</title>
+  <style>
+      .box .input_group, .box .button_group {
+          display: flex;
+          justify-content: flex-start;
+          margin-bottom: 10px;
+      }
+
+      .box .input_group div:first-child {
+          margin-right: 10px;
+      }
+
+      .box .button_group div:first-child {
+          margin-right: 10px;
+      }
+
+      .time {
+          color: white;
+          font-size: 3rem;
+          font-weight: 800;
+          letter-spacing: 0.125rem;
+          text-shadow: 0 0 0.5rem rgba(0,255,255,0.75), 0 0 1.125rem rgba(255,0,255,0.6);
+          text-align: center;
+          margin-top: 1.125rem;
+      }
+
+      body {
+          background: radial-gradient(1200px 600px at 20% 20%, rgba(0, 255, 200, 0.08), transparent 60%),
+                      radial-gradient(1000px 500px at 80% 80%, rgba(255, 0, 200, 0.08), transparent 60%),
+                      #000;
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+      }
+
+      .box {
+          width: min(57.5rem, 92vw);
+          padding: 1.75rem;
+          border-radius: 1.125rem;
+          position: relative;
+          background: rgba(10,10,14,0.6);
+          box-shadow: 0 0 0 2px rgba(0,255,255,0.08) inset, 0 40px 120px rgba(0,0,0,0.6);
+      }
+
+      .box::before {
+          content: "";
+          position: absolute;
+          inset: -2px;
+          z-index: -1;
+          border-radius: 20px;
+          background: linear-gradient(135deg, rgba(0,255,255,0.5), rgba(255,0,255,0.5));
+          filter: blur(18px);
+          opacity: 0.6;
+      }
+
+      .ui-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1.75rem;
+          align-items: center;
+      }
+
+      @media (max-width: 820px) {
+          .ui-grid { grid-template-columns: 1fr; }
+      }
+
+      .analog-wrapper {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0.75rem 0;
+      }
+
+      .analog-clock {
+          width: 17.5rem;
+          height: 17.5rem;
+          border-radius: 50%;
+          position: relative;
+          background:
+            radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 64%, rgba(0,255,255,0.2) 66%, rgba(255,0,255,0.18) 68%, rgba(0,0,0,0) 70%),
+            radial-gradient(circle at 50% 50%, #0a0a0f 0%, #0a0a0f 60%, #09090d 100%);
+          box-shadow: 0 0 0 2px rgba(0,255,255,0.25), 0 0 40px rgba(0,255,255,0.12), inset 0 0 50px rgba(0,0,0,0.6);
+      }
+
+      .ticks { position: absolute; inset: 0; }
+      .tick {
+          position: absolute;
+          left: 50%;
+          top: 0.625rem;
+          width: 0.1875rem;
+          height: 1rem;
+          background: linear-gradient(to bottom, rgba(0,255,255,0.95), rgba(255,0,255,0.85));
+          transform-origin: 50% 8.125rem;
+          border-radius: 0.125rem;
+          box-shadow: 0 0 0.5rem rgba(0,255,255,0.7);
+      }
+      /* 12 ticks */
+      .tick:nth-child(1)  { transform: rotate(0deg); }
+      .tick:nth-child(2)  { transform: rotate(30deg); }
+      .tick:nth-child(3)  { transform: rotate(60deg); }
+      .tick:nth-child(4)  { transform: rotate(90deg); height: 20px; }
+      .tick:nth-child(5)  { transform: rotate(120deg); }
+      .tick:nth-child(6)  { transform: rotate(150deg); }
+      .tick:nth-child(7)  { transform: rotate(180deg); height: 20px; }
+      .tick:nth-child(8)  { transform: rotate(210deg); }
+      .tick:nth-child(9)  { transform: rotate(240deg); }
+      .tick:nth-child(10) { transform: rotate(270deg); height: 20px; }
+      .tick:nth-child(11) { transform: rotate(300deg); }
+      .tick:nth-child(12) { transform: rotate(330deg); }
+
+      .hand {
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          transform-origin: 50% 90%;
+          transform: translate(-50%, -90%) rotate(0deg);
+          border-radius: 6px;
+          will-change: transform;
+      }
+      .hand.hour { width: 0.5rem; height: 28%; background: linear-gradient(180deg, #0ff, #f0f); box-shadow: 0 0 0.625rem rgba(0,255,255,0.3); }
+      .hand.minute { width: 0.375rem; height: 36%; background: linear-gradient(180deg, #0ff, #f0f); box-shadow: 0 0 0.625rem rgba(255,0,255,0.3); }
+      .hand.second { width: 0.1875rem; height: 42%; background: #ff2bd6; box-shadow: 0 0 0.875rem rgba(255,43,214,0.8); }
+
+      .center-cap {
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          width: 0.875rem;
+          height: 0.875rem;
+          transform: translate(-50%, -50%);
+          border-radius: 50%;
+          background: radial-gradient(circle, #fff 0%, #0ff 40%, #f0f 80%);
+          box-shadow: 0 0 0.75rem rgba(0,255,255,0.8), 0 0 1.125rem rgba(255,0,255,0.6);
+      }
+
+      .controls {
+          background: rgba(14,14,20,0.8);
+          border: 1px solid rgba(0,255,255,0.2);
+          border-radius: 0.75rem;
+          padding: 1rem;
+          box-shadow: inset 0 0 1.875rem rgba(0,0,0,0.4);
+          margin-top: 1.125rem;
+      }
+      .controls .label { color: #b9f; font-size: 0.75rem; margin-bottom: 0.375rem; display: block; letter-spacing: 0.03125rem; }
+      .controls input[type=time] {
+          width: 100%;
+          background: rgba(255,255,255,0.05);
+          border: 1px solid rgba(0,255,255,0.25);
+          color: #e6fff9;
+          padding: 0.625rem 0.75rem;
+          border-radius: 0.5rem;
+          outline: none;
+          box-shadow: 0 0 12px rgba(0,255,255,0.08) inset;
+      }
+      .controls .grid {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.875rem;
+          margin-bottom: 1rem;
+      }
+      .controls .grid > div { flex: 1 1 12rem; min-width: 12rem; }
+      @media (max-width: 35rem) {
+          .controls .grid > div { flex-basis: 100%; min-width: 100%; }
+      }
+      .buttons { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+      .btn {
+          position: relative;
+          cursor: pointer;
+          border: none;
+          padding: 0.75rem 1.125rem;
+          border-radius: 0.625rem;
+          font-weight: 700;
+          letter-spacing: 0.03125rem;
+          color: #0a0a0f;
+          background: linear-gradient(135deg, #00fff0, #ff00e6);
+          box-shadow: 0 8px 20px rgba(0,0,0,0.35), 0 0 24px rgba(0,255,255,0.3);
+          transition: transform 0.1s ease, box-shadow 0.1s ease;
+      }
+      .btn:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,0,0,0.45), 0 0 30px rgba(255,0,255,0.4); }
+      .btn:active { transform: translateY(0); }
+  </style>
+
+</head>
+<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.10.7/dayjs.min.js"/>-->
+<body>
+<div class="box">
+  <div class="ui-grid">
+    <div class="analog-wrapper">
+      <div class="analog-clock">
+        <div class="ticks">
+          <div class="tick"></div>
+          <div class="tick"></div>
+          <div class="tick"></div>
+          <div class="tick"></div>
+          <div class="tick"></div>
+          <div class="tick"></div>
+          <div class="tick"></div>
+          <div class="tick"></div>
+          <div class="tick"></div>
+          <div class="tick"></div>
+          <div class="tick"></div>
+          <div class="tick"></div>
+        </div>
+        <div class="hand hour" id="hand-hour"></div>
+        <div class="hand minute" id="hand-minute"></div>
+        <div class="hand second" id="hand-second"></div>
+        <div class="center-cap"></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="time digital-time"></div>
+      <div class="controls">
+        <form action="">
+          <div class="grid">
+            <div>
+              <label class="label">시작 시간</label>
+              <input type="time" name="start_time">
+            </div>
+            <div>
+              <label class="label">종료 시간</label>
+              <input type="time" name="end_time">
+            </div>
+          </div>
+          <div class="buttons">
+            <button class="btn" type="button" name="start">시작</button>
+            <button class="btn" type="button" name="default_start">기본값 시작</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+</body>
+
+<script>
+  const settingObj = {
+    fileDir: "CHIME14.mp3",
+    endOfClass: 50,
+    startOfClass: 0,
+    defaultTime: [5, 18],
+    intervalSetting: 500,
+  }
+
+  const $defaultButton = document.querySelector("button[name=default_start]");
+  const $startButton = document.querySelector("button[name=start]");
+
+  const {fileDir, endOfClass, startOfClass, defaultTime, intervalSetting} = settingObj;
+
+  let activeStartHour = null;
+  let activeEndHour = null;
+  let clockIntervalId = null;
+  let scheduleTimeoutId = null;
+  let lastRungKey = "";
+  const chimeAudio = new Audio(fileDir);
+  chimeAudio.preload = "auto";
+
+  function pad2(n) {
+    return n < 10 ? "0" + n : "" + n;
+  }
+
+  function updateClock() {
+    const now = new Date();
+    const hh = pad2(now.getHours());
+    const mm = pad2(now.getMinutes());
+    const ss = pad2(now.getSeconds());
+    const $time = document.querySelector(".time");
+    if ($time) {
+      $time.innerHTML = hh + " : " + mm + " : " + ss;
+    }
+    // Update analog hands
+    const sec = now.getSeconds() + now.getMilliseconds() / 1000;
+    const min = now.getMinutes() + sec / 60;
+    const hour = (now.getHours() % 12) + min / 60;
+    const secDeg = sec * 6; // 360 / 60
+    const minDeg = min * 6;
+    const hourDeg = hour * 30; // 360 / 12
+    const hEl = document.getElementById("hand-hour");
+    const mEl = document.getElementById("hand-minute");
+    const sEl = document.getElementById("hand-second");
+    if (hEl) hEl.style.transform = "translate(-50%, -90%) rotate(" + hourDeg + "deg)";
+    if (mEl) mEl.style.transform = "translate(-50%, -90%) rotate(" + minDeg + "deg)";
+    if (sEl) sEl.style.transform = "translate(-50%, -90%) rotate(" + secDeg + "deg)";
+  }
+
+  function clearTimers() {
+    if (clockIntervalId) {
+      clearInterval(clockIntervalId);
+      clockIntervalId = null;
+    }
+    if (scheduleTimeoutId) {
+      clearTimeout(scheduleTimeoutId);
+      scheduleTimeoutId = null;
+    }
+  }
+
+  function inActiveHours(date) {
+    if (activeStartHour === null || activeEndHour === null) return false;
+    const h = date.getHours();
+    if (activeStartHour <= activeEndHour) {
+      return h >= activeStartHour && h <= activeEndHour;
+    }
+    return h >= activeStartHour || h <= activeEndHour;
+  }
+
+  function nextCandidateTime(fromDate) {
+    const next = new Date(fromDate.getTime());
+    if (next.getMinutes() < endOfClass) {
+      next.setMinutes(endOfClass, 0, 0);
+    } else {
+      next.setHours(next.getHours() + 1, startOfClass, 0, 0);
+    }
+    return next;
+  }
+
+  function nextEventInsideRange(fromDate) {
+    let candidate = nextCandidateTime(fromDate);
+    // Iterate to find first candidate within active hours
+    for (let i = 0; i < 48; i++) {
+      if (inActiveHours(candidate)) return candidate;
+      // Move to next :00 or :50
+      if (candidate.getMinutes() === endOfClass) {
+        candidate = new Date(candidate.getTime() + 10 * 60 * 1000);
+      } else {
+        candidate = new Date(candidate.getTime() + 50 * 60 * 1000);
+      }
+      candidate.setSeconds(0, 0);
+    }
+    return candidate;
+  }
+
+  function makeKey(date) {
+    return date.getFullYear() + "-" + pad2(date.getMonth() + 1) + "-" + pad2(date.getDate()) + " " + pad2(date.getHours()) + ":" + pad2(date.getMinutes());
+  }
+
+  function tryRing(now) {
+    if (!inActiveHours(now)) return;
+    const m = now.getMinutes();
+    if (m !== endOfClass && m !== startOfClass) return;
+    if (now.getSeconds() !== 0) return;
+    const key = makeKey(new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes(), 0, 0));
+    if (lastRungKey === key) return;
+    lastRungKey = key;
+    chimeAudio.currentTime = 0;
+    chimeAudio.play().catch(() => {});
+  }
+
+  function scheduleNextRing() {
+    const now = new Date();
+    // If we're exactly on a boundary, ring immediately
+    tryRing(now);
+    const target = nextEventInsideRange(now);
+    const delay = Math.max(0, target.getTime() - Date.now());
+    if (scheduleTimeoutId) clearTimeout(scheduleTimeoutId);
+    scheduleTimeoutId = setTimeout(() => {
+      tryRing(new Date());
+      scheduleNextRing();
+    }, delay);
+  }
+
+  function startScheduler(startHour, endHour) {
+    clearTimers();
+    activeStartHour = startHour;
+    activeEndHour = endHour;
+    // Live clock
+    updateClock();
+    clockIntervalId = setInterval(updateClock, intervalSetting);
+    // Prime audio on user gesture:
+    chimeAudio.play().then(() => {
+      chimeAudio.pause();
+      chimeAudio.currentTime = 0;
+    }).catch(() => {});
+    scheduleNextRing();
+  }
+
+  // 기본 이벤트
+  $defaultButton.addEventListener("click", () => {
+    startScheduler(defaultTime[0], defaultTime[1]);
+  });
+
+  // 세팅 이벤트
+  $startButton.addEventListener("click", () => {
+    const startValue = document.querySelector("input[name=start_time]").value;
+    const endValue = document.querySelector("input[name=end_time]").value;
+    if (!startValue || !endValue) return;
+    const startHour = parseInt(startValue.split(":")[0]);
+    const endHour = parseInt(endValue.split(":")[0]);
+    startScheduler(startHour, endHour);
+  });
+
+  // Background resiliency: resync when tab becomes visible or window gains focus
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible" && activeStartHour !== null) {
+      scheduleNextRing();
+      updateClock();
+    }
+  });
+  window.addEventListener("focus", () => {
+    if (activeStartHour !== null) {
+      scheduleNextRing();
+      updateClock();
+    }
+  });
+</script>
+</html>
