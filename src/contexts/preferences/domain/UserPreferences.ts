@@ -24,6 +24,16 @@ export interface NotificationSoundPreference {
   mutedFrom: AudibleNotificationSoundPreference | null;
 }
 
+export interface UserPreferencesSnapshot {
+  focusMinutes: number;
+  restMinutes: number;
+  dailyStart: string;
+  dailyEnd: string;
+  autoStartEnabled: boolean;
+  notificationSound: NotificationSoundPreference;
+  language: LanguagePreference;
+}
+
 export class UserPreferences {
   private constructor(
     public readonly focusMinutes: DurationMinutes,
@@ -175,6 +185,18 @@ export class UserPreferences {
       this.notificationSound,
       UserPreferences.validateLanguage(language),
     );
+  }
+
+  public snapshot(): UserPreferencesSnapshot {
+    return {
+      autoStartEnabled: this.autoStart.enabled,
+      dailyEnd: this.dailyRhythm.end.toText(),
+      dailyStart: this.dailyRhythm.start.toText(),
+      focusMinutes: this.focusMinutes.value,
+      language: this.language,
+      notificationSound: this.notificationSound,
+      restMinutes: this.restMinutes.value,
+    };
   }
 
   private static createFocusTerm(value: number): DurationMinutes {

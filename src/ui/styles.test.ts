@@ -51,4 +51,21 @@ describe("app shell styles", () => {
     expect(boxRule?.groups?.body).toContain("height: calc(100vh - 2.5rem);");
     expect(boxRule?.groups?.body).toContain("overflow-y: auto;");
   });
+
+  it("uses layout mode classes to drive clock rendering size", () => {
+    const css = readFileSync(join(process.cwd(), "src/ui/styles.css"), "utf-8");
+    const boxRule = css.match(/\.box\s*\{(?<body>[^}]*)\}/);
+    const normalRule = css.match(/\.box--normal\s*\{(?<body>[^}]*)\}/);
+    const verticalRule = css.match(/\.box--verticalCompact\s*\{(?<body>[^}]*)\}/);
+    const wideRule = css.match(/\.box--wideFocus\s*\{(?<body>[^}]*)\}/);
+    const clockRule = css.match(/\.analog-clock\s*\{(?<body>[^}]*)\}/);
+    const tickRule = css.match(/\.tick\s*\{(?<body>[^}]*)\}/);
+
+    expect(boxRule?.groups?.body).toContain("--clock-stage-size: min(17.5rem, 70vw);");
+    expect(normalRule?.groups?.body).toContain("--clock-stage-size: min(17.5rem, 70vw);");
+    expect(verticalRule?.groups?.body).toContain("--clock-stage-size: min(33vw, 42vh);");
+    expect(wideRule?.groups?.body).toContain("--clock-stage-size: min(33vw, 28rem);");
+    expect(clockRule?.groups?.body).toContain("width: var(--clock-stage-size);");
+    expect(tickRule?.groups?.body).toContain("transform-origin: 50% calc(var(--clock-stage-size) / 2 - 0.625rem);");
+  });
 });

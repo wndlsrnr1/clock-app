@@ -101,28 +101,16 @@
     "noTodo": "할 일 없음",
     "weekdays": ["일", "월", "화", "수", "목", "금", "토"]
   },
-  "googleTasks": {
-    "eyebrow": "Google",
-    "title": "Google Tasks 연동",
-    "clientIdTitle": "OAuth Client",
-    "clientIdLabel": "Client ID",
-    "clientSecretLabel": "Client Secret",
-    "oauthClientSave": "OAuth 정보 저장",
-    "clientIdHelp": "Google Cloud Console에서 만든 Desktop OAuth Client ID와 Client Secret을 저장합니다.",
-    "authTitle": "인증",
-    "authOpen": "인증 URL 열기",
-    "authCodeLabel": "인증 code 또는 redirect URL",
-    "authCodeAria": "Google 인증 코드",
-    "authSave": "인증 저장",
-    "authHelp": "브라우저 인증 후 redirect URL 전체를 붙여넣는 것을 권장합니다. code 값만 붙여넣어도 동작합니다.",
-    "taskListTitle": "Tasks 목록",
-    "taskListLoad": "목록 불러오기",
-    "taskListLabel": "연동 목록",
-    "taskListAria": "Google Tasks 목록",
-    "taskListPlaceholder": "선택",
-    "taskListSync": "수동 동기화",
-    "taskListHelp": "연동할 Google Tasks 목록을 고르고 로컬 Todo와 수동 동기화합니다.",
-    "help": "{title} 도움말"
+  "backup": {
+    "eyebrow": "데이터",
+    "title": "데이터 관리",
+    "description": "설정과 Todo를 JSON 파일로 백업하거나 전체 복원합니다.",
+    "export": "내보내기",
+    "import": "가져오기",
+    "importConfirmTitle": "백업 가져오기",
+    "importConfirmDescription": "현재 설정과 Todo가 백업 파일 내용으로 전체 교체됩니다.",
+    "confirmImport": "전체 교체",
+    "cancel": "취소"
   },
   "messages": {
     "preferencesSaved": "설정을 저장했습니다.",
@@ -138,12 +126,9 @@
     "rhythmStoppedForToday": "오늘의 리듬을 종료했습니다.",
     "languageChanged": "언어 설정을 변경했습니다.",
     "invalidTime": "시간은 14:30 또는 1430 형식으로 입력해주세요.",
-    "googleAuthorizationStarted": "인증 URL을 열었습니다. 리디렉션 URL의 code 값을 붙여넣어 주세요. {url}",
-    "googleAuthorizationSaved": "Google Tasks 인증을 저장했습니다.",
-    "googleOAuthClientSaved": "Google OAuth 정보를 저장했습니다.",
-    "googleTaskListSelected": "Google Tasks 목록을 선택했습니다.",
-    "googleSyncCompleted": "Google 동기화 완료: 업로드 {uploaded}, 가져오기 {imported}, 업데이트 {updated}, 삭제 {deleted}",
-    "googleActionFailed": "Google 작업 실패: {message}",
+    "backupExported": "백업 파일을 내보냈습니다.",
+    "backupImported": "백업 파일로 전체 복원했습니다.",
+    "backupFailed": "백업 작업 실패: {message}",
     "unknownError": "알 수 없는 오류"
   }
 }

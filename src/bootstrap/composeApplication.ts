@@ -1,4 +1,5 @@
 import chimeSoundUrl from "../assets/CHIME14.mp3";
+import { ExportBackupUseCase, ImportBackupUseCase } from "../contexts/backup/application/BackupUseCases";
 import { ChangeLanguagePreferenceUseCase } from "../contexts/preferences/application/LanguagePreferenceUseCase";
 import { ChooseCustomNotificationSoundUseCase, PreviewNotificationSoundUseCase, SetNotificationSoundModeUseCase, StopNotificationSoundPreviewUseCase, UpdateNotificationSoundVolumeUseCase } from "../contexts/preferences/application/NotificationSoundUseCases";
 import { UpdatePreferencesUseCase } from "../contexts/preferences/application/UpdatePreferencesUseCase";
@@ -9,16 +10,10 @@ import { RunningRhythmRescheduler } from "../contexts/rhythm/application/Running
 import { RhythmRuntime } from "../contexts/rhythm/application/RhythmRuntime";
 import { StartRhythmUseCase } from "../contexts/rhythm/application/StartRhythmUseCase";
 import { StopRhythmForTodayUseCase } from "../contexts/rhythm/application/StopRhythmForTodayUseCase";
-import { SyncGoogleTodosUseCase } from "../contexts/todo/application/SyncGoogleTodosUseCase";
 import { AddTodoUseCase, DeleteTodoUseCase, GetTodoCalendarSummaryUseCase, GetTodosByDateUseCase, ReorderTodosUseCase, ToggleTodoUseCase, UpdateTodoUseCase } from "../contexts/todo/application/TodoUseCases";
 import { createAutoStartAdapter } from "../platform/autostart/createAutoStartAdapter";
 import { PlatformEnvironmentDetector } from "../platform/environment/PlatformEnvironmentDetector";
-import { GoogleTasksApiAdapter } from "../platform/google/GoogleTasksApiAdapter";
-import { GoogleTasksAuthAdapter } from "../platform/google/GoogleTasksAuthAdapter";
-import { GoogleTasksCredentialRepository } from "../platform/google/GoogleTasksCredentialRepository";
-import { GoogleTasksPendingDeletionRepository } from "../platform/google/GoogleTasksPendingDeletionRepository";
-import { GoogleTasksSettingsRepository } from "../platform/google/GoogleTasksSettingsRepository";
-import { GoogleTasksSyncAdapter } from "../platform/google/GoogleTasksSyncAdapter";
+import { NeutralinoBackupFileAdapter } from "../platform/neutralino/NeutralinoBackupFileAdapter";
 import { NeutralinoCommandExecutor } from "../platform/neutralino/NeutralinoCommandExecutor";
 import { NeutralinoNotificationSoundFileAdapter } from "../platform/neutralino/NeutralinoNotificationSoundFileAdapter";
 import { NeutralinoNotificationAdapter } from "../platform/neutralino/NeutralinoNotificationAdapter";
@@ -57,12 +52,7 @@ export async function composeApplication(): Promise<ComposedApplication> {
     await notificationSoundFiles.restoreCustomSoundMount();
   }
   const notificationSoundMode = new SetNotificationSoundModeUseCase(settingsRepository);
-  const googleSettings = new GoogleTasksSettingsRepository();
-  const googleCredentials = new GoogleTasksCredentialRepository();
-  const googleAuth = new GoogleTasksAuthAdapter(googleSettings, googleCredentials);
-  const googleApi = new GoogleTasksApiAdapter(googleSettings, googleCredentials);
-  const googlePendingDeletions = new GoogleTasksPendingDeletionRepository(googleSettings, clock);
-  const googleSync = new GoogleTasksSyncAdapter(googleSettings, googleApi, todoIdGenerator, clock, googlePendingDeletions);
+  const backupFile = new NeutralinoBackupFileAdapter();
   const autoStart = createAutoStartAdapter(
     await new PlatformEnvironmentDetector().detect(),
     new NeutralinoCommandExecutor(),
@@ -86,18 +76,14 @@ export async function composeApplication(): Promise<ComposedApplication> {
     updateNotificationSoundVolume: new UpdateNotificationSoundVolumeUseCase(settingsRepository),
     useDefaultNotificationSound: { execute: () => notificationSoundMode.useDefault() },
     addTodo: new AddTodoUseCase(todoRepository, todoIdGenerator, clock),
-    deleteTodo: new DeleteTodoUseCase(todoRepository, googlePendingDeletions),
+    deleteTodo: new DeleteTodoUseCase(todoRepository),
     getTodoCalendarSummary: new GetTodoCalendarSummaryUseCase(todoRepository),
     getTodosByDate: new GetTodosByDateUseCase(todoRepository),
     reorderTodos: new ReorderTodosUseCase(todoRepository, clock),
     toggleTodo: new ToggleTodoUseCase(todoRepository, clock),
     updateTodo: new UpdateTodoUseCase(todoRepository, clock),
-    beginGoogleAuthorization: { execute: (): Promise<string> => googleAuth.beginAuthorization() },
-    completeGoogleAuthorization: { execute: (codeOrUrl: string) => googleAuth.completeAuthorization(codeOrUrl) },
-    listGoogleTaskLists: { execute: () => googleApi.listTaskLists() },
-    saveGoogleOAuthClient: { execute: (client) => googleSettings.saveOAuthClient(client) },
-    selectGoogleTaskList: { execute: (taskListId: string) => googleSettings.selectTaskList(taskListId) },
-    syncGoogleTodos: new SyncGoogleTodosUseCase(todoRepository, googleSync),
+    exportBackup: new ExportBackupUseCase(settingsRepository, todoRepository, backupFile, clock),
+    importBackup: new ImportBackupUseCase(settingsRepository, todoRepository, backupFile),
     changeLanguage: new ChangeLanguagePreferenceUseCase(settingsRepository, runtime),
   };
 

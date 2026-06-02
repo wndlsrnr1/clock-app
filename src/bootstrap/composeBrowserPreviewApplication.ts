@@ -1,4 +1,5 @@
 import chimeSoundUrl from "../assets/CHIME14.mp3";
+import { ExportBackupUseCase, ImportBackupUseCase } from "../contexts/backup/application/BackupUseCases";
 import { ChangeLanguagePreferenceUseCase } from "../contexts/preferences/application/LanguagePreferenceUseCase";
 import { ChooseCustomNotificationSoundUseCase, PreviewNotificationSoundUseCase, SetNotificationSoundModeUseCase, StopNotificationSoundPreviewUseCase, UpdateNotificationSoundVolumeUseCase } from "../contexts/preferences/application/NotificationSoundUseCases";
 import { UpdatePreferencesUseCase } from "../contexts/preferences/application/UpdatePreferencesUseCase";
@@ -12,10 +13,10 @@ import { RhythmRuntime } from "../contexts/rhythm/application/RhythmRuntime";
 import { StartRhythmUseCase } from "../contexts/rhythm/application/StartRhythmUseCase";
 import { StopRhythmForTodayUseCase } from "../contexts/rhythm/application/StopRhythmForTodayUseCase";
 import type { RhythmEvent } from "../contexts/rhythm/domain/RhythmEvent";
-import { SyncGoogleTodosUseCase } from "../contexts/todo/application/SyncGoogleTodosUseCase";
 import { AddTodoUseCase, DeleteTodoUseCase, GetTodoCalendarSummaryUseCase, GetTodosByDateUseCase, ReorderTodosUseCase, ToggleTodoUseCase, UpdateTodoUseCase } from "../contexts/todo/application/TodoUseCases";
-import type { TodoRepository, TodoSyncPort, TodoSyncResult } from "../contexts/todo/application/ports";
+import type { TodoRepository } from "../contexts/todo/application/ports";
 import { TodoItem, type TodoItemSnapshot } from "../contexts/todo/domain/TodoItem";
+import { BrowserPreviewBackupFileAdapter } from "../platform/browser/BrowserPreviewBackupFileAdapter";
 import { BrowserPreviewNotificationSoundFileAdapter } from "../platform/browser/BrowserPreviewNotificationSoundFileAdapter";
 import { DeadlineScheduler } from "../platform/scheduler/DeadlineScheduler";
 import { BrowserTodoIdGenerator } from "../platform/todo/BrowserTodoIdGenerator";
@@ -36,7 +37,7 @@ export function composeBrowserPreviewApplication(): { services: RhythmAppService
   const rhythmRescheduler = new RunningRhythmRescheduler(runtime, scheduler, notification, sound, clock);
   const autoStart = new BrowserPreviewAutoStartAdapter();
   const notificationSoundMode = new SetNotificationSoundModeUseCase(settingsRepository);
-  const googleSync = new BrowserPreviewTodoSyncPort();
+  const backupFile = new BrowserPreviewBackupFileAdapter();
 
   return {
     services: {
@@ -59,12 +60,8 @@ export function composeBrowserPreviewApplication(): { services: RhythmAppService
       reorderTodos: new ReorderTodosUseCase(todoRepository, clock),
       toggleTodo: new ToggleTodoUseCase(todoRepository, clock),
       updateTodo: new UpdateTodoUseCase(todoRepository, clock),
-      beginGoogleAuthorization: { execute: () => Promise.resolve("https://accounts.google.com/mock") },
-      completeGoogleAuthorization: { execute: () => Promise.resolve() },
-      listGoogleTaskLists: { execute: () => Promise.resolve([{ id: "preview", title: "Preview Tasks" }]) },
-      saveGoogleOAuthClient: { execute: () => Promise.resolve() },
-      selectGoogleTaskList: { execute: () => Promise.resolve() },
-      syncGoogleTodos: new SyncGoogleTodosUseCase(todoRepository, googleSync),
+      exportBackup: new ExportBackupUseCase(settingsRepository, todoRepository, backupFile, clock),
+      importBackup: new ImportBackupUseCase(settingsRepository, todoRepository, backupFile),
       changeLanguage: new ChangeLanguagePreferenceUseCase(settingsRepository, runtime),
     },
   };
@@ -232,18 +229,6 @@ class BrowserPreviewTodoRepository implements TodoRepository {
 }
 
 class BrowserPreviewNotificationSoundFilePort extends BrowserPreviewNotificationSoundFileAdapter {}
-
-class BrowserPreviewTodoSyncPort implements TodoSyncPort {
-  public async sync(todos: Array<TodoItem>): Promise<TodoSyncResult> {
-    return {
-      deleted: 0,
-      imported: 0,
-      todos,
-      updated: 0,
-      uploaded: 0,
-    };
-  }
-}
 
 class BrowserPreviewAutoStartAdapter implements AutoStartPort {
   public async enable(): Promise<void> {}

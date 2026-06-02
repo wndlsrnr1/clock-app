@@ -57,36 +57,6 @@ export interface GetTodoCalendarSummaryService {
   execute(month: string): Promise<Record<string, TodoDaySummary>>;
 }
 
-export interface SaveGoogleOAuthClientCommand {
-  clientId: string;
-  clientSecret: string;
-}
-
-export interface SaveGoogleOAuthClientService {
-  execute(command: SaveGoogleOAuthClientCommand): Promise<unknown>;
-}
-
-export interface GoogleTaskListSnapshot {
-  id: string;
-  title: string;
-}
-
-export interface CompleteGoogleAuthorizationService {
-  execute(codeOrUrl: string): Promise<unknown>;
-}
-
-export interface ListGoogleTaskListsService {
-  execute(): Promise<Array<GoogleTaskListSnapshot>>;
-}
-
-export interface SelectGoogleTaskListService {
-  execute(taskListId: string): Promise<unknown>;
-}
-
-export interface SyncGoogleTodosService {
-  execute(): Promise<{ uploaded: number; imported: number; updated: number; deleted: number }>;
-}
-
 export interface RhythmAppServices {
   startRhythm: AsyncStatusUseCase;
   pauseRhythm: AsyncStatusUseCase;
@@ -107,11 +77,7 @@ export interface RhythmAppServices {
   reorderTodos: ReorderTodosService;
   toggleTodo: TodoIdService;
   updateTodo: UpdateTodoService;
-  beginGoogleAuthorization: { execute(): Promise<string> };
-  completeGoogleAuthorization: CompleteGoogleAuthorizationService;
-  listGoogleTaskLists: ListGoogleTaskListsService;
-  saveGoogleOAuthClient: SaveGoogleOAuthClientService;
-  selectGoogleTaskList: SelectGoogleTaskListService;
-  syncGoogleTodos: SyncGoogleTodosService;
+  exportBackup: VoidUseCase;
+  importBackup: VoidUseCase;
   changeLanguage: ChangeLanguageService;
 }

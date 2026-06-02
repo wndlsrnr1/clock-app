@@ -11,7 +11,6 @@ export interface TodoItemSnapshot {
   displayOrder: number;
   createdAt: string;
   updatedAt: string;
-  googleTaskId: string | null;
 }
 
 export interface CreateTodoItemCommand {
@@ -21,7 +20,6 @@ export interface CreateTodoItemCommand {
   time?: string | null;
   displayOrder?: number;
   now: Date;
-  googleTaskId?: string | null;
 }
 
 export class TodoItem {
@@ -34,7 +32,6 @@ export class TodoItem {
     private readonly displayOrder: number,
     private readonly createdAt: Date,
     private readonly updatedAt: Date,
-    private readonly googleTaskId: string | null,
   ) {}
 
   public static create(command: CreateTodoItemCommand): TodoItem {
@@ -47,7 +44,6 @@ export class TodoItem {
       TodoItem.validDisplayOrder(command.displayOrder ?? command.now.getTime()),
       command.now,
       command.now,
-      command.googleTaskId ?? null,
     );
   }
 
@@ -61,7 +57,6 @@ export class TodoItem {
       TodoItem.displayOrderFromSnapshot(snapshot),
       new Date(snapshot.createdAt),
       new Date(snapshot.updatedAt),
-      snapshot.googleTaskId,
     );
   }
 
@@ -111,7 +106,6 @@ export class TodoItem {
       this.displayOrder,
       this.createdAt,
       now,
-      this.googleTaskId,
     );
   }
 
@@ -125,7 +119,6 @@ export class TodoItem {
       TodoItem.validDisplayOrder(displayOrder),
       this.createdAt,
       now,
-      this.googleTaskId,
     );
   }
 
@@ -139,21 +132,6 @@ export class TodoItem {
       TodoItem.validDisplayOrder(displayOrder),
       this.createdAt,
       now,
-      this.googleTaskId,
-    );
-  }
-
-  public connectGoogleTask(googleTaskId: string, now: Date): TodoItem {
-    return new TodoItem(
-      this.id,
-      this.title,
-      this.date,
-      this.time,
-      this.completed,
-      this.displayOrder,
-      this.createdAt,
-      now,
-      googleTaskId,
     );
   }
 
@@ -163,7 +141,6 @@ export class TodoItem {
       createdAt: this.createdAt.toISOString(),
       date: this.date.value,
       displayOrder: this.displayOrder,
-      googleTaskId: this.googleTaskId,
       id: this.id,
       time: this.time?.value ?? null,
       title: this.title.value,
@@ -181,7 +158,6 @@ export class TodoItem {
       this.displayOrder,
       this.createdAt,
       now,
-      this.googleTaskId,
     );
   }
 

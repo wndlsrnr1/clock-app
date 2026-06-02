@@ -1,7 +1,7 @@
 import { useEffect, useReducer } from "react";
 import type { TodoDaySummary } from "../contexts/todo/domain/TodoList";
 import type { TodoItemSnapshot } from "../contexts/todo/domain/TodoItem";
-import type { GoogleTaskListSnapshot, RhythmAppServices } from "./RhythmAppServices";
+import type { RhythmAppServices } from "./RhythmAppServices";
 import { addMonthsToMonthKey, currentMonthKey, formatDateKey } from "./dateFormat";
 import { formatText, type TextCatalog } from "./textCatalog";
 import { normalizeOptionalTimeText } from "./timeText";
@@ -21,14 +21,6 @@ interface TodoEditState {
   time: string;
 }
 
-interface GoogleTasksState {
-  clientId: string;
-  clientSecret: string;
-  authorizationCode: string;
-  taskLists: Array<GoogleTaskListSnapshot>;
-  selectedTaskListId: string;
-}
-
 interface TodoAppState {
   page: AppPage;
   todayDate: string;
@@ -39,7 +31,7 @@ interface TodoAppState {
   calendarSummary: Record<string, TodoDaySummary>;
   form: TodoFormState;
   edit: TodoEditState | null;
-  google: GoogleTasksState;
+  importConfirmationOpen: boolean;
   message: string;
 }
 
@@ -56,7 +48,7 @@ type TodoAppAction =
   | { type: "EDIT_STARTED"; todo: TodoItemSnapshot }
   | { type: "EDIT_CHANGED"; field: keyof TodoEditState; value: string | boolean }
   | { type: "EDIT_CLEARED" }
-  | { type: "GOOGLE_CHANGED"; field: keyof GoogleTasksState; value: string | Array<GoogleTaskListSnapshot> }
+  | { type: "IMPORT_CONFIRMATION_CHANGED"; open: boolean }
   | { type: "MESSAGE_CHANGED"; message: string };
 
 export interface TodoAppViewModel {
@@ -69,7 +61,7 @@ export interface TodoAppViewModel {
   calendarSummary: Record<string, TodoDaySummary>;
   form: TodoFormState;
   edit: TodoEditState | null;
-  google: GoogleTasksState;
+  importConfirmationOpen: boolean;
   message: string;
   showClock(): Promise<void>;
   showCalendar(): Promise<void>;
@@ -90,15 +82,10 @@ export interface TodoAppViewModel {
   changeCalendarMonth(month: string): Promise<void>;
   moveCalendarMonth(offset: -1 | 1): Promise<void>;
   goToTodayMonth(): Promise<void>;
-  changeGoogleClientId(clientId: string): void;
-  changeGoogleClientSecret(clientSecret: string): void;
-  saveGoogleOAuthClient(): Promise<void>;
-  beginGoogleAuthorization(): Promise<void>;
-  changeAuthorizationCode(code: string): void;
-  completeGoogleAuthorization(): Promise<void>;
-  loadGoogleTaskLists(): Promise<void>;
-  selectGoogleTaskList(taskListId: string): Promise<void>;
-  syncGoogleTodos(): Promise<void>;
+  exportBackup(): Promise<void>;
+  requestImportBackup(): void;
+  cancelImportBackup(): void;
+  confirmImportBackup(): Promise<void>;
 }
 
 export function useTodoApp(services: RhythmAppServices, currentNow: Date, text: TextCatalog): TodoAppViewModel {
@@ -135,36 +122,30 @@ export function useTodoApp(services: RhythmAppServices, currentNow: Date, text: 
       dispatch({ type: "TODO_FORM_CLEARED" });
       await refreshTodoViews(services, state, dispatch);
     },
-    beginGoogleAuthorization: async (): Promise<void> => {
-      await runGoogleAction(async (): Promise<void> => {
-        const authorizationUrl = await services.beginGoogleAuthorization.execute();
-        dispatch({ type: "MESSAGE_CHANGED", message: formatText(text.messages.googleAuthorizationStarted, { url: authorizationUrl }) });
-      }, text, dispatch);
-    },
     cancelEditing: (): void => dispatch({ type: "EDIT_CLEARED" }),
-    changeAuthorizationCode: (code: string): void => dispatch({ type: "GOOGLE_CHANGED", field: "authorizationCode", value: code }),
     changeCalendarMonth,
     changeEditDate: (date: string): void => dispatch({ type: "EDIT_CHANGED", field: "date", value: date }),
     changeEditTime: (time: string): void => dispatch({ type: "EDIT_CHANGED", field: "time", value: time }),
     changeEditTitle: (title: string): void => dispatch({ type: "EDIT_CHANGED", field: "title", value: title }),
-    changeGoogleClientId: (clientId: string): void => dispatch({ type: "GOOGLE_CHANGED", field: "clientId", value: clientId }),
-    changeGoogleClientSecret: (clientSecret: string): void => dispatch({ type: "GOOGLE_CHANGED", field: "clientSecret", value: clientSecret }),
     changeTime: (time: string): void => dispatch({ type: "TODO_FORM_CHANGED", field: "time", value: time }),
     changeTitle: (title: string): void => dispatch({ type: "TODO_FORM_CHANGED", field: "title", value: title }),
-    completeGoogleAuthorization: async (): Promise<void> => {
-      await runGoogleAction(async (): Promise<void> => {
-        await services.completeGoogleAuthorization.execute(state.google.authorizationCode);
-        dispatch({ type: "MESSAGE_CHANGED", message: text.messages.googleAuthorizationSaved });
+    cancelImportBackup: (): void => dispatch({ type: "IMPORT_CONFIRMATION_CHANGED", open: false }),
+    confirmImportBackup: async (): Promise<void> => {
+      await runTodoAction(async (): Promise<void> => {
+        await services.importBackup.execute();
+        dispatch({ type: "IMPORT_CONFIRMATION_CHANGED", open: false });
+        dispatch({ type: "MESSAGE_CHANGED", message: text.messages.backupImported });
+        await refreshTodoViews(services, state, dispatch);
       }, text, dispatch);
     },
     deleteTodo: async (id: string): Promise<void> => {
       await services.deleteTodo.execute(id);
       await refreshTodoViews(services, state, dispatch);
     },
-    loadGoogleTaskLists: async (): Promise<void> => {
-      await runGoogleAction(async (): Promise<void> => {
-        const taskLists = await services.listGoogleTaskLists.execute();
-        dispatch({ type: "GOOGLE_CHANGED", field: "taskLists", value: taskLists });
+    exportBackup: async (): Promise<void> => {
+      await runTodoAction(async (): Promise<void> => {
+        await services.exportBackup.execute();
+        dispatch({ type: "MESSAGE_CHANGED", message: text.messages.backupExported });
       }, text, dispatch);
     },
     goToTodayMonth: async (): Promise<void> => {
@@ -200,26 +181,11 @@ export function useTodoApp(services: RhythmAppServices, currentNow: Date, text: 
       dispatch({ type: "EDIT_CLEARED" });
       await refreshTodoViews(services, state, dispatch);
     },
-    saveGoogleOAuthClient: async (): Promise<void> => {
-      await runGoogleAction(async (): Promise<void> => {
-        await services.saveGoogleOAuthClient.execute({
-          clientId: state.google.clientId,
-          clientSecret: state.google.clientSecret,
-        });
-        dispatch({ type: "MESSAGE_CHANGED", message: text.messages.googleOAuthClientSaved });
-      }, text, dispatch);
-    },
     selectDate: async (date: string): Promise<void> => {
       dispatch({ type: "SELECTED_DATE_CHANGED", date });
       await refreshSelectedDate(services, date, dispatch);
     },
-    selectGoogleTaskList: async (taskListId: string): Promise<void> => {
-      await runGoogleAction(async (): Promise<void> => {
-        await services.selectGoogleTaskList.execute(taskListId);
-        dispatch({ type: "GOOGLE_CHANGED", field: "selectedTaskListId", value: taskListId });
-        dispatch({ type: "MESSAGE_CHANGED", message: text.messages.googleTaskListSelected });
-      }, text, dispatch);
-    },
+    requestImportBackup: (): void => dispatch({ type: "IMPORT_CONFIRMATION_CHANGED", open: true }),
     showCalendar: async (): Promise<void> => {
       dispatch({ type: "PAGE_CHANGED", page: "calendar" });
       await refreshCalendarSummary(services, state.calendarMonth, dispatch);
@@ -230,21 +196,6 @@ export function useTodoApp(services: RhythmAppServices, currentNow: Date, text: 
     },
     showTimeInput: (): void => dispatch({ type: "TODO_FORM_CHANGED", field: "timeEnabled", value: true }),
     startEditing: (todo: TodoItemSnapshot): void => dispatch({ type: "EDIT_STARTED", todo }),
-    syncGoogleTodos: async (): Promise<void> => {
-      await runGoogleAction(async (): Promise<void> => {
-        const result = await services.syncGoogleTodos.execute();
-        dispatch({
-          type: "MESSAGE_CHANGED",
-          message: formatText(text.messages.googleSyncCompleted, {
-            deleted: result.deleted,
-            imported: result.imported,
-            updated: result.updated,
-            uploaded: result.uploaded,
-          }),
-        });
-        await refreshTodoViews(services, state, dispatch);
-      }, text, dispatch);
-    },
     toggleTodo: async (id: string): Promise<void> => {
       await services.toggleTodo.execute(id);
       await refreshTodoViews(services, state, dispatch);
@@ -260,7 +211,7 @@ function createInitialState(initialNow: Date): TodoAppState {
     calendarSummary: {},
     edit: null,
     form: { time: "", timeEnabled: false, title: "" },
-    google: { authorizationCode: "", clientId: "", clientSecret: "", selectedTaskListId: "", taskLists: [] },
+    importConfirmationOpen: false,
     message: "",
     page: "clock",
     selectedDate: todayDate,
@@ -335,8 +286,8 @@ function reducer(state: TodoAppState, action: TodoAppAction): TodoAppState {
     return { ...state, edit: null };
   }
 
-  if (action.type === "GOOGLE_CHANGED") {
-    return { ...state, google: { ...state.google, [action.field]: action.value } };
+  if (action.type === "IMPORT_CONFIRMATION_CHANGED") {
+    return { ...state, importConfirmationOpen: action.open };
   }
 
   if (action.type === "MESSAGE_CHANGED") {
@@ -393,7 +344,7 @@ function normalizedTodoTime(
   }
 }
 
-async function runGoogleAction(
+async function runTodoAction(
   action: () => Promise<void>,
   text: TextCatalog,
   dispatch: React.Dispatch<TodoAppAction>,
@@ -403,12 +354,12 @@ async function runGoogleAction(
   } catch (error) {
     dispatch({
       type: "MESSAGE_CHANGED",
-      message: formatText(text.messages.googleActionFailed, { message: googleErrorMessage(error, text) }),
+      message: formatText(text.messages.backupFailed, { message: actionErrorMessage(error, text) }),
     });
   }
 }
 
-function googleErrorMessage(error: unknown, text: TextCatalog): string {
+function actionErrorMessage(error: unknown, text: TextCatalog): string {
   if (error instanceof Error && error.message) {
     return error.message;
   }

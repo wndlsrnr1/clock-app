@@ -1,21 +1,19 @@
 import { storage } from "@neutralinojs/lib";
 import type { SettingsRepository } from "../../contexts/rhythm/application/ports";
-import { UserPreferences, type LanguagePreference, type NotificationSoundPreference } from "../../contexts/preferences/domain/UserPreferences";
+import { UserPreferences, type UserPreferencesSnapshot } from "../../contexts/preferences/domain/UserPreferences";
 
 export interface NeutralinoStoragePort {
   getData(key: string): Promise<string>;
   setData(key: string, value: string): Promise<void>;
 }
 
-interface SavedPreferences {
+type SavedPreferences = Partial<UserPreferencesSnapshot> & {
   focusMinutes: number;
   restMinutes: number;
   dailyStart: string;
   dailyEnd: string;
   autoStartEnabled: boolean;
-  notificationSound?: NotificationSoundPreference;
-  language?: LanguagePreference;
-}
+};
 
 export class NeutralinoSettingsRepository implements SettingsRepository {
   private readonly key = "user-preferences";
@@ -34,16 +32,6 @@ export class NeutralinoSettingsRepository implements SettingsRepository {
   }
 
   public async save(preferences: UserPreferences): Promise<void> {
-    const saved: SavedPreferences = {
-      focusMinutes: preferences.focusMinutes.value,
-      restMinutes: preferences.restMinutes.value,
-      dailyStart: preferences.dailyRhythm.start.toText(),
-      dailyEnd: preferences.dailyRhythm.end.toText(),
-      autoStartEnabled: preferences.autoStart.enabled,
-      notificationSound: preferences.notificationSound,
-      language: preferences.language,
-    };
-
-    await this.neutralinoStorage.setData(this.key, JSON.stringify(saved));
+    await this.neutralinoStorage.setData(this.key, JSON.stringify(preferences.snapshot()));
   }
 }

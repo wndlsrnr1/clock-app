@@ -51,7 +51,6 @@ describe("TodoItem", () => {
       completed: false,
       createdAt: "2026-06-02T09:03:00.000Z",
       date: "2026-06-02",
-      googleTaskId: null,
       id: "todo-1",
       time: null,
       title: "기존 할 일",

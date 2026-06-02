@@ -3,7 +3,7 @@ import type { TodoAppViewModel } from "../useTodoApp";
 import { calendarDays, type CalendarDayCell } from "../calendarDays";
 import { formatMonthLabel } from "../dateFormat";
 import { formatText, type TextCatalog } from "../textCatalog";
-import { GoogleTasksPanel } from "./GoogleTasksPanel";
+import { DataManagementPanel } from "./DataManagementPanel";
 import { TodoListPanel } from "./TodoListPanel";
 
 interface CalendarPageProps {
@@ -68,7 +68,7 @@ export function CalendarPage({ language, text, todo }: CalendarPageProps): React
           />
         </section>
       </div>
-      <GoogleTasksPanel text={text} todo={todo} />
+      <DataManagementPanel text={text} todo={todo} />
     </section>
   );
 }

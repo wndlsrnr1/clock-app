@@ -9,7 +9,7 @@ import {
   ToggleTodoUseCase,
   UpdateTodoUseCase,
 } from "./TodoUseCases";
-import type { TodoClock, TodoDeletionSyncPort, TodoIdGenerator, TodoRepository } from "./ports";
+import type { TodoClock, TodoIdGenerator, TodoRepository } from "./ports";
 
 class InMemoryTodoRepository implements TodoRepository {
   public constructor(private todos: Array<TodoItem> = []) {}
@@ -32,14 +32,6 @@ class FixedIdGenerator implements TodoIdGenerator {
 class FixedTodoClock implements TodoClock {
   public now(): Date {
     return new Date("2026-06-02T09:00:00");
-  }
-}
-
-class FakeTodoDeletionSyncPort implements TodoDeletionSyncPort {
-  public recordedTodoIds: Array<string> = [];
-
-  public async recordDeletedTodo(todo: TodoItem): Promise<void> {
-    this.recordedTodoIds.push(todo.todoId);
   }
 }
 
@@ -91,39 +83,6 @@ describe("Todo use cases", () => {
     expect(completed.completed).toBe(true);
     expect(updated).toMatchObject({ date: "2026-06-03", time: "07:30", title: "아침 운동" } satisfies Partial<TodoItemSnapshot>);
     expect(remaining).toHaveLength(0);
-  });
-
-  it("records a Google-linked todo deletion before removing it locally", async () => {
-    const deletionSync = new FakeTodoDeletionSyncPort();
-    const repository = new InMemoryTodoRepository([
-      TodoItem.create({
-        date: "2026-06-02",
-        displayOrder: 0,
-        googleTaskId: "google-task-1",
-        id: "todo-1",
-        now: new Date("2026-06-02T08:00:00"),
-        title: "Google 할 일",
-      }),
-    ]);
-    const useCase = new DeleteTodoUseCase(repository, deletionSync);
-
-    await useCase.execute("todo-1");
-    const remaining = await repository.getAll();
-
-    expect(deletionSync.recordedTodoIds).toEqual(["todo-1"]);
-    expect(remaining).toHaveLength(0);
-  });
-
-  it("does not record a pending deletion for a local-only todo", async () => {
-    const deletionSync = new FakeTodoDeletionSyncPort();
-    const repository = new InMemoryTodoRepository([
-      TodoItem.create({ date: "2026-06-02", displayOrder: 0, id: "todo-1", now: new Date("2026-06-02T08:00:00"), title: "로컬 할 일" }),
-    ]);
-    const useCase = new DeleteTodoUseCase(repository, deletionSync);
-
-    await useCase.execute("todo-1");
-
-    expect(deletionSync.recordedTodoIds).toEqual([]);
   });
 
   it("adds new todos at the end of their date order", async () => {

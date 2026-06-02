@@ -7,6 +7,7 @@ import { RhythmSettingsPanel } from "./components/RhythmSettingsPanel";
 import { SegmentedControl } from "./components/SegmentedControl";
 import { TodayTodoPanel } from "./components/TodayTodoPanel";
 import type { RhythmAppServices } from "./RhythmAppServices";
+import { useLayoutMode } from "./useLayoutMode";
 import { useRhythmApp } from "./useRhythmApp";
 import { useTodoApp } from "./useTodoApp";
 
@@ -19,10 +20,11 @@ export function RhythmApp({ services, initialNow = new Date() }: RhythmAppProps)
   const rhythm = useRhythmApp(services, initialNow);
   const todo = useTodoApp(services, rhythm.now, rhythm.text);
   const text = rhythm.text;
+  const { containerRef, layoutMode } = useLayoutMode();
 
   return (
     <main className="app-shell">
-      <section className="box">
+      <section className={`box box--${layoutMode}`} ref={containerRef}>
         <nav className="app-nav" aria-label={text.navigation.aria}>
           <SegmentedControl
             ariaLabel={text.navigation.aria}

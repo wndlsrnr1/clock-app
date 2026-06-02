@@ -101,28 +101,16 @@
     "noTodo": "No tasks",
     "weekdays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
   },
-  "googleTasks": {
-    "eyebrow": "Google",
-    "title": "Google Tasks sync",
-    "clientIdTitle": "OAuth Client",
-    "clientIdLabel": "Client ID",
-    "clientSecretLabel": "Client Secret",
-    "oauthClientSave": "Save OAuth info",
-    "clientIdHelp": "Save the Desktop OAuth Client ID and Client Secret created in Google Cloud Console.",
-    "authTitle": "Authorization",
-    "authOpen": "Open auth URL",
-    "authCodeLabel": "Auth code or redirect URL",
-    "authCodeAria": "Google authorization code",
-    "authSave": "Save auth",
-    "authHelp": "After browser authorization, pasting the full redirect URL is recommended. Pasting only the code still works.",
-    "taskListTitle": "Task list",
-    "taskListLoad": "Load lists",
-    "taskListLabel": "Linked list",
-    "taskListAria": "Google Tasks list",
-    "taskListPlaceholder": "Select",
-    "taskListSync": "Sync manually",
-    "taskListHelp": "Choose the Google Tasks list to sync with local todos manually.",
-    "help": "{title} help"
+  "backup": {
+    "eyebrow": "Data",
+    "title": "Data management",
+    "description": "Back up settings and todos to JSON, or replace all local data from a backup.",
+    "export": "Export",
+    "import": "Import",
+    "importConfirmTitle": "Import backup",
+    "importConfirmDescription": "Current settings and todos will be fully replaced by the backup file.",
+    "confirmImport": "Replace all",
+    "cancel": "Cancel"
   },
   "messages": {
     "preferencesSaved": "Settings saved.",
@@ -138,12 +126,9 @@
     "rhythmStoppedForToday": "Today rhythm ended.",
     "languageChanged": "Language changed.",
     "invalidTime": "Enter time as 14:30 or 1430.",
-    "googleAuthorizationStarted": "Opened authorization URL. Paste the code value from the redirect URL. {url}",
-    "googleAuthorizationSaved": "Google Tasks authorization saved.",
-    "googleOAuthClientSaved": "Google OAuth info saved.",
-    "googleTaskListSelected": "Google Tasks list selected.",
-    "googleSyncCompleted": "Google sync completed: uploaded {uploaded}, imported {imported}, updated {updated}, deleted {deleted}",
-    "googleActionFailed": "Google action failed: {message}",
+    "backupExported": "Backup exported.",
+    "backupImported": "Backup imported and all local data was replaced.",
+    "backupFailed": "Backup action failed: {message}",
     "unknownError": "Unknown error"
   }
 }
