@@ -1,0 +1,43 @@
+import { TodoItem } from "../../contexts/todo/domain/TodoItem";
+
+export interface GoogleTaskResource {
+  id: string;
+  title?: string;
+  status?: "needsAction" | "completed";
+  due?: string;
+}
+
+export interface GoogleTaskPayload {
+  title: string;
+  status: "needsAction" | "completed";
+  due: string;
+}
+
+export class GoogleTasksMapper {
+  public static toGoogleTaskPayload(todo: TodoItem): GoogleTaskPayload {
+    const snapshot = todo.snapshot();
+
+    return {
+      due: `${snapshot.date}T00:00:00.000Z`,
+      status: snapshot.completed ? "completed" : "needsAction",
+      title: snapshot.title,
+    };
+  }
+
+  public static fromGoogleTask(task: GoogleTaskResource, identity: { id: string; now: Date }): TodoItem {
+    const dueDate = task.due?.slice(0, 10) ?? identity.now.toISOString().slice(0, 10);
+    const todo = TodoItem.create({
+      date: dueDate,
+      googleTaskId: task.id,
+      id: identity.id,
+      now: identity.now,
+      title: task.title ?? "제목 없는 Google 할 일",
+    });
+
+    if (task.status === "completed") {
+      return todo.complete(identity.now);
+    }
+
+    return todo;
+  }
+}
