@@ -25,8 +25,8 @@
     "settings": {
       "focusMinutes": "집중 시간",
       "restMinutes": "휴식 시간",
-      "dailyStart": "하루 시작",
-      "dailyEnd": "하루 종료",
+      "dailyStart": "집중 시간대 시작",
+      "dailyEnd": "집중 시간대 종료",
       "autoStart": "시작프로그램에 등록",
       "save": "설정 저장",
       "decrease": "{label} 줄이기",
@@ -35,7 +35,18 @@
       "minuteRange": "{min}-{max}분으로 입력해주세요.",
       "nextAlarm": "다음 알림: {time}",
       "nextAlarmUnavailable": "시간 설정을 확인해주세요.",
-      "outsideDailyRhythm": "현재는 리듬 시간 밖입니다."
+      "outsideDailyRhythm": "현재는 집중 시간대 밖입니다."
+    },
+    "disclosure": {
+      "title": "집중 시간대/알림 설정",
+      "expand": "집중 시간대/알림 설정 펼치기",
+      "collapse": "집중 시간대/알림 설정 접기",
+      "summary": "{focus}분 집중 · {rest}분 휴식 · {dailyStart}-{dailyEnd} · {sound}",
+      "dirty": "저장 필요",
+      "invalid": "시간 설정 오류",
+      "muted": "무음",
+      "zeroVolume": "볼륨 0%",
+      "outsideDailyRhythm": "집중 시간대 밖"
     },
     "controls": {
       "start": "시작",
@@ -143,9 +154,9 @@
     "soundPreviewStopped": "알림음 미리듣기를 끝냈습니다.",
     "defaultSoundRestored": "기본 알림음으로 되돌렸습니다.",
     "volumeChanged": "알림음 볼륨을 {volume}%로 설정했습니다.",
-    "rhythmRunning": "리듬이 실행 중입니다.",
-    "rhythmPaused": "리듬을 일시정지했습니다.",
-    "rhythmStoppedForToday": "오늘의 리듬을 종료했습니다.",
+    "rhythmRunning": "집중 시간대가 실행 중입니다.",
+    "rhythmPaused": "집중 시간대를 일시정지했습니다.",
+    "rhythmStoppedForToday": "오늘의 집중 시간대를 종료했습니다.",
     "languageChanged": "언어 설정을 변경했습니다.",
     "invalidTime": "시간은 14:30 또는 1430 형식으로 입력해주세요.",
     "todoActionFailed": "Todo 작업 실패: {message}",

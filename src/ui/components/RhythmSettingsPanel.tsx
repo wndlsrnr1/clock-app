@@ -1,7 +1,6 @@
 import type { UpdatePreferencesCommand } from "../../contexts/preferences/application/UpdatePreferencesUseCase";
 import { rhythmMinuteRanges } from "../inputValidation";
-import type { RhythmSettingsPreview } from "../rhythmPreview";
-import { formatText, type TextCatalog } from "../textCatalog";
+import type { TextCatalog } from "../textCatalog";
 import { NumberStepperField } from "./NumberStepperField";
 import { TimeInputField } from "./TimeInputField";
 
@@ -14,7 +13,6 @@ interface RhythmSettingsPanelProps {
   onDailyEndChange(value: string): void;
   onAutoStartChange(enabled: boolean): void;
   onSave(): Promise<void>;
-  settingsPreview: RhythmSettingsPreview;
   text: TextCatalog;
 }
 
@@ -27,7 +25,6 @@ export function RhythmSettingsPanel({
   onDailyEndChange,
   onAutoStartChange,
   onSave,
-  settingsPreview,
   text,
 }: RhythmSettingsPanelProps): React.JSX.Element {
   return (
@@ -40,16 +37,6 @@ export function RhythmSettingsPanel({
         <NumberStepperField label={text.rhythm.settings.restMinutes} max={rhythmMinuteRanges.rest.max} min={rhythmMinuteRanges.rest.min} onChange={onRestMinutesChange} text={text} value={form.restMinutes} />
         <TimeInputField label={text.rhythm.settings.dailyStart} onChange={onDailyStartChange} text={text} value={form.dailyStart} />
         <TimeInputField label={text.rhythm.settings.dailyEnd} onChange={onDailyEndChange} text={text} value={form.dailyEnd} />
-      </div>
-      <div className="settings-preview">
-        {settingsPreview.status === "ready" ? (
-          <>
-            <p>{formatText(text.rhythm.settings.nextAlarm, { time: settingsPreview.nextAlarmTime })}</p>
-            {settingsPreview.isOutsideDailyRhythm ? <p className="warning-text">{text.rhythm.settings.outsideDailyRhythm}</p> : null}
-          </>
-        ) : (
-          <p className="warning-text">{text.rhythm.settings.nextAlarmUnavailable}</p>
-        )}
       </div>
       <label className="toggle-row">
         <input checked={form.autoStartEnabled} onChange={(event) => onAutoStartChange(event.target.checked)} type="checkbox" />

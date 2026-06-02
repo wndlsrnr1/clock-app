@@ -26,7 +26,8 @@ export class UpdatePreferencesUseCase {
     const preferences = (await this.settingsRepository.get())
       .changeTerms(command.focusMinutes, command.restMinutes)
       .changeDailyRhythm(command.dailyStart, command.dailyEnd)
-      .changeAutoStart(command.autoStartEnabled);
+      .changeAutoStart(command.autoStartEnabled)
+      .completeInitialSetup();
     await this.settingsRepository.save(preferences);
     this.runtime?.replacePreferences(preferences);
     this.rescheduler?.rescheduleIfRunning();

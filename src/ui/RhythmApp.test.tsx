@@ -19,6 +19,7 @@ function runningStatus(): RhythmStatusSnapshot {
     autoStartEnabled: false,
     notificationSound: Preferences.default().notificationSound,
     language: "kor",
+    initialSetupCompleted: true,
   };
 }
 
@@ -138,6 +139,10 @@ function defaultPreparedBackupImport(): PreparedBackupImport {
   };
 }
 
+async function openRhythmSettings(user: ReturnType<typeof userEvent.setup>): Promise<void> {
+  await user.click(screen.getByRole("button", { name: /집중 시간대\/알림 설정|Focus window\/sound settings/ }));
+}
+
 describe("RhythmApp", () => {
   it("observes the app shell size when choosing layout mode", async () => {
     const originalResizeObserver = globalThis.ResizeObserver;
@@ -166,21 +171,48 @@ describe("RhythmApp", () => {
     }
   });
 
-  it("renders the live clock and editable rhythm settings", () => {
+  it("renders the live clock, controls, todo list, and collapsed rhythm settings summary", () => {
     const services = createServices();
 
     render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
 
     expect(screen.getByText("05 : 10 : 00")).toBeInTheDocument();
+    expect(screen.getByText("다음 알림: 05:50")).toBeInTheDocument();
+    expect(screen.getByText("대기")).toBeInTheDocument();
+    expect(screen.queryByText("idle")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "시작" })).toBeInTheDocument();
+    expect(screen.getByText("오늘 할 일")).toBeInTheDocument();
+    expect(screen.getByText("50분 집중 · 10분 휴식 · 05:00-18:00 · 기본")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /집중 시간대\/알림 설정/ })).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByLabelText("집중 시간")).not.toBeInTheDocument();
+  });
+
+  it("expands the rhythm and sound settings when the summary is toggled", async () => {
+    const user = userEvent.setup();
+    const services = createServices();
+
+    render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
+
+    await openRhythmSettings(user);
+
+    expect(screen.getByRole("button", { name: /집중 시간대\/알림 설정/ })).toHaveAttribute("aria-expanded", "true");
     expect(screen.getByLabelText("집중 시간")).toHaveValue("50");
     expect(screen.getByLabelText("휴식 시간")).toHaveValue("10");
     expect(screen.getByText("분 · 1-180")).toBeInTheDocument();
     expect(screen.getByText("분 · 1-60")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "하루 시작" })).toHaveTextContent("05:00");
-    expect(screen.getByRole("button", { name: "하루 종료" })).toHaveTextContent("18:00");
-    expect(screen.getByText("다음 알림: 05:50")).toBeInTheDocument();
-    expect(screen.getByText("대기")).toBeInTheDocument();
-    expect(screen.queryByText("idle")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "집중 시간대 시작" })).toHaveTextContent("05:00");
+    expect(screen.getByRole("button", { name: "집중 시간대 종료" })).toHaveTextContent("18:00");
+    expect(screen.getByRole("button", { name: "기본" })).toBeInTheDocument();
+  });
+
+  it("opens rhythm settings on the first launch until setup is saved once", () => {
+    const services = createServices();
+    services.getStatus = { execute: vi.fn(() => ({ ...idleStatus(), initialSetupCompleted: false })) };
+
+    render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
+
+    expect(screen.getByRole("button", { name: /집중 시간대\/알림 설정/ })).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByLabelText("집중 시간")).toHaveValue("50");
   });
 
   it("keeps minute inputs as drafts until a valid value is committed", async () => {
@@ -188,6 +220,8 @@ describe("RhythmApp", () => {
     const services = createServices();
 
     render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
+
+    await openRhythmSettings(user);
 
     const focusInput = screen.getByLabelText("집중 시간");
     await user.clear(focusInput);
@@ -225,16 +259,17 @@ describe("RhythmApp", () => {
     render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
 
     await user.click(screen.getByRole("button", { name: "English" }));
+    await openRhythmSettings(user);
 
-    const dayStart = await screen.findByRole("button", { name: "Day start" });
-    const dayEnd = await screen.findByRole("button", { name: "Day end" });
+    const dayStart = await screen.findByRole("button", { name: "Focus window start" });
+    const dayEnd = await screen.findByRole("button", { name: "Focus window end" });
 
     expect(dayStart).toHaveTextContent("05:00");
     expect(dayEnd).toHaveTextContent("18:00");
 
     await user.click(dayStart);
 
-    const directInput = screen.getByLabelText("Day start direct input") as HTMLInputElement;
+    const directInput = screen.getByLabelText("Focus window start direct input") as HTMLInputElement;
     await waitFor((): void => {
       expect(directInput).toHaveFocus();
     });
@@ -251,9 +286,10 @@ describe("RhythmApp", () => {
 
     render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
 
-    await user.click(screen.getByRole("button", { name: "하루 시작" }));
+    await openRhythmSettings(user);
+    await user.click(screen.getByRole("button", { name: "집중 시간대 시작" }));
 
-    const directInput = await screen.findByLabelText("하루 시작 직접 입력") as HTMLInputElement;
+    const directInput = await screen.findByLabelText("집중 시간대 시작 직접 입력") as HTMLInputElement;
     await waitFor((): void => {
       expect(directInput).toHaveFocus();
     });
@@ -322,6 +358,8 @@ describe("RhythmApp", () => {
 
     render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
 
+    await openRhythmSettings(user);
+
     expect(screen.getByRole("button", { name: "기본" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "기본 학교종" })).not.toBeInTheDocument();
 
@@ -346,7 +384,7 @@ describe("RhythmApp", () => {
 
     render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
 
-    expect(screen.getByText("볼륨이 0%입니다.")).toBeInTheDocument();
+    expect(screen.getByText("볼륨 0%")).toBeInTheDocument();
   });
 
   it("shows sound action failures instead of losing them as unhandled promises", async () => {
@@ -356,6 +394,7 @@ describe("RhythmApp", () => {
 
     render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
 
+    await openRhythmSettings(user);
     await user.click(screen.getByRole("button", { name: "미리듣기" }));
 
     expect(await screen.findByText("알림음 작업 실패: play blocked")).toBeInTheDocument();
@@ -370,6 +409,7 @@ describe("RhythmApp", () => {
 
     render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
 
+    await openRhythmSettings(user);
     await user.click(screen.getByRole("button", { name: "소리 켜기" }));
 
     expect(services.muteNotificationSound.execute).toHaveBeenCalledOnce();

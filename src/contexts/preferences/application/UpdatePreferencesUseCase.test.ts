@@ -58,6 +58,7 @@ describe("UpdatePreferencesUseCase", () => {
     expect(preferences.restMinutes.value).toBe(15);
     expect(preferences.dailyRhythm.start.toText()).toBe("09:00");
     expect(preferences.autoStart.enabled).toBe(true);
+    expect(preferences.initialSetupCompleted).toBe(true);
     expect(autoStart.enabled).toBe(true);
   });
 

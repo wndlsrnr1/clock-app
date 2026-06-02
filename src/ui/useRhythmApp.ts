@@ -95,6 +95,7 @@ export function useRhythmApp(services: RhythmAppServices, initialNow: Date): Rhy
             language: preferences.language,
             notificationSound: preferences.notificationSound,
             restMinutes: preferences.restMinutes.value,
+            initialSetupCompleted: preferences.initialSetupCompleted,
           },
         });
         dispatch({ type: "MESSAGE_CHANGED", message: text.messages.preferencesSaved });

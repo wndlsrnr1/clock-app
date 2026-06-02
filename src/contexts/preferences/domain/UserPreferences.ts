@@ -32,6 +32,7 @@ export interface UserPreferencesSnapshot {
   autoStartEnabled: boolean;
   notificationSound: NotificationSoundPreference;
   language: LanguagePreference;
+  initialSetupCompleted: boolean;
 }
 
 export class UserPreferences {
@@ -45,6 +46,7 @@ export class UserPreferences {
     public readonly autoStart: AutoStartPreference,
     public readonly notificationSound: NotificationSoundPreference,
     public readonly language: LanguagePreference,
+    public readonly initialSetupCompleted: boolean,
   ) {}
 
   public static default(): UserPreferences {
@@ -55,6 +57,7 @@ export class UserPreferences {
       { enabled: false },
       UserPreferences.defaultNotificationSound(),
       "kor",
+      false,
     );
   }
 
@@ -66,6 +69,7 @@ export class UserPreferences {
     autoStartEnabled: boolean;
     notificationSound?: Partial<NotificationSoundPreference>;
     language?: string;
+    initialSetupCompleted?: boolean;
   }): UserPreferences {
     return new UserPreferences(
       UserPreferences.createFocusTerm(properties.focusMinutes),
@@ -77,6 +81,7 @@ export class UserPreferences {
       { enabled: properties.autoStartEnabled },
       UserPreferences.restoreNotificationSound(properties.notificationSound),
       UserPreferences.restoreLanguage(properties.language),
+      properties.initialSetupCompleted === true,
     );
   }
 
@@ -88,6 +93,7 @@ export class UserPreferences {
       this.autoStart,
       this.notificationSound,
       this.language,
+      this.initialSetupCompleted,
     );
   }
 
@@ -102,6 +108,7 @@ export class UserPreferences {
       this.autoStart,
       this.notificationSound,
       this.language,
+      this.initialSetupCompleted,
     );
   }
 
@@ -113,6 +120,7 @@ export class UserPreferences {
       { enabled },
       this.notificationSound,
       this.language,
+      this.initialSetupCompleted,
     );
   }
 
@@ -124,6 +132,7 @@ export class UserPreferences {
       this.autoStart,
       UserPreferences.defaultNotificationSound(this.notificationSound.volume),
       this.language,
+      this.initialSetupCompleted,
     );
   }
 
@@ -145,6 +154,7 @@ export class UserPreferences {
         volume: this.notificationSound.volume,
       },
       this.language,
+      this.initialSetupCompleted,
     );
   }
 
@@ -162,6 +172,7 @@ export class UserPreferences {
         volume: this.notificationSound.volume,
       },
       this.language,
+      this.initialSetupCompleted,
     );
   }
 
@@ -176,6 +187,7 @@ export class UserPreferences {
         volume: UserPreferences.validateNotificationSoundVolume(volume),
       },
       this.language,
+      this.initialSetupCompleted,
     );
   }
 
@@ -187,6 +199,19 @@ export class UserPreferences {
       this.autoStart,
       this.notificationSound,
       UserPreferences.validateLanguage(language),
+      this.initialSetupCompleted,
+    );
+  }
+
+  public completeInitialSetup(): UserPreferences {
+    return new UserPreferences(
+      this.focusMinutes,
+      this.restMinutes,
+      this.dailyRhythm,
+      this.autoStart,
+      this.notificationSound,
+      this.language,
+      true,
     );
   }
 
@@ -199,6 +224,7 @@ export class UserPreferences {
       language: this.language,
       notificationSound: this.notificationSound,
       restMinutes: this.restMinutes.value,
+      initialSetupCompleted: this.initialSetupCompleted,
     };
   }
 
@@ -270,6 +296,7 @@ export class UserPreferences {
       this.autoStart,
       sound,
       this.language,
+      this.initialSetupCompleted,
     );
   }
 

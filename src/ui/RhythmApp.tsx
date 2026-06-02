@@ -1,12 +1,7 @@
-import { AnalogClock } from "./components/AnalogClock";
 import { CalendarPage } from "./components/CalendarPage";
+import { ClockPage } from "./components/ClockPage";
 import { DataPage } from "./components/DataPage";
-import { DigitalClock } from "./components/DigitalClock";
-import { NotificationSoundPanel } from "./components/NotificationSoundPanel";
-import { RhythmControls } from "./components/RhythmControls";
-import { RhythmSettingsPanel } from "./components/RhythmSettingsPanel";
 import { SegmentedControl } from "./components/SegmentedControl";
-import { TodayTodoPanel } from "./components/TodayTodoPanel";
 import type { RhythmAppServices } from "./RhythmAppServices";
 import { useLayoutMode } from "./useLayoutMode";
 import { useRhythmApp } from "./useRhythmApp";
@@ -60,42 +55,7 @@ export function RhythmApp({ services, initialNow = new Date() }: RhythmAppProps)
           />
         </nav>
         {todo.page === "clock" ? (
-          <>
-            <div className="ui-grid">
-              <AnalogClock now={rhythm.now} />
-              <div>
-                <DigitalClock now={rhythm.now} />
-                <div className="controls">
-                  <div className="status-strip">
-                    <span>{text.status.title}</span>
-                    <strong>{text.status.values[rhythm.status.sessionStatus]}</strong>
-                  </div>
-                  <RhythmSettingsPanel
-                    form={rhythm.form}
-                    message={rhythm.message}
-                    onAutoStartChange={rhythm.changeAutoStart}
-                    onDailyEndChange={rhythm.changeDailyEnd}
-                    onDailyStartChange={rhythm.changeDailyStart}
-                    onFocusMinutesChange={rhythm.changeFocusMinutes}
-                    onRestMinutesChange={rhythm.changeRestMinutes}
-                    onSave={rhythm.savePreferences}
-                    settingsPreview={rhythm.settingsPreview}
-                    text={text}
-                  />
-                  <NotificationSoundPanel rhythm={rhythm} text={text} />
-                  <RhythmControls
-                    onPause={rhythm.pause}
-                    onResume={rhythm.resume}
-                    onStart={rhythm.start}
-                    onStopForToday={rhythm.stopForToday}
-                    status={rhythm.status.sessionStatus}
-                    text={text}
-                  />
-                </div>
-              </div>
-            </div>
-            <TodayTodoPanel todo={todo} text={text} />
-          </>
+          <ClockPage rhythm={rhythm} text={text} todo={todo} />
         ) : todo.page === "calendar" ? (
           <CalendarPage language={rhythm.status.language} todo={todo} text={text} />
         ) : (

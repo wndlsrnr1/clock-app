@@ -10,4 +10,5 @@ export interface RhythmStatusSnapshot {
   autoStartEnabled: boolean;
   notificationSound: NotificationSoundPreference;
   language: LanguagePreference;
+  initialSetupCompleted: boolean;
 }

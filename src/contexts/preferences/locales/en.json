@@ -25,8 +25,8 @@
     "settings": {
       "focusMinutes": "Focus",
       "restMinutes": "Rest",
-      "dailyStart": "Day start",
-      "dailyEnd": "Day end",
+      "dailyStart": "Focus window start",
+      "dailyEnd": "Focus window end",
       "autoStart": "Register as startup app",
       "save": "Save settings",
       "decrease": "Decrease {label}",
@@ -35,7 +35,18 @@
       "minuteRange": "Enter {min}-{max} min.",
       "nextAlarm": "Next alarm: {time}",
       "nextAlarmUnavailable": "Check the time settings.",
-      "outsideDailyRhythm": "Current time is outside the rhythm window."
+      "outsideDailyRhythm": "Current time is outside the focus window."
+    },
+    "disclosure": {
+      "title": "Focus window/sound settings",
+      "expand": "Expand focus window/sound settings",
+      "collapse": "Collapse focus window/sound settings",
+      "summary": "{focus} min focus · {rest} min rest · {dailyStart}-{dailyEnd} · {sound}",
+      "dirty": "Save needed",
+      "invalid": "Time setting error",
+      "muted": "Muted",
+      "zeroVolume": "Volume 0%",
+      "outsideDailyRhythm": "Outside focus window"
     },
     "controls": {
       "start": "Start",
@@ -142,9 +153,9 @@
     "soundPreviewStopped": "Stopped sound preview.",
     "defaultSoundRestored": "Default sound restored.",
     "volumeChanged": "Notification volume set to {volume}%.",
-    "rhythmRunning": "Rhythm is running.",
-    "rhythmPaused": "Rhythm paused.",
-    "rhythmStoppedForToday": "Today rhythm ended.",
+    "rhythmRunning": "Focus window is running.",
+    "rhythmPaused": "Focus window paused.",
+    "rhythmStoppedForToday": "Today focus window ended.",
     "languageChanged": "Language changed.",
     "invalidTime": "Enter time as 14:30 or 1430.",
     "todoActionFailed": "Todo action failed: {message}",

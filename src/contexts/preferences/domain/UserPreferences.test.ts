@@ -13,6 +13,7 @@ describe("UserPreferences", () => {
     expect(preferences.notificationSound.mode).toBe("default");
     expect(preferences.notificationSound.volume).toBe(1);
     expect(preferences.language).toBe("kor");
+    expect(preferences.initialSetupCompleted).toBe(false);
   });
 
   it("validates editable rhythm terms", () => {
@@ -67,6 +68,19 @@ describe("UserPreferences", () => {
     expect(preferences.notificationSound.volume).toBe(1);
     expect(preferences.language).toBe("kor");
     expect(preferences.notificationSound.mutedFrom).toBeNull();
+    expect(preferences.initialSetupCompleted).toBe(false);
+  });
+
+  it("marks the first setup as completed without changing rhythm settings", () => {
+    const preferences = UserPreferences.default().completeInitialSetup();
+
+    expect(preferences.initialSetupCompleted).toBe(true);
+    expect(preferences.snapshot()).toMatchObject({
+      focusMinutes: 50,
+      initialSetupCompleted: true,
+      restMinutes: 10,
+    });
+    expect(UserPreferences.restore(preferences.snapshot()).initialSetupCompleted).toBe(true);
   });
 
   it("changes and restores the app language preference", () => {

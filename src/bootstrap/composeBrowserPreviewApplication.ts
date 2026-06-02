@@ -85,6 +85,7 @@ class BrowserPreviewSettingsRepository implements SettingsRepository {
       dailyEnd: preferences.dailyRhythm.end.toText(),
       dailyStart: preferences.dailyRhythm.start.toText(),
       focusMinutes: preferences.focusMinutes.value,
+      initialSetupCompleted: preferences.initialSetupCompleted,
       language: preferences.language,
       notificationSound: preferences.notificationSound,
       restMinutes: preferences.restMinutes.value,
@@ -104,6 +105,7 @@ class BrowserPreviewSettingsRepository implements SettingsRepository {
         dailyEnd: string;
         dailyStart: string;
         focusMinutes: number;
+        initialSetupCompleted?: boolean;
         language?: UserPreferences["language"];
         notificationSound?: UserPreferences["notificationSound"];
         restMinutes: number;
