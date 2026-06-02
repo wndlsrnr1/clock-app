@@ -1,7 +1,7 @@
 import type { RhythmStatusSnapshot } from "../contexts/rhythm/application/RhythmStatusSnapshot";
 import type { UpdatePreferencesCommand } from "../contexts/preferences/application/UpdatePreferencesUseCase";
-import type { UserPreferences } from "../contexts/preferences/domain/UserPreferences";
-import type { AddTodoCommand, UpdateTodoCommand } from "../contexts/todo/application/TodoUseCases";
+import type { LanguagePreference, UserPreferences } from "../contexts/preferences/domain/UserPreferences";
+import type { AddTodoCommand, ReorderTodosCommand, UpdateTodoCommand } from "../contexts/todo/application/TodoUseCases";
 import type { TodoDaySummary } from "../contexts/todo/domain/TodoList";
 import type { TodoItemSnapshot } from "../contexts/todo/domain/TodoItem";
 
@@ -14,7 +14,7 @@ export interface SyncStatusUseCase {
 }
 
 export interface UpdatePreferencesService {
-  execute(command: UpdatePreferencesCommand): Promise<unknown>;
+  execute(command: UpdatePreferencesCommand): Promise<UserPreferences>;
 }
 
 export interface PreferenceResultUseCase {
@@ -23,6 +23,14 @@ export interface PreferenceResultUseCase {
 
 export interface VoidUseCase {
   execute(): Promise<void>;
+}
+
+export interface NotificationSoundVolumeService {
+  execute(volume: number): Promise<UserPreferences>;
+}
+
+export interface ChangeLanguageService {
+  execute(language: LanguagePreference): Promise<UserPreferences>;
 }
 
 export interface AddTodoService {
@@ -39,6 +47,10 @@ export interface TodoIdService {
 
 export interface GetTodosByDateService {
   execute(date: string): Promise<Array<TodoItemSnapshot>>;
+}
+
+export interface ReorderTodosService {
+  execute(command: ReorderTodosCommand): Promise<Array<TodoItemSnapshot>>;
 }
 
 export interface GetTodoCalendarSummaryService {
@@ -80,11 +92,14 @@ export interface RhythmAppServices {
   chooseCustomNotificationSound: PreferenceResultUseCase;
   muteNotificationSound: PreferenceResultUseCase;
   previewNotificationSound: VoidUseCase;
+  stopNotificationSoundPreview: VoidUseCase;
+  updateNotificationSoundVolume: NotificationSoundVolumeService;
   useDefaultNotificationSound: PreferenceResultUseCase;
   addTodo: AddTodoService;
   deleteTodo: TodoIdService;
   getTodoCalendarSummary: GetTodoCalendarSummaryService;
   getTodosByDate: GetTodosByDateService;
+  reorderTodos: ReorderTodosService;
   toggleTodo: TodoIdService;
   updateTodo: UpdateTodoService;
   beginGoogleAuthorization: { execute(): Promise<string> };
@@ -93,4 +108,5 @@ export interface RhythmAppServices {
   saveGoogleClientId: SaveGoogleClientService;
   selectGoogleTaskList: SelectGoogleTaskListService;
   syncGoogleTodos: SyncGoogleTodosService;
+  changeLanguage: ChangeLanguageService;
 }

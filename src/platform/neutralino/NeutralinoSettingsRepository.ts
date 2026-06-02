@@ -1,6 +1,6 @@
 import { storage } from "@neutralinojs/lib";
 import type { SettingsRepository } from "../../contexts/rhythm/application/ports";
-import { UserPreferences, type NotificationSoundPreference } from "../../contexts/preferences/domain/UserPreferences";
+import { UserPreferences, type LanguagePreference, type NotificationSoundPreference } from "../../contexts/preferences/domain/UserPreferences";
 
 export interface NeutralinoStoragePort {
   getData(key: string): Promise<string>;
@@ -14,6 +14,7 @@ interface SavedPreferences {
   dailyEnd: string;
   autoStartEnabled: boolean;
   notificationSound?: NotificationSoundPreference;
+  language?: LanguagePreference;
 }
 
 export class NeutralinoSettingsRepository implements SettingsRepository {
@@ -40,6 +41,7 @@ export class NeutralinoSettingsRepository implements SettingsRepository {
       dailyEnd: preferences.dailyRhythm.end.toText(),
       autoStartEnabled: preferences.autoStart.enabled,
       notificationSound: preferences.notificationSound,
+      language: preferences.language,
     };
 
     await this.neutralinoStorage.setData(this.key, JSON.stringify(saved));

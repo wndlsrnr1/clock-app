@@ -1,0 +1,145 @@
+{
+  "navigation": {
+    "aria": "앱 화면",
+    "clock": "시계",
+    "calendar": "캘린더"
+  },
+  "language": {
+    "label": "언어",
+    "kor": "KOR",
+    "en": "EN",
+    "korName": "한국어",
+    "enName": "English"
+  },
+  "status": {
+    "title": "상태",
+    "values": {
+      "idle": "대기",
+      "running": "실행 중",
+      "paused": "일시정지",
+      "stoppedForToday": "오늘 종료"
+    }
+  },
+  "rhythm": {
+    "settings": {
+      "focusMinutes": "집중 시간",
+      "restMinutes": "휴식 시간",
+      "dailyStart": "하루 시작",
+      "dailyEnd": "하루 종료",
+      "autoStart": "자동 시작",
+      "save": "설정 저장",
+      "decrease": "{label} 줄이기",
+      "increase": "{label} 늘리기"
+    },
+    "controls": {
+      "start": "시작",
+      "pause": "일시정지",
+      "stopForToday": "오늘 종료"
+    }
+  },
+  "sound": {
+    "eyebrow": "알림",
+    "title": "알림음",
+    "defaultLabel": "기본",
+    "customFallback": "커스텀 mp3",
+    "mutedLabel": "무음",
+    "actions": {
+      "chooseMp3": "mp3 선택",
+      "useDefault": "기본",
+      "mute": "무음",
+      "unmute": "소리 켜기",
+      "preview": "미리듣기",
+      "stopPreview": "미리듣기 끝내기",
+      "volume": "알림음 볼륨"
+    },
+    "volumeLabel": "앱 알림음 볼륨"
+  },
+  "todo": {
+    "today": {
+      "eyebrow": "오늘",
+      "title": "오늘 할 일",
+      "inputLabel": "오늘 할 일 입력",
+      "placeholder": "할 일을 적어두세요"
+    },
+    "actions": {
+      "addTime": "시간 추가",
+      "add": "추가",
+      "edit": "수정",
+      "delete": "삭제",
+      "save": "저장",
+      "cancel": "취소",
+      "complete": "{title} 완료",
+      "drag": "{title} 순서 끌기"
+    },
+    "list": {
+      "empty": "오늘은 아직 적어둔 일이 없습니다.",
+      "editTitle": "Todo 제목 수정",
+      "editDate": "Todo 날짜 수정",
+      "editTime": "Todo 시간 수정"
+    },
+    "timePicker": {
+      "placeholder": "시간 선택",
+      "directLabel": "직접 입력",
+      "directInput": "{label} 직접 입력",
+      "hourGroup": "시 선택",
+      "minuteGroup": "분 선택",
+      "hourOption": "{hour}시",
+      "minuteOption": "{minute}분",
+      "clear": "비우기",
+      "close": "닫기"
+    }
+  },
+  "calendar": {
+    "eyebrow": "달력",
+    "title": "Todo 캘린더",
+    "monthEyebrow": "월",
+    "selectedEyebrow": "선택 날짜",
+    "previousMonth": "이전 달",
+    "nextMonth": "다음 달",
+    "today": "오늘",
+    "gridLabel": "{month} Todo 달력",
+    "noTodo": "할 일 없음",
+    "weekdays": ["일", "월", "화", "수", "목", "금", "토"]
+  },
+  "googleTasks": {
+    "eyebrow": "Google",
+    "title": "Google Tasks 연동",
+    "clientIdTitle": "Client ID",
+    "clientIdLabel": "Client ID",
+    "clientIdHelp": "Google Cloud Console에서 만든 Desktop OAuth Client ID를 저장합니다.",
+    "authTitle": "인증",
+    "authOpen": "인증 URL 열기",
+    "authCodeLabel": "인증 code 또는 redirect URL",
+    "authCodeAria": "Google 인증 코드",
+    "authSave": "인증 저장",
+    "authHelp": "브라우저 인증 후 리디렉션 URL 전체 또는 code 값만 붙여넣습니다.",
+    "taskListTitle": "Tasks 목록",
+    "taskListLoad": "목록 불러오기",
+    "taskListLabel": "연동 목록",
+    "taskListAria": "Google Tasks 목록",
+    "taskListPlaceholder": "선택",
+    "taskListSync": "수동 동기화",
+    "taskListHelp": "연동할 Google Tasks 목록을 고르고 로컬 Todo와 수동 동기화합니다.",
+    "help": "{title} 도움말"
+  },
+  "messages": {
+    "preferencesSaved": "설정을 저장했습니다.",
+    "customSoundChanged": "알림음을 변경했습니다.",
+    "soundMuted": "무음으로 설정했습니다. 기본 알림은 유지됩니다.",
+    "soundUnmuted": "소리를 다시 켰습니다.",
+    "soundPreviewStarted": "알림음을 미리 재생했습니다.",
+    "soundPreviewStopped": "알림음 미리듣기를 끝냈습니다.",
+    "defaultSoundRestored": "기본 알림음으로 되돌렸습니다.",
+    "volumeChanged": "알림음 볼륨을 {volume}%로 설정했습니다.",
+    "rhythmRunning": "리듬이 실행 중입니다.",
+    "rhythmPaused": "리듬을 일시정지했습니다.",
+    "rhythmStoppedForToday": "오늘의 리듬을 종료했습니다.",
+    "languageChanged": "언어 설정을 변경했습니다.",
+    "invalidTime": "시간은 14:30 또는 1430 형식으로 입력해주세요.",
+    "googleAuthorizationStarted": "인증 URL을 열었습니다. 리디렉션 URL의 code 값을 붙여넣어 주세요. {url}",
+    "googleAuthorizationSaved": "Google Tasks 인증을 저장했습니다.",
+    "googleClientIdSaved": "Google Client ID를 저장했습니다.",
+    "googleTaskListSelected": "Google Tasks 목록을 선택했습니다.",
+    "googleSyncCompleted": "Google 동기화 완료: 업로드 {uploaded}, 가져오기 {imported}, 업데이트 {updated}"
+  }
+}

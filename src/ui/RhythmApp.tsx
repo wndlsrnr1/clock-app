@@ -4,6 +4,7 @@ import { DigitalClock } from "./components/DigitalClock";
 import { NotificationSoundPanel } from "./components/NotificationSoundPanel";
 import { RhythmControls } from "./components/RhythmControls";
 import { RhythmSettingsPanel } from "./components/RhythmSettingsPanel";
+import { SegmentedControl } from "./components/SegmentedControl";
 import { TodayTodoPanel } from "./components/TodayTodoPanel";
 import type { RhythmAppServices } from "./RhythmAppServices";
 import { useRhythmApp } from "./useRhythmApp";
@@ -16,14 +17,31 @@ interface RhythmAppProps {
 
 export function RhythmApp({ services, initialNow = new Date() }: RhythmAppProps): React.JSX.Element {
   const rhythm = useRhythmApp(services, initialNow);
-  const todo = useTodoApp(services, initialNow);
+  const todo = useTodoApp(services, initialNow, rhythm.text);
+  const text = rhythm.text;
 
   return (
     <main className="app-shell">
       <section className="box">
-        <nav className="app-nav" aria-label="앱 화면">
-          <button className={todo.page === "clock" ? "nav-button active" : "nav-button"} onClick={() => void todo.showClock()} type="button">시계</button>
-          <button className={todo.page === "calendar" ? "nav-button active" : "nav-button"} onClick={() => void todo.showCalendar()} type="button">캘린더</button>
+        <nav className="app-nav" aria-label={text.navigation.aria}>
+          <SegmentedControl
+            ariaLabel={text.navigation.aria}
+            onChange={(page) => (page === "clock" ? todo.showClock() : todo.showCalendar())}
+            options={[
+              { label: text.navigation.clock, value: "clock" },
+              { label: text.navigation.calendar, value: "calendar" },
+            ]}
+            value={todo.page}
+          />
+          <SegmentedControl
+            ariaLabel={text.language.label}
+            onChange={rhythm.changeLanguage}
+            options={[
+              { ariaLabel: text.language.korName, label: text.language.kor, value: "kor" },
+              { ariaLabel: text.language.enName, label: text.language.en, value: "en" },
+            ]}
+            value={rhythm.status.language}
+          />
         </nav>
         {todo.page === "clock" ? (
           <>
@@ -33,8 +51,8 @@ export function RhythmApp({ services, initialNow = new Date() }: RhythmAppProps)
                 <DigitalClock now={rhythm.now} />
                 <div className="controls">
                   <div className="status-strip">
-                    <span>상태</span>
-                    <strong>{rhythm.status.sessionStatus}</strong>
+                    <span>{text.status.title}</span>
+                    <strong>{text.status.values[rhythm.status.sessionStatus]}</strong>
                   </div>
                   <RhythmSettingsPanel
                     form={rhythm.form}
@@ -45,22 +63,24 @@ export function RhythmApp({ services, initialNow = new Date() }: RhythmAppProps)
                     onFocusMinutesChange={rhythm.changeFocusMinutes}
                     onRestMinutesChange={rhythm.changeRestMinutes}
                     onSave={rhythm.savePreferences}
+                    text={text}
                   />
-                  <NotificationSoundPanel rhythm={rhythm} />
+                  <NotificationSoundPanel rhythm={rhythm} text={text} />
                   <RhythmControls
                     onPause={rhythm.pause}
                     onResume={rhythm.resume}
                     onStart={rhythm.start}
                     onStopForToday={rhythm.stopForToday}
                     status={rhythm.status.sessionStatus}
+                    text={text}
                   />
                 </div>
               </div>
             </div>
-            <TodayTodoPanel todo={todo} />
+            <TodayTodoPanel todo={todo} text={text} />
           </>
         ) : (
-          <CalendarPage todo={todo} />
+          <CalendarPage language={rhythm.status.language} todo={todo} text={text} />
         )}
       </section>
     </main>

@@ -1,10 +1,14 @@
+import { useState } from "react";
 import type { TodoItemSnapshot } from "../../contexts/todo/domain/TodoItem";
+import { formatText, type TextCatalog } from "../textCatalog";
+import { IconButton } from "./IconButton";
+import { SvgIcon } from "./SvgIcon";
+import { TimePickerField } from "./TimePickerField";
 
 interface TodoEditState {
   id: string;
   title: string;
   date: string;
-  timeEnabled: boolean;
   time: string;
 }
 
@@ -16,10 +20,11 @@ interface TodoListPanelProps {
   onChangeEditTime(time: string): void;
   onChangeEditTitle(title: string): void;
   onDelete(id: string): Promise<void>;
+  onReorder(date: string, orderedIds: Array<string>): Promise<void>;
   onSaveEdit(): Promise<void>;
-  onShowEditTimeInput(): void;
   onStartEditing(todo: TodoItemSnapshot): void;
   onToggle(id: string): Promise<void>;
+  text: TextCatalog;
 }
 
 export function TodoListPanel({
@@ -29,63 +34,109 @@ export function TodoListPanel({
   onChangeEditTime,
   onChangeEditTitle,
   onDelete,
+  onReorder,
   onSaveEdit,
-  onShowEditTimeInput,
   onStartEditing,
   onToggle,
+  text,
   todos,
 }: TodoListPanelProps): React.JSX.Element {
+  const [draggedTodoId, setDraggedTodoId] = useState<string | null>(null);
+
   if (todos.length === 0) {
-    return <p className="empty-text">오늘은 아직 적어둔 일이 없습니다.</p>;
+    return <p className="empty-text">{text.todo.list.empty}</p>;
   }
 
   return (
     <ul className="todo-list">
       {todos.map((todo: TodoItemSnapshot): React.JSX.Element => (
-        <li className="todo-row" key={todo.id}>
+        <li
+          className={draggedTodoId === todo.id ? "todo-row dragging" : "todo-row"}
+          key={todo.id}
+          onDragOver={(event: React.DragEvent<HTMLLIElement>) => {
+            if (canDropWithinGroup(todos, draggedTodoId, todo.id)) {
+              event.preventDefault();
+            }
+          }}
+          onDrop={(event: React.DragEvent<HTMLLIElement>) => {
+            const orderedIds = reorderedGroupIds(todos, event.dataTransfer.getData("text/plain") || draggedTodoId, todo.id);
+            event.preventDefault();
+            setDraggedTodoId(null);
+
+            if (orderedIds) {
+              void onReorder(todo.date, orderedIds);
+            }
+          }}
+        >
+          <button
+            aria-label={formatText(text.todo.actions.drag, { title: todo.title })}
+            className="icon-action icon-action-subtle todo-drag-handle"
+            draggable={true}
+            onDragEnd={() => setDraggedTodoId(null)}
+            onDragStart={(event: React.DragEvent<HTMLButtonElement>) => {
+              setDraggedTodoId(todo.id);
+              event.dataTransfer.setData("text/plain", todo.id);
+            }}
+            title={formatText(text.todo.actions.drag, { title: todo.title })}
+            type="button"
+          >
+            <SvgIcon name="grip" />
+          </button>
           <input
-            aria-label={`${todo.title} 완료`}
+            aria-label={formatText(text.todo.actions.complete, { title: todo.title })}
             checked={todo.completed}
             onChange={() => void onToggle(todo.id)}
             type="checkbox"
           />
           {edit?.id === todo.id ? (
-            <div className="todo-edit">
+            <div
+              className="todo-edit"
+              onKeyDown={(event: React.KeyboardEvent<HTMLDivElement>) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  void onSaveEdit();
+                  return;
+                }
+
+                if (event.key === "Escape") {
+                  event.preventDefault();
+                  onCancelEditing();
+                }
+              }}
+            >
               <input
-                aria-label="Todo 제목 수정"
+                aria-label={text.todo.list.editTitle}
                 value={edit.title}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) => onChangeEditTitle(event.target.value)}
               />
               <input
-                aria-label="Todo 날짜 수정"
+                aria-label={text.todo.list.editDate}
                 type="date"
                 value={edit.date}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) => onChangeEditDate(event.target.value)}
               />
-              {edit.timeEnabled ? (
-                <input
-                  aria-label="Todo 시간 수정"
-                  type="time"
-                  value={edit.time}
-                  onChange={(event: React.ChangeEvent<HTMLInputElement>) => onChangeEditTime(event.target.value)}
-                />
-              ) : (
-                <button className="link-button" onClick={onShowEditTimeInput} type="button">시간 추가</button>
-              )}
-              <div className="todo-actions">
-                <button className="mini-button" onClick={() => void onSaveEdit()} type="button">저장</button>
-                <button className="mini-button subtle" onClick={onCancelEditing} type="button">취소</button>
+              <TimePickerField
+                label={text.todo.list.editTime}
+                onCancel={onCancelEditing}
+                onChange={onChangeEditTime}
+                onCommit={() => void onSaveEdit()}
+                text={text}
+                value={edit.time}
+              />
+              <div className="todo-edit-actions">
+                <IconButton icon="check" label={text.todo.actions.save} onClick={() => void onSaveEdit()} variant="primary" />
+                <IconButton icon="x" label={text.todo.actions.cancel} onClick={onCancelEditing} variant="subtle" />
               </div>
             </div>
           ) : (
             <>
               <div className="todo-copy">
                 <span className={todo.completed ? "todo-title done" : "todo-title"}>{todo.title}</span>
-                <span className="todo-meta">{todo.time ?? "시간 없음"}</span>
+                {todo.time ? <span className="todo-meta">{todo.time}</span> : null}
               </div>
               <div className="todo-actions">
-                <button className="mini-button subtle" onClick={() => onStartEditing(todo)} type="button">수정</button>
-                <button className="mini-button danger" onClick={() => void onDelete(todo.id)} type="button">삭제</button>
+                <IconButton icon="pencil" label={text.todo.actions.edit} onClick={() => onStartEditing(todo)} variant="subtle" />
+                <IconButton icon="trash" label={text.todo.actions.delete} onClick={() => void onDelete(todo.id)} variant="danger" />
               </div>
             </>
           )}
@@ -93,4 +144,41 @@ export function TodoListPanel({
       ))}
     </ul>
   );
+}
+
+function canDropWithinGroup(todos: Array<TodoItemSnapshot>, draggedTodoId: string | null, targetTodoId: string): boolean {
+  return Boolean(reorderedGroupIds(todos, draggedTodoId, targetTodoId));
+}
+
+function reorderedGroupIds(
+  todos: Array<TodoItemSnapshot>,
+  draggedTodoId: string | null,
+  targetTodoId: string,
+): Array<string> | null {
+  const draggedTodo = todos.find((todo: TodoItemSnapshot): boolean => todo.id === draggedTodoId);
+  const targetTodo = todos.find((todo: TodoItemSnapshot): boolean => todo.id === targetTodoId);
+
+  if (!draggedTodo || !targetTodo || draggedTodo.id === targetTodo.id || !sameCompletionGroup(draggedTodo, targetTodo)) {
+    return null;
+  }
+
+  const groupIds = groupTodoIds(todos, targetTodo);
+  const nextGroupIds = groupIds.filter((id: string): boolean => id !== draggedTodo.id);
+  const draggedIndex = groupIds.indexOf(draggedTodo.id);
+  const targetIndex = groupIds.indexOf(targetTodo.id);
+  const nextTargetIndex = nextGroupIds.indexOf(targetTodo.id);
+  const insertionIndex = draggedIndex < targetIndex ? nextTargetIndex + 1 : nextTargetIndex;
+  nextGroupIds.splice(insertionIndex, 0, draggedTodo.id);
+
+  return nextGroupIds;
+}
+
+function groupTodoIds(todos: Array<TodoItemSnapshot>, todo: TodoItemSnapshot): Array<string> {
+  return todos
+    .filter((candidate: TodoItemSnapshot): boolean => sameCompletionGroup(candidate, todo))
+    .map((candidate: TodoItemSnapshot): string => candidate.id);
+}
+
+function sameCompletionGroup(left: TodoItemSnapshot, right: TodoItemSnapshot): boolean {
+  return left.date === right.date && left.completed === right.completed;
 }

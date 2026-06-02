@@ -1,0 +1,145 @@
+{
+  "navigation": {
+    "aria": "App view",
+    "clock": "Clock",
+    "calendar": "Calendar"
+  },
+  "language": {
+    "label": "Language",
+    "kor": "KOR",
+    "en": "EN",
+    "korName": "한국어",
+    "enName": "English"
+  },
+  "status": {
+    "title": "Status",
+    "values": {
+      "idle": "Idle",
+      "running": "Running",
+      "paused": "Paused",
+      "stoppedForToday": "Done today"
+    }
+  },
+  "rhythm": {
+    "settings": {
+      "focusMinutes": "Focus",
+      "restMinutes": "Rest",
+      "dailyStart": "Day start",
+      "dailyEnd": "Day end",
+      "autoStart": "Auto start",
+      "save": "Save settings",
+      "decrease": "Decrease {label}",
+      "increase": "Increase {label}"
+    },
+    "controls": {
+      "start": "Start",
+      "pause": "Pause",
+      "stopForToday": "End today"
+    }
+  },
+  "sound": {
+    "eyebrow": "Sound",
+    "title": "Notification sound",
+    "defaultLabel": "Default",
+    "customFallback": "Custom mp3",
+    "mutedLabel": "Muted",
+    "actions": {
+      "chooseMp3": "Choose mp3",
+      "useDefault": "Default",
+      "mute": "Mute",
+      "unmute": "Turn sound on",
+      "preview": "Preview",
+      "stopPreview": "Stop preview",
+      "volume": "Sound volume"
+    },
+    "volumeLabel": "App notification volume"
+  },
+  "todo": {
+    "today": {
+      "eyebrow": "Today",
+      "title": "Today",
+      "inputLabel": "Today todo input",
+      "placeholder": "Write a task"
+    },
+    "actions": {
+      "addTime": "Add time",
+      "add": "Add",
+      "edit": "Edit",
+      "delete": "Delete",
+      "save": "Save",
+      "cancel": "Cancel",
+      "complete": "Complete {title}",
+      "drag": "Drag {title} order"
+    },
+    "list": {
+      "empty": "No tasks written yet.",
+      "editTitle": "Edit todo title",
+      "editDate": "Edit todo date",
+      "editTime": "Edit todo time"
+    },
+    "timePicker": {
+      "placeholder": "Select time",
+      "directLabel": "Direct input",
+      "directInput": "{label} direct input",
+      "hourGroup": "Select hour",
+      "minuteGroup": "Select minute",
+      "hourOption": "{hour}:00",
+      "minuteOption": "{minute} min",
+      "clear": "Clear",
+      "close": "Close"
+    }
+  },
+  "calendar": {
+    "eyebrow": "Calendar",
+    "title": "Todo Calendar",
+    "monthEyebrow": "Month",
+    "selectedEyebrow": "Selected",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "today": "Today",
+    "gridLabel": "{month} todo calendar",
+    "noTodo": "No tasks",
+    "weekdays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+  },
+  "googleTasks": {
+    "eyebrow": "Google",
+    "title": "Google Tasks sync",
+    "clientIdTitle": "Client ID",
+    "clientIdLabel": "Client ID",
+    "clientIdHelp": "Save the Desktop OAuth Client ID created in Google Cloud Console.",
+    "authTitle": "Authorization",
+    "authOpen": "Open auth URL",
+    "authCodeLabel": "Auth code or redirect URL",
+    "authCodeAria": "Google authorization code",
+    "authSave": "Save auth",
+    "authHelp": "After browser authorization, paste the full redirect URL or only the code value.",
+    "taskListTitle": "Task list",
+    "taskListLoad": "Load lists",
+    "taskListLabel": "Linked list",
+    "taskListAria": "Google Tasks list",
+    "taskListPlaceholder": "Select",
+    "taskListSync": "Sync manually",
+    "taskListHelp": "Choose the Google Tasks list to sync with local todos manually.",
+    "help": "{title} help"
+  },
+  "messages": {
+    "preferencesSaved": "Settings saved.",
+    "customSoundChanged": "Notification sound changed.",
+    "soundMuted": "Sound muted. OS notifications stay on.",
+    "soundUnmuted": "Sound turned on.",
+    "soundPreviewStarted": "Previewing notification sound.",
+    "soundPreviewStopped": "Stopped sound preview.",
+    "defaultSoundRestored": "Default sound restored.",
+    "volumeChanged": "Notification volume set to {volume}%.",
+    "rhythmRunning": "Rhythm is running.",
+    "rhythmPaused": "Rhythm paused.",
+    "rhythmStoppedForToday": "Today rhythm ended.",
+    "languageChanged": "Language changed.",
+    "invalidTime": "Enter time as 14:30 or 1430.",
+    "googleAuthorizationStarted": "Opened authorization URL. Paste the code value from the redirect URL. {url}",
+    "googleAuthorizationSaved": "Google Tasks authorization saved.",
+    "googleClientIdSaved": "Google Client ID saved.",
+    "googleTaskListSelected": "Google Tasks list selected.",
+    "googleSyncCompleted": "Google sync completed: uploaded {uploaded}, imported {imported}, updated {updated}"
+  }
+}

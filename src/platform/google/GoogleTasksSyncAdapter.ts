@@ -49,12 +49,17 @@ export class GoogleTasksSyncAdapter implements TodoSyncPort {
     }
 
     const localGoogleTaskIds = new Set(uploadedTodos.map((todo: TodoItem): string | null => todo.snapshot().googleTaskId));
-    const importedTodos = remoteTasks
-      .filter((task: GoogleTaskResource): boolean => !localGoogleTaskIds.has(task.id))
-      .map((task: GoogleTaskResource): TodoItem => GoogleTasksMapper.fromGoogleTask(task, {
+    const importedTodos: Array<TodoItem> = [];
+
+    for (const task of remoteTasks.filter((task: GoogleTaskResource): boolean => !localGoogleTaskIds.has(task.id))) {
+      const now = this.clock.now();
+      const dueDate = GoogleTasksMapper.localDueDate(task, now);
+      importedTodos.push(GoogleTasksMapper.fromGoogleTask(task, {
+        displayOrder: GoogleTasksSyncAdapter.nextDisplayOrderForDate([...uploadedTodos, ...importedTodos], dueDate),
         id: this.idGenerator.nextId(),
-        now: this.clock.now(),
+        now,
       }));
+    }
 
     return {
       imported: importedTodos.length,
@@ -62,5 +67,17 @@ export class GoogleTasksSyncAdapter implements TodoSyncPort {
       updated,
       uploaded,
     };
+  }
+
+  private static nextDisplayOrderForDate(todos: Array<TodoItem>, date: string): number {
+    const displayOrders = todos
+      .filter((todo: TodoItem): boolean => todo.todoDate === date)
+      .map((todo: TodoItem): number => todo.todoDisplayOrder);
+
+    if (displayOrders.length === 0) {
+      return 0;
+    }
+
+    return Math.max(...displayOrders) + 1;
   }
 }

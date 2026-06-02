@@ -6,12 +6,22 @@ export interface AutoStartPreference {
   enabled: boolean;
 }
 
+export type LanguagePreference = "kor" | "en";
 export type NotificationSoundMode = "default" | "custom" | "muted";
+export type AudibleNotificationSoundMode = Exclude<NotificationSoundMode, "muted">;
+
+export interface AudibleNotificationSoundPreference {
+  mode: AudibleNotificationSoundMode;
+  customFileName: string | null;
+  customSource: string | null;
+}
 
 export interface NotificationSoundPreference {
   mode: NotificationSoundMode;
   customFileName: string | null;
   customSource: string | null;
+  volume: number;
+  mutedFrom: AudibleNotificationSoundPreference | null;
 }
 
 export class UserPreferences {
@@ -21,6 +31,7 @@ export class UserPreferences {
     public readonly dailyRhythm: DailyRhythm,
     public readonly autoStart: AutoStartPreference,
     public readonly notificationSound: NotificationSoundPreference,
+    public readonly language: LanguagePreference,
   ) {}
 
   public static default(): UserPreferences {
@@ -30,6 +41,7 @@ export class UserPreferences {
       DailyRhythm.default(),
       { enabled: false },
       UserPreferences.defaultNotificationSound(),
+      "kor",
     );
   }
 
@@ -40,6 +52,7 @@ export class UserPreferences {
     dailyEnd: string;
     autoStartEnabled: boolean;
     notificationSound?: Partial<NotificationSoundPreference>;
+    language?: string;
   }): UserPreferences {
     return new UserPreferences(
       UserPreferences.createFocusTerm(properties.focusMinutes),
@@ -50,6 +63,7 @@ export class UserPreferences {
       }),
       { enabled: properties.autoStartEnabled },
       UserPreferences.restoreNotificationSound(properties.notificationSound),
+      UserPreferences.restoreLanguage(properties.language),
     );
   }
 
@@ -60,6 +74,7 @@ export class UserPreferences {
       this.dailyRhythm,
       this.autoStart,
       this.notificationSound,
+      this.language,
     );
   }
 
@@ -73,6 +88,7 @@ export class UserPreferences {
       }),
       this.autoStart,
       this.notificationSound,
+      this.language,
     );
   }
 
@@ -83,6 +99,7 @@ export class UserPreferences {
       this.dailyRhythm,
       { enabled },
       this.notificationSound,
+      this.language,
     );
   }
 
@@ -92,11 +109,16 @@ export class UserPreferences {
       this.restMinutes,
       this.dailyRhythm,
       this.autoStart,
-      UserPreferences.defaultNotificationSound(),
+      UserPreferences.defaultNotificationSound(this.notificationSound.volume),
+      this.language,
     );
   }
 
-  public muteNotificationSound(): UserPreferences {
+  public toggleNotificationSoundMute(): UserPreferences {
+    if (this.notificationSound.mode === "muted") {
+      return this.restoreAudibleNotificationSound();
+    }
+
     return new UserPreferences(
       this.focusMinutes,
       this.restMinutes,
@@ -106,7 +128,10 @@ export class UserPreferences {
         customFileName: null,
         customSource: null,
         mode: "muted",
+        mutedFrom: UserPreferences.snapshotAudibleNotificationSound(this.notificationSound),
+        volume: this.notificationSound.volume,
       },
+      this.language,
     );
   }
 
@@ -120,7 +145,35 @@ export class UserPreferences {
         customFileName: UserPreferences.validateCustomSoundFileName(sound.fileName),
         customSource: UserPreferences.validateCustomSoundSource(sound.source),
         mode: "custom",
+        mutedFrom: null,
+        volume: this.notificationSound.volume,
       },
+      this.language,
+    );
+  }
+
+  public changeNotificationSoundVolume(volume: number): UserPreferences {
+    return new UserPreferences(
+      this.focusMinutes,
+      this.restMinutes,
+      this.dailyRhythm,
+      this.autoStart,
+      {
+        ...this.notificationSound,
+        volume: UserPreferences.validateNotificationSoundVolume(volume),
+      },
+      this.language,
+    );
+  }
+
+  public changeLanguage(language: LanguagePreference): UserPreferences {
+    return new UserPreferences(
+      this.focusMinutes,
+      this.restMinutes,
+      this.dailyRhythm,
+      this.autoStart,
+      this.notificationSound,
+      UserPreferences.validateLanguage(language),
     );
   }
 
@@ -140,17 +193,21 @@ export class UserPreferences {
     return DurationMinutes.create(value);
   }
 
-  private static defaultNotificationSound(): NotificationSoundPreference {
+  private static defaultNotificationSound(volume = 1): NotificationSoundPreference {
     return {
       customFileName: null,
       customSource: null,
       mode: "default",
+      mutedFrom: null,
+      volume: UserPreferences.validateNotificationSoundVolume(volume),
     };
   }
 
   private static restoreNotificationSound(sound: Partial<NotificationSoundPreference> | undefined): NotificationSoundPreference {
+    const volume = UserPreferences.restoreNotificationSoundVolume(sound);
+
     if (!sound || sound.mode === "default") {
-      return UserPreferences.defaultNotificationSound();
+      return UserPreferences.defaultNotificationSound(volume);
     }
 
     if (sound.mode === "muted") {
@@ -158,6 +215,8 @@ export class UserPreferences {
         customFileName: null,
         customSource: null,
         mode: "muted",
+        mutedFrom: UserPreferences.restoreMutedFrom(sound),
+        volume,
       };
     }
 
@@ -166,10 +225,83 @@ export class UserPreferences {
         customFileName: UserPreferences.validateCustomSoundFileName(sound.customFileName),
         customSource: UserPreferences.validateCustomSoundSource(sound.customSource),
         mode: "custom",
+        mutedFrom: null,
+        volume,
       };
     }
 
-    return UserPreferences.defaultNotificationSound();
+    return UserPreferences.defaultNotificationSound(volume);
+  }
+
+  private restoreAudibleNotificationSound(): UserPreferences {
+    const sound = this.notificationSound.mutedFrom
+      ? UserPreferences.restoreAudibleSoundWithVolume(this.notificationSound.mutedFrom, this.notificationSound.volume)
+      : UserPreferences.defaultNotificationSound(this.notificationSound.volume);
+
+    return new UserPreferences(
+      this.focusMinutes,
+      this.restMinutes,
+      this.dailyRhythm,
+      this.autoStart,
+      sound,
+      this.language,
+    );
+  }
+
+  private static snapshotAudibleNotificationSound(sound: NotificationSoundPreference): AudibleNotificationSoundPreference {
+    if (sound.mode === "custom") {
+      return {
+        customFileName: sound.customFileName,
+        customSource: sound.customSource,
+        mode: "custom",
+      };
+    }
+
+    return {
+      customFileName: null,
+      customSource: null,
+      mode: "default",
+    };
+  }
+
+  private static restoreAudibleSoundWithVolume(sound: AudibleNotificationSoundPreference, volume: number): NotificationSoundPreference {
+    if (sound.mode === "custom" && sound.customFileName && sound.customSource) {
+      return {
+        customFileName: UserPreferences.validateCustomSoundFileName(sound.customFileName),
+        customSource: UserPreferences.validateCustomSoundSource(sound.customSource),
+        mode: "custom",
+        mutedFrom: null,
+        volume: UserPreferences.validateNotificationSoundVolume(volume),
+      };
+    }
+
+    return UserPreferences.defaultNotificationSound(volume);
+  }
+
+  private static restoreMutedFrom(sound: Partial<NotificationSoundPreference>): AudibleNotificationSoundPreference | null {
+    const mutedFrom = sound.mutedFrom;
+
+    if (!mutedFrom) {
+      return null;
+    }
+
+    if (mutedFrom.mode === "default") {
+      return {
+        customFileName: null,
+        customSource: null,
+        mode: "default",
+      };
+    }
+
+    if (mutedFrom.mode === "custom" && mutedFrom.customFileName && mutedFrom.customSource) {
+      return {
+        customFileName: UserPreferences.validateCustomSoundFileName(mutedFrom.customFileName),
+        customSource: UserPreferences.validateCustomSoundSource(mutedFrom.customSource),
+        mode: "custom",
+      };
+    }
+
+    return null;
   }
 
   private static validateCustomSoundFileName(fileName: string): string {
@@ -190,5 +322,33 @@ export class UserPreferences {
     }
 
     return trimmedSource;
+  }
+
+  private static restoreNotificationSoundVolume(sound: Partial<NotificationSoundPreference> | undefined): number {
+    if (sound?.volume === undefined) {
+      return 1;
+    }
+
+    return UserPreferences.validateNotificationSoundVolume(sound.volume);
+  }
+
+  private static validateNotificationSoundVolume(volume: number): number {
+    if (!Number.isFinite(volume) || volume < 0 || volume > 1) {
+      throw new Error("Notification sound volume must be between 0 and 1.");
+    }
+
+    return volume;
+  }
+
+  private static restoreLanguage(language: string | undefined): LanguagePreference {
+    if (language === "en") {
+      return "en";
+    }
+
+    return "kor";
+  }
+
+  private static validateLanguage(language: LanguagePreference): LanguagePreference {
+    return language;
   }
 }

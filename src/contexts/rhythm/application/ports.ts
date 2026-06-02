@@ -8,6 +8,7 @@ export interface NotificationPort {
 export interface SoundPort {
   prepare(): Promise<void>;
   play(): Promise<void>;
+  stop(): Promise<void>;
 }
 
 export interface SchedulerPort {
@@ -33,4 +34,3 @@ export interface AutoStartPort {
   disable(): Promise<void>;
   isEnabled(): Promise<boolean>;
 }
-

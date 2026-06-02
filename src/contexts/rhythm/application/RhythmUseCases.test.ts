@@ -40,6 +40,7 @@ class FakeScheduler implements SchedulerPort {
 class FakeSound implements SoundPort {
   public prepare = vi.fn<() => Promise<void>>(() => Promise.resolve());
   public play = vi.fn<() => Promise<void>>(() => Promise.resolve());
+  public stop = vi.fn<() => Promise<void>>(() => Promise.resolve());
 }
 
 class FakeTray implements TrayPort {
@@ -126,7 +127,7 @@ describe("Rhythm use cases", () => {
 
   it("reports the current notification sound preference in the rhythm status", () => {
     const useCases = createUseCases(new Date("2026-06-02T05:10:00"));
-    useCases.runtime.replacePreferences(UserPreferences.default().muteNotificationSound());
+    useCases.runtime.replacePreferences(UserPreferences.default().toggleNotificationSoundMute());
 
     const status = useCases.status.execute();
 

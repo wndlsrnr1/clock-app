@@ -1,4 +1,7 @@
 import type { UpdatePreferencesCommand } from "../../contexts/preferences/application/UpdatePreferencesUseCase";
+import type { TextCatalog } from "../textCatalog";
+import { NumberStepperField } from "./NumberStepperField";
+import { TimeInputField } from "./TimeInputField";
 
 interface RhythmSettingsPanelProps {
   form: UpdatePreferencesCommand;
@@ -9,6 +12,7 @@ interface RhythmSettingsPanelProps {
   onDailyEndChange(value: string): void;
   onAutoStartChange(enabled: boolean): void;
   onSave(): Promise<void>;
+  text: TextCatalog;
 }
 
 export function RhythmSettingsPanel({
@@ -20,6 +24,7 @@ export function RhythmSettingsPanel({
   onDailyEndChange,
   onAutoStartChange,
   onSave,
+  text,
 }: RhythmSettingsPanelProps): React.JSX.Element {
   return (
     <form className="settings-form" onSubmit={(event) => {
@@ -27,46 +32,19 @@ export function RhythmSettingsPanel({
       void onSave();
     }}>
       <div className="grid">
-        <label>
-          <span className="label">집중 시간</span>
-          <input
-            aria-label="집중 시간"
-            max={180}
-            min={1}
-            onChange={(event) => onFocusMinutesChange(Number(event.target.value))}
-            type="number"
-            value={form.focusMinutes}
-          />
-        </label>
-        <label>
-          <span className="label">휴식 시간</span>
-          <input
-            aria-label="휴식 시간"
-            max={60}
-            min={1}
-            onChange={(event) => onRestMinutesChange(Number(event.target.value))}
-            type="number"
-            value={form.restMinutes}
-          />
-        </label>
-        <label>
-          <span className="label">하루 시작</span>
-          <input aria-label="하루 시작" onChange={(event) => onDailyStartChange(event.target.value)} type="time" value={form.dailyStart} />
-        </label>
-        <label>
-          <span className="label">하루 종료</span>
-          <input aria-label="하루 종료" onChange={(event) => onDailyEndChange(event.target.value)} type="time" value={form.dailyEnd} />
-        </label>
+        <NumberStepperField label={text.rhythm.settings.focusMinutes} max={180} min={1} onChange={onFocusMinutesChange} text={text} value={form.focusMinutes} />
+        <NumberStepperField label={text.rhythm.settings.restMinutes} max={60} min={1} onChange={onRestMinutesChange} text={text} value={form.restMinutes} />
+        <TimeInputField label={text.rhythm.settings.dailyStart} onChange={onDailyStartChange} text={text} value={form.dailyStart} />
+        <TimeInputField label={text.rhythm.settings.dailyEnd} onChange={onDailyEndChange} text={text} value={form.dailyEnd} />
       </div>
       <label className="toggle-row">
         <input checked={form.autoStartEnabled} onChange={(event) => onAutoStartChange(event.target.checked)} type="checkbox" />
-        <span>자동 시작</span>
+        <span>{text.rhythm.settings.autoStart}</span>
       </label>
       <button className="btn secondary" type="submit">
-        설정 저장
+        {text.rhythm.settings.save}
       </button>
       {message ? <p className="status-message">{message}</p> : null}
     </form>
   );
 }
-

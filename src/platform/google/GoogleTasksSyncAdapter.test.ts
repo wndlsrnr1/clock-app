@@ -16,7 +16,7 @@ class FakeGoogleTasksApi implements GoogleTasksApiPort {
 
   public async listTasks(): Promise<Array<GoogleTaskResource>> {
     return [
-      { due: "2026-06-03T00:00:00.000Z", id: "google-remote", status: "needsAction", title: "원격 할 일" },
+      { due: "2026-06-02T00:00:00.000Z", id: "google-remote", status: "needsAction", title: "원격 할 일" },
     ];
   }
 
@@ -45,6 +45,7 @@ describe("GoogleTasksSyncAdapter", () => {
     });
     const localTodo = TodoItem.create({
       date: "2026-06-02",
+      displayOrder: 2,
       id: "todo-local",
       now: new Date("2026-06-02T08:00:00"),
       time: "14:30",
@@ -56,7 +57,7 @@ describe("GoogleTasksSyncAdapter", () => {
     expect(result.uploaded).toBe(1);
     expect(result.imported).toBe(1);
     expect(api.insertedPayloads[0]?.due).toBe("2026-06-02T00:00:00.000Z");
-    expect(result.todos[0]?.snapshot()).toMatchObject({ googleTaskId: "google-created", time: "14:30" });
-    expect(result.todos[1]?.snapshot()).toMatchObject({ googleTaskId: "google-remote", time: null, title: "원격 할 일" });
+    expect(result.todos[0]?.snapshot()).toMatchObject({ displayOrder: 2, googleTaskId: "google-created", time: "14:30" });
+    expect(result.todos[1]?.snapshot()).toMatchObject({ displayOrder: 3, googleTaskId: "google-remote", time: null, title: "원격 할 일" });
   });
 });

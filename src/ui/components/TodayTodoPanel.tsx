@@ -1,17 +1,21 @@
+import type { TextCatalog } from "../textCatalog";
 import type { TodoAppViewModel } from "../useTodoApp";
+import { IconButton } from "./IconButton";
+import { TimePickerField } from "./TimePickerField";
 import { TodoListPanel } from "./TodoListPanel";
 
 interface TodayTodoPanelProps {
   todo: TodoAppViewModel;
+  text: TextCatalog;
 }
 
-export function TodayTodoPanel({ todo }: TodayTodoPanelProps): React.JSX.Element {
+export function TodayTodoPanel({ todo, text }: TodayTodoPanelProps): React.JSX.Element {
   return (
     <section className="todo-panel" aria-labelledby="today-todo-title">
       <div className="panel-header">
         <div>
-          <p className="eyebrow">Today</p>
-          <h2 id="today-todo-title">오늘 할 일</h2>
+          <p className="eyebrow">{text.todo.today.eyebrow}</p>
+          <h2 id="today-todo-title">{text.todo.today.title}</h2>
         </div>
         <span className="date-pill">{todo.todayDate}</span>
       </div>
@@ -23,22 +27,17 @@ export function TodayTodoPanel({ todo }: TodayTodoPanelProps): React.JSX.Element
         }}
       >
         <input
-          aria-label="오늘 할 일 입력"
-          placeholder="할 일을 적어두세요"
+          aria-label={text.todo.today.inputLabel}
+          placeholder={text.todo.today.placeholder}
           value={todo.form.title}
           onChange={(event: React.ChangeEvent<HTMLInputElement>) => todo.changeTitle(event.target.value)}
         />
         {todo.form.timeEnabled ? (
-          <input
-            aria-label="오늘 할 일 시간"
-            type="time"
-            value={todo.form.time}
-            onChange={(event: React.ChangeEvent<HTMLInputElement>) => todo.changeTime(event.target.value)}
-          />
+          <TimePickerField label={text.todo.list.editTime} onChange={todo.changeTime} text={text} value={todo.form.time} />
         ) : (
-          <button className="btn secondary compact" onClick={todo.showTimeInput} type="button">시간 추가</button>
+          <IconButton icon="clock" label={text.todo.actions.addTime} onClick={todo.showTimeInput} />
         )}
-        <button className="btn compact" type="submit">추가</button>
+        <IconButton icon="plus" label={text.todo.actions.add} type="submit" variant="primary" />
       </form>
       <TodoListPanel
         edit={todo.edit}
@@ -47,10 +46,11 @@ export function TodayTodoPanel({ todo }: TodayTodoPanelProps): React.JSX.Element
         onChangeEditTime={todo.changeEditTime}
         onChangeEditTitle={todo.changeEditTitle}
         onDelete={todo.deleteTodo}
+        onReorder={todo.reorderTodos}
         onSaveEdit={todo.saveEdit}
-        onShowEditTimeInput={todo.showEditTimeInput}
         onStartEditing={todo.startEditing}
         onToggle={todo.toggleTodo}
+        text={text}
         todos={todo.todayTodos}
       />
     </section>

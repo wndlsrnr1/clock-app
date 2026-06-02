@@ -24,10 +24,11 @@ export class GoogleTasksMapper {
     };
   }
 
-  public static fromGoogleTask(task: GoogleTaskResource, identity: { id: string; now: Date }): TodoItem {
-    const dueDate = task.due?.slice(0, 10) ?? identity.now.toISOString().slice(0, 10);
+  public static fromGoogleTask(task: GoogleTaskResource, identity: { displayOrder: number; id: string; now: Date }): TodoItem {
+    const dueDate = GoogleTasksMapper.localDueDate(task, identity.now);
     const todo = TodoItem.create({
       date: dueDate,
+      displayOrder: identity.displayOrder,
       googleTaskId: task.id,
       id: identity.id,
       now: identity.now,
@@ -39,5 +40,9 @@ export class GoogleTasksMapper {
     }
 
     return todo;
+  }
+
+  public static localDueDate(task: GoogleTaskResource, fallbackNow: Date): string {
+    return task.due?.slice(0, 10) ?? fallbackNow.toISOString().slice(0, 10);
   }
 }

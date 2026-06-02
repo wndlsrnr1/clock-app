@@ -1,5 +1,6 @@
 import chimeSoundUrl from "../assets/CHIME14.mp3";
-import { ChooseCustomNotificationSoundUseCase, PreviewNotificationSoundUseCase, SetNotificationSoundModeUseCase } from "../contexts/preferences/application/NotificationSoundUseCases";
+import { ChangeLanguagePreferenceUseCase } from "../contexts/preferences/application/LanguagePreferenceUseCase";
+import { ChooseCustomNotificationSoundUseCase, PreviewNotificationSoundUseCase, SetNotificationSoundModeUseCase, StopNotificationSoundPreviewUseCase, UpdateNotificationSoundVolumeUseCase } from "../contexts/preferences/application/NotificationSoundUseCases";
 import { UpdatePreferencesUseCase } from "../contexts/preferences/application/UpdatePreferencesUseCase";
 import { GetRhythmStatusUseCase } from "../contexts/rhythm/application/GetRhythmStatusUseCase";
 import { PauseRhythmUseCase } from "../contexts/rhythm/application/PauseRhythmUseCase";
@@ -8,7 +9,7 @@ import { RhythmRuntime } from "../contexts/rhythm/application/RhythmRuntime";
 import { StartRhythmUseCase } from "../contexts/rhythm/application/StartRhythmUseCase";
 import { StopRhythmForTodayUseCase } from "../contexts/rhythm/application/StopRhythmForTodayUseCase";
 import { SyncGoogleTodosUseCase } from "../contexts/todo/application/SyncGoogleTodosUseCase";
-import { AddTodoUseCase, DeleteTodoUseCase, GetTodoCalendarSummaryUseCase, GetTodosByDateUseCase, ToggleTodoUseCase, UpdateTodoUseCase } from "../contexts/todo/application/TodoUseCases";
+import { AddTodoUseCase, DeleteTodoUseCase, GetTodoCalendarSummaryUseCase, GetTodosByDateUseCase, ReorderTodosUseCase, ToggleTodoUseCase, UpdateTodoUseCase } from "../contexts/todo/application/TodoUseCases";
 import { createAutoStartAdapter } from "../platform/autostart/createAutoStartAdapter";
 import { PlatformEnvironmentDetector } from "../platform/environment/PlatformEnvironmentDetector";
 import { GoogleTasksApiAdapter } from "../platform/google/GoogleTasksApiAdapter";
@@ -72,13 +73,16 @@ export async function composeApplication(): Promise<ComposedApplication> {
     getStatus: new GetRhythmStatusUseCase(runtime),
     updatePreferences: new UpdatePreferencesUseCase(settingsRepository, autoStart, runtime),
     chooseCustomNotificationSound: new ChooseCustomNotificationSoundUseCase(settingsRepository, notificationSoundFiles),
-    muteNotificationSound: { execute: () => notificationSoundMode.mute() },
+    muteNotificationSound: { execute: () => notificationSoundMode.toggleMute() },
     previewNotificationSound: new PreviewNotificationSoundUseCase(sound),
+    stopNotificationSoundPreview: new StopNotificationSoundPreviewUseCase(sound),
+    updateNotificationSoundVolume: new UpdateNotificationSoundVolumeUseCase(settingsRepository),
     useDefaultNotificationSound: { execute: () => notificationSoundMode.useDefault() },
     addTodo: new AddTodoUseCase(todoRepository, todoIdGenerator, clock),
     deleteTodo: new DeleteTodoUseCase(todoRepository),
     getTodoCalendarSummary: new GetTodoCalendarSummaryUseCase(todoRepository),
     getTodosByDate: new GetTodosByDateUseCase(todoRepository),
+    reorderTodos: new ReorderTodosUseCase(todoRepository, clock),
     toggleTodo: new ToggleTodoUseCase(todoRepository, clock),
     updateTodo: new UpdateTodoUseCase(todoRepository, clock),
     beginGoogleAuthorization: { execute: (): Promise<string> => googleAuth.beginAuthorization() },
@@ -87,6 +91,7 @@ export async function composeApplication(): Promise<ComposedApplication> {
     saveGoogleClientId: { execute: (clientId: string) => googleSettings.saveClientId(clientId) },
     selectGoogleTaskList: { execute: (taskListId: string) => googleSettings.selectTaskList(taskListId) },
     syncGoogleTodos: new SyncGoogleTodosUseCase(todoRepository, googleSync),
+    changeLanguage: new ChangeLanguagePreferenceUseCase(settingsRepository, runtime),
   };
 
   await windowAdapter.keepAliveOnClose();

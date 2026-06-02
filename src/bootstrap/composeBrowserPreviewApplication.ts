@@ -1,5 +1,6 @@
 import chimeSoundUrl from "../assets/CHIME14.mp3";
-import { ChooseCustomNotificationSoundUseCase, PreviewNotificationSoundUseCase, SetNotificationSoundModeUseCase, type NotificationSoundFilePort, type SelectedNotificationSound } from "../contexts/preferences/application/NotificationSoundUseCases";
+import { ChangeLanguagePreferenceUseCase } from "../contexts/preferences/application/LanguagePreferenceUseCase";
+import { ChooseCustomNotificationSoundUseCase, PreviewNotificationSoundUseCase, SetNotificationSoundModeUseCase, StopNotificationSoundPreviewUseCase, UpdateNotificationSoundVolumeUseCase } from "../contexts/preferences/application/NotificationSoundUseCases";
 import { UpdatePreferencesUseCase } from "../contexts/preferences/application/UpdatePreferencesUseCase";
 import { UserPreferences } from "../contexts/preferences/domain/UserPreferences";
 import { GetRhythmStatusUseCase } from "../contexts/rhythm/application/GetRhythmStatusUseCase";
@@ -11,9 +12,10 @@ import { StartRhythmUseCase } from "../contexts/rhythm/application/StartRhythmUs
 import { StopRhythmForTodayUseCase } from "../contexts/rhythm/application/StopRhythmForTodayUseCase";
 import type { RhythmEvent } from "../contexts/rhythm/domain/RhythmEvent";
 import { SyncGoogleTodosUseCase } from "../contexts/todo/application/SyncGoogleTodosUseCase";
-import { AddTodoUseCase, DeleteTodoUseCase, GetTodoCalendarSummaryUseCase, GetTodosByDateUseCase, ToggleTodoUseCase, UpdateTodoUseCase } from "../contexts/todo/application/TodoUseCases";
+import { AddTodoUseCase, DeleteTodoUseCase, GetTodoCalendarSummaryUseCase, GetTodosByDateUseCase, ReorderTodosUseCase, ToggleTodoUseCase, UpdateTodoUseCase } from "../contexts/todo/application/TodoUseCases";
 import type { TodoRepository, TodoSyncPort, TodoSyncResult } from "../contexts/todo/application/ports";
 import { TodoItem, type TodoItemSnapshot } from "../contexts/todo/domain/TodoItem";
+import { BrowserPreviewNotificationSoundFileAdapter } from "../platform/browser/BrowserPreviewNotificationSoundFileAdapter";
 import { DeadlineScheduler } from "../platform/scheduler/DeadlineScheduler";
 import { BrowserTodoIdGenerator } from "../platform/todo/BrowserTodoIdGenerator";
 import type { RhythmAppServices } from "../ui/RhythmAppServices";
@@ -43,13 +45,16 @@ export function composeBrowserPreviewApplication(): { services: RhythmAppService
       getStatus: new GetRhythmStatusUseCase(runtime),
       updatePreferences: new UpdatePreferencesUseCase(settingsRepository, autoStart, runtime),
       chooseCustomNotificationSound: new ChooseCustomNotificationSoundUseCase(settingsRepository, new BrowserPreviewNotificationSoundFilePort()),
-      muteNotificationSound: { execute: () => notificationSoundMode.mute() },
+      muteNotificationSound: { execute: () => notificationSoundMode.toggleMute() },
       previewNotificationSound: new PreviewNotificationSoundUseCase(sound),
+      stopNotificationSoundPreview: new StopNotificationSoundPreviewUseCase(sound),
+      updateNotificationSoundVolume: new UpdateNotificationSoundVolumeUseCase(settingsRepository),
       useDefaultNotificationSound: { execute: () => notificationSoundMode.useDefault() },
       addTodo: new AddTodoUseCase(todoRepository, todoIdGenerator, clock),
       deleteTodo: new DeleteTodoUseCase(todoRepository),
       getTodoCalendarSummary: new GetTodoCalendarSummaryUseCase(todoRepository),
       getTodosByDate: new GetTodosByDateUseCase(todoRepository),
+      reorderTodos: new ReorderTodosUseCase(todoRepository, clock),
       toggleTodo: new ToggleTodoUseCase(todoRepository, clock),
       updateTodo: new UpdateTodoUseCase(todoRepository, clock),
       beginGoogleAuthorization: { execute: () => Promise.resolve("https://accounts.google.com/mock") },
@@ -58,6 +63,7 @@ export function composeBrowserPreviewApplication(): { services: RhythmAppService
       saveGoogleClientId: { execute: () => Promise.resolve() },
       selectGoogleTaskList: { execute: () => Promise.resolve() },
       syncGoogleTodos: new SyncGoogleTodosUseCase(todoRepository, googleSync),
+      changeLanguage: new ChangeLanguagePreferenceUseCase(settingsRepository, runtime),
     },
   };
 }
@@ -79,6 +85,7 @@ class BrowserPreviewSettingsRepository implements SettingsRepository {
       dailyEnd: preferences.dailyRhythm.end.toText(),
       dailyStart: preferences.dailyRhythm.start.toText(),
       focusMinutes: preferences.focusMinutes.value,
+      language: preferences.language,
       notificationSound: preferences.notificationSound,
       restMinutes: preferences.restMinutes.value,
     }));
@@ -97,6 +104,7 @@ class BrowserPreviewSettingsRepository implements SettingsRepository {
         dailyEnd: string;
         dailyStart: string;
         focusMinutes: number;
+        language?: UserPreferences["language"];
         notificationSound?: UserPreferences["notificationSound"];
         restMinutes: number;
       });
@@ -154,8 +162,18 @@ class BrowserPreviewSoundAdapter implements SoundPort {
       return;
     }
 
+    audio.volume = (await this.settingsRepository.get()).notificationSound.volume;
     audio.currentTime = 0;
     await audio.play();
+  }
+
+  public async stop(): Promise<void> {
+    if (!this.audio) {
+      return;
+    }
+
+    this.audio.pause();
+    this.audio.currentTime = 0;
   }
 
   private async currentAudio(): Promise<HTMLAudioElement | null> {
@@ -211,11 +229,7 @@ class BrowserPreviewTodoRepository implements TodoRepository {
   }
 }
 
-class BrowserPreviewNotificationSoundFilePort implements NotificationSoundFilePort {
-  public async chooseCustomMp3(): Promise<SelectedNotificationSound | null> {
-    return null;
-  }
-}
+class BrowserPreviewNotificationSoundFilePort extends BrowserPreviewNotificationSoundFileAdapter {}
 
 class BrowserPreviewTodoSyncPort implements TodoSyncPort {
   public async sync(todos: Array<TodoItem>): Promise<TodoSyncResult> {

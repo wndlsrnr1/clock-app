@@ -6,6 +6,7 @@ describe("GoogleTasksMapper", () => {
   it("drops local todo time when creating a Google Tasks payload", () => {
     const todo = TodoItem.create({
       date: "2026-06-02",
+      displayOrder: 0,
       id: "todo-1",
       now: new Date("2026-06-02T09:00:00"),
       time: "14:30",
@@ -28,6 +29,7 @@ describe("GoogleTasksMapper", () => {
       status: "completed",
       title: "Google 할 일",
     }, {
+      displayOrder: 7,
       id: "todo-1",
       now: new Date("2026-06-02T09:00:00"),
     });
@@ -35,6 +37,7 @@ describe("GoogleTasksMapper", () => {
     expect(todo.snapshot()).toMatchObject({
       completed: true,
       date: "2026-06-02",
+      displayOrder: 7,
       googleTaskId: "google-1",
       time: null,
       title: "Google 할 일",

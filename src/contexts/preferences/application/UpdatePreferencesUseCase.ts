@@ -18,7 +18,10 @@ export class UpdatePreferencesUseCase {
   ) {}
 
   public async execute(command: UpdatePreferencesCommand): Promise<UserPreferences> {
-    const preferences = UserPreferences.restore(command);
+    const preferences = (await this.settingsRepository.get())
+      .changeTerms(command.focusMinutes, command.restMinutes)
+      .changeDailyRhythm(command.dailyStart, command.dailyEnd)
+      .changeAutoStart(command.autoStartEnabled);
     await this.settingsRepository.save(preferences);
     this.runtime?.replacePreferences(preferences);
 

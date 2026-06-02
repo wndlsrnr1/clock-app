@@ -10,5 +10,6 @@ export function snapshotRhythmStatus(runtime: RhythmRuntime): RhythmStatusSnapsh
     dailyEnd: runtime.preferences.dailyRhythm.end.toText(),
     autoStartEnabled: runtime.preferences.autoStart.enabled,
     notificationSound: runtime.preferences.notificationSound,
+    language: runtime.preferences.language,
   };
 }

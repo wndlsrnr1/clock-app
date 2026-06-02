@@ -2,7 +2,9 @@ import { useEffect, useReducer } from "react";
 import type { TodoDaySummary } from "../contexts/todo/domain/TodoList";
 import type { TodoItemSnapshot } from "../contexts/todo/domain/TodoItem";
 import type { GoogleTaskListSnapshot, RhythmAppServices } from "./RhythmAppServices";
-import { currentMonthKey, formatDateKey } from "./dateFormat";
+import { addMonthsToMonthKey, currentMonthKey, formatDateKey } from "./dateFormat";
+import { formatText, type TextCatalog } from "./textCatalog";
+import { normalizeOptionalTimeText } from "./timeText";
 
 export type AppPage = "clock" | "calendar";
 
@@ -16,7 +18,6 @@ interface TodoEditState {
   id: string;
   title: string;
   date: string;
-  timeEnabled: boolean;
   time: string;
 }
 
@@ -80,11 +81,13 @@ export interface TodoAppViewModel {
   changeEditTitle(title: string): void;
   changeEditDate(date: string): void;
   changeEditTime(time: string): void;
-  showEditTimeInput(): void;
   cancelEditing(): void;
   saveEdit(): Promise<void>;
+  reorderTodos(date: string, orderedIds: Array<string>): Promise<void>;
   selectDate(date: string): Promise<void>;
   changeCalendarMonth(month: string): Promise<void>;
+  moveCalendarMonth(offset: -1 | 1): Promise<void>;
+  goToTodayMonth(): Promise<void>;
   changeGoogleClientId(clientId: string): void;
   saveGoogleClientId(): Promise<void>;
   beginGoogleAuthorization(): Promise<void>;
@@ -95,7 +98,7 @@ export interface TodoAppViewModel {
   syncGoogleTodos(): Promise<void>;
 }
 
-export function useTodoApp(services: RhythmAppServices, initialNow: Date): TodoAppViewModel {
+export function useTodoApp(services: RhythmAppServices, initialNow: Date, text: TextCatalog): TodoAppViewModel {
   const [state, dispatch] = useReducer(reducer, createInitialState(initialNow));
 
   useEffect((): void => {
@@ -104,27 +107,31 @@ export function useTodoApp(services: RhythmAppServices, initialNow: Date): TodoA
     void refreshCalendarSummary(services, state.calendarMonth, dispatch);
   }, [services, state.todayDate, state.selectedDate, state.calendarMonth]);
 
+  const changeCalendarMonth = async (month: string): Promise<void> => {
+    dispatch({ type: "CALENDAR_MONTH_CHANGED", month });
+    await refreshCalendarSummary(services, month, dispatch);
+  };
+
   return {
     ...state,
     addTodayTodo: async (): Promise<void> => {
-      await services.addTodo.execute({
-        date: state.todayDate,
-        time: state.form.timeEnabled ? state.form.time : null,
-        title: state.form.title,
-      });
+      const time = normalizedTodoTime(state.form.timeEnabled ? state.form.time : "", text, dispatch);
+
+      if (time.failed) {
+        return;
+      }
+
+      await services.addTodo.execute({ date: state.todayDate, time: time.value, title: state.form.title });
       dispatch({ type: "TODO_FORM_CLEARED" });
       await refreshTodoViews(services, state, dispatch);
     },
     beginGoogleAuthorization: async (): Promise<void> => {
       const authorizationUrl = await services.beginGoogleAuthorization.execute();
-      dispatch({ type: "MESSAGE_CHANGED", message: `인증 URL을 열었습니다. 리디렉션 URL의 code 값을 붙여넣어 주세요. ${authorizationUrl}` });
+      dispatch({ type: "MESSAGE_CHANGED", message: formatText(text.messages.googleAuthorizationStarted, { url: authorizationUrl }) });
     },
     cancelEditing: (): void => dispatch({ type: "EDIT_CLEARED" }),
     changeAuthorizationCode: (code: string): void => dispatch({ type: "GOOGLE_CHANGED", field: "authorizationCode", value: code }),
-    changeCalendarMonth: async (month: string): Promise<void> => {
-      dispatch({ type: "CALENDAR_MONTH_CHANGED", month });
-      await refreshCalendarSummary(services, month, dispatch);
-    },
+    changeCalendarMonth,
     changeEditDate: (date: string): void => dispatch({ type: "EDIT_CHANGED", field: "date", value: date }),
     changeEditTime: (time: string): void => dispatch({ type: "EDIT_CHANGED", field: "time", value: time }),
     changeEditTitle: (title: string): void => dispatch({ type: "EDIT_CHANGED", field: "title", value: title }),
@@ -133,7 +140,7 @@ export function useTodoApp(services: RhythmAppServices, initialNow: Date): TodoA
     changeTitle: (title: string): void => dispatch({ type: "TODO_FORM_CHANGED", field: "title", value: title }),
     completeGoogleAuthorization: async (): Promise<void> => {
       await services.completeGoogleAuthorization.execute(state.google.authorizationCode);
-      dispatch({ type: "MESSAGE_CHANGED", message: "Google Tasks 인증을 저장했습니다." });
+      dispatch({ type: "MESSAGE_CHANGED", message: text.messages.googleAuthorizationSaved });
     },
     deleteTodo: async (id: string): Promise<void> => {
       await services.deleteTodo.execute(id);
@@ -143,15 +150,34 @@ export function useTodoApp(services: RhythmAppServices, initialNow: Date): TodoA
       const taskLists = await services.listGoogleTaskLists.execute();
       dispatch({ type: "GOOGLE_CHANGED", field: "taskLists", value: taskLists });
     },
+    goToTodayMonth: async (): Promise<void> => {
+      const todayMonth = state.todayDate.slice(0, 7);
+      dispatch({ type: "SELECTED_DATE_CHANGED", date: state.todayDate });
+      await refreshSelectedDate(services, state.todayDate, dispatch);
+      await changeCalendarMonth(todayMonth);
+    },
+    moveCalendarMonth: async (offset: -1 | 1): Promise<void> => {
+      await changeCalendarMonth(addMonthsToMonthKey(state.calendarMonth, offset));
+    },
+    reorderTodos: async (date: string, orderedIds: Array<string>): Promise<void> => {
+      await services.reorderTodos.execute({ date, orderedIds });
+      await refreshTodoViews(services, state, dispatch);
+    },
     saveEdit: async (): Promise<void> => {
       if (!state.edit) {
+        return;
+      }
+
+      const time = normalizedTodoTime(state.edit.time, text, dispatch);
+
+      if (time.failed) {
         return;
       }
 
       await services.updateTodo.execute({
         date: state.edit.date,
         id: state.edit.id,
-        time: state.edit.timeEnabled ? state.edit.time : null,
+        time: time.value,
         title: state.edit.title,
       });
       dispatch({ type: "EDIT_CLEARED" });
@@ -159,7 +185,7 @@ export function useTodoApp(services: RhythmAppServices, initialNow: Date): TodoA
     },
     saveGoogleClientId: async (): Promise<void> => {
       await services.saveGoogleClientId.execute(state.google.clientId);
-      dispatch({ type: "MESSAGE_CHANGED", message: "Google Client ID를 저장했습니다." });
+      dispatch({ type: "MESSAGE_CHANGED", message: text.messages.googleClientIdSaved });
     },
     selectDate: async (date: string): Promise<void> => {
       dispatch({ type: "SELECTED_DATE_CHANGED", date });
@@ -168,7 +194,7 @@ export function useTodoApp(services: RhythmAppServices, initialNow: Date): TodoA
     selectGoogleTaskList: async (taskListId: string): Promise<void> => {
       await services.selectGoogleTaskList.execute(taskListId);
       dispatch({ type: "GOOGLE_CHANGED", field: "selectedTaskListId", value: taskListId });
-      dispatch({ type: "MESSAGE_CHANGED", message: "Google Tasks 목록을 선택했습니다." });
+      dispatch({ type: "MESSAGE_CHANGED", message: text.messages.googleTaskListSelected });
     },
     showCalendar: async (): Promise<void> => {
       dispatch({ type: "PAGE_CHANGED", page: "calendar" });
@@ -178,12 +204,18 @@ export function useTodoApp(services: RhythmAppServices, initialNow: Date): TodoA
       dispatch({ type: "PAGE_CHANGED", page: "clock" });
       await refreshToday(services, state.todayDate, dispatch);
     },
-    showEditTimeInput: (): void => dispatch({ type: "EDIT_CHANGED", field: "timeEnabled", value: true }),
     showTimeInput: (): void => dispatch({ type: "TODO_FORM_CHANGED", field: "timeEnabled", value: true }),
     startEditing: (todo: TodoItemSnapshot): void => dispatch({ type: "EDIT_STARTED", todo }),
     syncGoogleTodos: async (): Promise<void> => {
       const result = await services.syncGoogleTodos.execute();
-      dispatch({ type: "MESSAGE_CHANGED", message: `Google 동기화 완료: 업로드 ${result.uploaded}, 가져오기 ${result.imported}, 업데이트 ${result.updated}` });
+      dispatch({
+        type: "MESSAGE_CHANGED",
+        message: formatText(text.messages.googleSyncCompleted, {
+          imported: result.imported,
+          updated: result.updated,
+          uploaded: result.uploaded,
+        }),
+      });
       await refreshTodoViews(services, state, dispatch);
     },
     toggleTodo: async (id: string): Promise<void> => {
@@ -251,7 +283,6 @@ function reducer(state: TodoAppState, action: TodoAppAction): TodoAppState {
         date: action.todo.date,
         id: action.todo.id,
         time: action.todo.time ?? "",
-        timeEnabled: action.todo.time !== null,
         title: action.todo.title,
       },
     };
@@ -308,4 +339,17 @@ async function refreshTodoViews(
   await refreshToday(services, state.todayDate, dispatch);
   await refreshSelectedDate(services, state.selectedDate, dispatch);
   await refreshCalendarSummary(services, state.calendarMonth, dispatch);
+}
+
+function normalizedTodoTime(
+  value: string,
+  text: TextCatalog,
+  dispatch: React.Dispatch<TodoAppAction>,
+): { failed: false; value: string | null } | { failed: true } {
+  try {
+    return { failed: false, value: normalizeOptionalTimeText(value) };
+  } catch {
+    dispatch({ type: "MESSAGE_CHANGED", message: text.messages.invalidTime });
+    return { failed: true };
+  }
 }

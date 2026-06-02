@@ -37,16 +37,12 @@ export class TodoList {
   }
 
   private static compareForDailyView(left: TodoItem, right: TodoItem): number {
-    if (left.todoTime && right.todoTime) {
-      return left.todoTime.localeCompare(right.todoTime);
+    if (left.isCompleted !== right.isCompleted) {
+      return left.isCompleted ? 1 : -1;
     }
 
-    if (left.todoTime) {
-      return -1;
-    }
-
-    if (right.todoTime) {
-      return 1;
+    if (left.todoDisplayOrder !== right.todoDisplayOrder) {
+      return left.todoDisplayOrder - right.todoDisplayOrder;
     }
 
     return left.createdTime - right.createdTime;

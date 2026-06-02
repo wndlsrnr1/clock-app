@@ -36,7 +36,7 @@ describe("NeutralinoSoundAdapter", () => {
     const createdAudios: Array<FakeAudio> = [];
     const adapter = new NeutralinoSoundAdapter(
       "/assets/default.mp3",
-      new FakeSettingsRepository(UserPreferences.default().muteNotificationSound()),
+      new FakeSettingsRepository(UserPreferences.default().toggleNotificationSoundMute()),
       (source: string): AudioElementPort => {
         const audio = new FakeAudio(source);
         createdAudios.push(audio);
@@ -69,5 +69,42 @@ describe("NeutralinoSoundAdapter", () => {
 
     expect(createdAudios[0]?.source).toBe("/user-sounds/notification.mp3");
     expect(createdAudios[0]?.playCount).toBe(1);
+  });
+
+  it("applies the saved app-only volume before playing audio", async () => {
+    const createdAudios: Array<FakeAudio> = [];
+    const adapter = new NeutralinoSoundAdapter(
+      "/assets/default.mp3",
+      new FakeSettingsRepository(UserPreferences.default().changeNotificationSoundVolume(0.35)),
+      (source: string): AudioElementPort => {
+        const audio = new FakeAudio(source);
+        createdAudios.push(audio);
+        return audio;
+      },
+    );
+
+    await adapter.play();
+
+    expect(createdAudios[0]?.volume).toBe(0.35);
+  });
+
+  it("stops the current preview audio and resets playback position", async () => {
+    const createdAudios: Array<FakeAudio> = [];
+    const adapter = new NeutralinoSoundAdapter(
+      "/assets/default.mp3",
+      new FakeSettingsRepository(UserPreferences.default()),
+      (source: string): AudioElementPort => {
+        const audio = new FakeAudio(source);
+        createdAudios.push(audio);
+        return audio;
+      },
+    );
+
+    await adapter.play();
+    createdAudios[0].currentTime = 4;
+    await adapter.stop();
+
+    expect(createdAudios[0]?.pauseCount).toBe(1);
+    expect(createdAudios[0]?.currentTime).toBe(0);
   });
 });

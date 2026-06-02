@@ -20,8 +20,8 @@ export class SetNotificationSoundModeUseCase {
     return preferences;
   }
 
-  public async mute(): Promise<UserPreferences> {
-    const preferences = (await this.settingsRepository.get()).muteNotificationSound();
+  public async toggleMute(): Promise<UserPreferences> {
+    const preferences = (await this.settingsRepository.get()).toggleNotificationSoundMute();
     await this.settingsRepository.save(preferences);
 
     return preferences;
@@ -54,5 +54,24 @@ export class PreviewNotificationSoundUseCase {
 
   public async execute(): Promise<void> {
     await this.sound.play();
+  }
+}
+
+export class StopNotificationSoundPreviewUseCase {
+  public constructor(private readonly sound: SoundPort) {}
+
+  public async execute(): Promise<void> {
+    await this.sound.stop();
+  }
+}
+
+export class UpdateNotificationSoundVolumeUseCase {
+  public constructor(private readonly settingsRepository: SettingsRepository) {}
+
+  public async execute(volume: number): Promise<UserPreferences> {
+    const preferences = (await this.settingsRepository.get()).changeNotificationSoundVolume(volume);
+    await this.settingsRepository.save(preferences);
+
+    return preferences;
   }
 }

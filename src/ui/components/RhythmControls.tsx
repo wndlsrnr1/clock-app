@@ -1,4 +1,6 @@
 import type { RhythmSessionStatus } from "../../contexts/rhythm/domain/RhythmSession";
+import type { TextCatalog } from "../textCatalog";
+import { IconButton } from "./IconButton";
 
 interface RhythmControlsProps {
   status: RhythmSessionStatus;
@@ -6,6 +8,7 @@ interface RhythmControlsProps {
   onPause(): Promise<void>;
   onResume(): Promise<void>;
   onStopForToday(): Promise<void>;
+  text: TextCatalog;
 }
 
 export function RhythmControls({
@@ -14,22 +17,15 @@ export function RhythmControls({
   onPause,
   onResume,
   onStopForToday,
+  text,
 }: RhythmControlsProps): React.JSX.Element {
+  const play = status === "paused" ? onResume : onStart;
+
   return (
-    <div className="buttons">
-      <button className="btn" onClick={() => void onStart()} type="button">
-        시작
-      </button>
-      <button className="btn" disabled={status !== "running"} onClick={() => void onPause()} type="button">
-        일시정지
-      </button>
-      <button className="btn" disabled={status !== "paused"} onClick={() => void onResume()} type="button">
-        재개
-      </button>
-      <button className="btn secondary" onClick={() => void onStopForToday()} type="button">
-        오늘 종료
-      </button>
+    <div className="icon-toolbar rhythm-toolbar">
+      <IconButton disabled={status === "running"} icon="play" label={text.rhythm.controls.start} onClick={() => void play()} variant="primary" />
+      <IconButton disabled={status !== "running"} icon="pause" label={text.rhythm.controls.pause} onClick={() => void onPause()} variant="secondary" />
+      <IconButton icon="clock" label={text.rhythm.controls.stopForToday} onClick={() => void onStopForToday()} variant="secondary" />
     </div>
   );
 }
-

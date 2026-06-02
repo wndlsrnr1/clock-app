@@ -48,8 +48,18 @@ export class NeutralinoSoundAdapter implements SoundPort {
       return;
     }
 
+    audio.volume = (await this.settingsRepository.get()).notificationSound.volume;
     audio.currentTime = 0;
     await audio.play();
+  }
+
+  public async stop(): Promise<void> {
+    if (!this.audio) {
+      return;
+    }
+
+    this.audio.pause();
+    this.audio.currentTime = 0;
   }
 
   private async currentAudio(): Promise<AudioElementPort | null> {
