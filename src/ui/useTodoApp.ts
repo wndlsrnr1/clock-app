@@ -1,8 +1,10 @@
 import { useEffect, useReducer } from "react";
 import type { TodoDaySummary } from "../contexts/todo/domain/TodoList";
 import type { TodoItemSnapshot } from "../contexts/todo/domain/TodoItem";
+import type { PreparedBackupImport } from "../contexts/backup/application/BackupUseCases";
 import type { RhythmAppServices } from "./RhythmAppServices";
 import { addMonthsToMonthKey, currentMonthKey, formatDateKey } from "./dateFormat";
+import { validateTodoTitleInput } from "./inputValidation";
 import { formatText, type TextCatalog } from "./textCatalog";
 import { normalizeOptionalTimeText } from "./timeText";
 
@@ -32,6 +34,7 @@ interface TodoAppState {
   form: TodoFormState;
   edit: TodoEditState | null;
   importConfirmationOpen: boolean;
+  preparedBackupImport: PreparedBackupImport | null;
   message: string;
 }
 
@@ -48,7 +51,8 @@ type TodoAppAction =
   | { type: "EDIT_STARTED"; todo: TodoItemSnapshot }
   | { type: "EDIT_CHANGED"; field: keyof TodoEditState; value: string | boolean }
   | { type: "EDIT_CLEARED" }
-  | { type: "IMPORT_CONFIRMATION_CHANGED"; open: boolean }
+  | { type: "IMPORT_PREPARED"; preparedImport: PreparedBackupImport }
+  | { type: "IMPORT_CONFIRMATION_CLEARED" }
   | { type: "MESSAGE_CHANGED"; message: string };
 
 export interface TodoAppViewModel {
@@ -62,6 +66,7 @@ export interface TodoAppViewModel {
   form: TodoFormState;
   edit: TodoEditState | null;
   importConfirmationOpen: boolean;
+  preparedBackupImport: PreparedBackupImport | null;
   message: string;
   showClock(): Promise<void>;
   showCalendar(): Promise<void>;
@@ -112,15 +117,22 @@ export function useTodoApp(services: RhythmAppServices, currentNow: Date, text: 
   return {
     ...state,
     addTodayTodo: async (): Promise<void> => {
+      if (!validateTodoTitleInput(state.form.title, text).isValid) {
+        dispatch({ type: "MESSAGE_CHANGED", message: text.todo.validation.titleRequired });
+        return;
+      }
+
       const time = normalizedTodoTime(state.form.timeEnabled ? state.form.time : "", text, dispatch);
 
       if (time.failed) {
         return;
       }
 
-      await services.addTodo.execute({ date: state.todayDate, time: time.value, title: state.form.title });
-      dispatch({ type: "TODO_FORM_CLEARED" });
-      await refreshTodoViews(services, state, dispatch);
+      await runTodoAction(async (): Promise<void> => {
+        await services.addTodo.execute({ date: state.todayDate, time: time.value, title: state.form.title });
+        dispatch({ type: "TODO_FORM_CLEARED" });
+        await refreshTodoViews(services, state, dispatch);
+      }, text, dispatch, "todo");
     },
     cancelEditing: (): void => dispatch({ type: "EDIT_CLEARED" }),
     changeCalendarMonth,
@@ -129,18 +141,26 @@ export function useTodoApp(services: RhythmAppServices, currentNow: Date, text: 
     changeEditTitle: (title: string): void => dispatch({ type: "EDIT_CHANGED", field: "title", value: title }),
     changeTime: (time: string): void => dispatch({ type: "TODO_FORM_CHANGED", field: "time", value: time }),
     changeTitle: (title: string): void => dispatch({ type: "TODO_FORM_CHANGED", field: "title", value: title }),
-    cancelImportBackup: (): void => dispatch({ type: "IMPORT_CONFIRMATION_CHANGED", open: false }),
+    cancelImportBackup: (): void => dispatch({ type: "IMPORT_CONFIRMATION_CLEARED" }),
     confirmImportBackup: async (): Promise<void> => {
+      if (!state.preparedBackupImport) {
+        return;
+      }
+
+      const preparedImport = state.preparedBackupImport;
+
       await runTodoAction(async (): Promise<void> => {
-        await services.importBackup.execute();
-        dispatch({ type: "IMPORT_CONFIRMATION_CHANGED", open: false });
+        await services.importBackup.execute(preparedImport);
+        dispatch({ type: "IMPORT_CONFIRMATION_CLEARED" });
         dispatch({ type: "MESSAGE_CHANGED", message: text.messages.backupImported });
         await refreshTodoViews(services, state, dispatch);
       }, text, dispatch);
     },
     deleteTodo: async (id: string): Promise<void> => {
-      await services.deleteTodo.execute(id);
-      await refreshTodoViews(services, state, dispatch);
+      await runTodoAction(async (): Promise<void> => {
+        await services.deleteTodo.execute(id);
+        await refreshTodoViews(services, state, dispatch);
+      }, text, dispatch, "todo");
     },
     exportBackup: async (): Promise<void> => {
       await runTodoAction(async (): Promise<void> => {
@@ -158,34 +178,55 @@ export function useTodoApp(services: RhythmAppServices, currentNow: Date, text: 
       await changeCalendarMonth(addMonthsToMonthKey(state.calendarMonth, offset));
     },
     reorderTodos: async (date: string, orderedIds: Array<string>): Promise<void> => {
-      await services.reorderTodos.execute({ date, orderedIds });
-      await refreshTodoViews(services, state, dispatch);
+      await runTodoAction(async (): Promise<void> => {
+        await services.reorderTodos.execute({ date, orderedIds });
+        await refreshTodoViews(services, state, dispatch);
+      }, text, dispatch, "todo");
     },
     saveEdit: async (): Promise<void> => {
       if (!state.edit) {
         return;
       }
 
-      const time = normalizedTodoTime(state.edit.time, text, dispatch);
+      const edit = state.edit;
+
+      if (!validateTodoTitleInput(edit.title, text).isValid) {
+        dispatch({ type: "MESSAGE_CHANGED", message: text.todo.validation.titleRequired });
+        return;
+      }
+
+      const time = normalizedTodoTime(edit.time, text, dispatch);
 
       if (time.failed) {
         return;
       }
 
-      await services.updateTodo.execute({
-        date: state.edit.date,
-        id: state.edit.id,
-        time: time.value,
-        title: state.edit.title,
-      });
-      dispatch({ type: "EDIT_CLEARED" });
-      await refreshTodoViews(services, state, dispatch);
+      await runTodoAction(async (): Promise<void> => {
+        await services.updateTodo.execute({
+          date: edit.date,
+          id: edit.id,
+          time: time.value,
+          title: edit.title,
+        });
+        dispatch({ type: "EDIT_CLEARED" });
+        await refreshTodoViews(services, state, dispatch);
+      }, text, dispatch, "todo");
     },
     selectDate: async (date: string): Promise<void> => {
       dispatch({ type: "SELECTED_DATE_CHANGED", date });
       await refreshSelectedDate(services, date, dispatch);
     },
-    requestImportBackup: (): void => dispatch({ type: "IMPORT_CONFIRMATION_CHANGED", open: true }),
+    requestImportBackup: (): void => {
+      void runTodoAction(async (): Promise<void> => {
+        const preparedImport = await services.previewImportBackup.execute();
+
+        if (!preparedImport) {
+          return;
+        }
+
+        dispatch({ type: "IMPORT_PREPARED", preparedImport });
+      }, text, dispatch);
+    },
     showCalendar: async (): Promise<void> => {
       dispatch({ type: "PAGE_CHANGED", page: "calendar" });
       await refreshCalendarSummary(services, state.calendarMonth, dispatch);
@@ -197,8 +238,10 @@ export function useTodoApp(services: RhythmAppServices, currentNow: Date, text: 
     showTimeInput: (): void => dispatch({ type: "TODO_FORM_CHANGED", field: "timeEnabled", value: true }),
     startEditing: (todo: TodoItemSnapshot): void => dispatch({ type: "EDIT_STARTED", todo }),
     toggleTodo: async (id: string): Promise<void> => {
-      await services.toggleTodo.execute(id);
-      await refreshTodoViews(services, state, dispatch);
+      await runTodoAction(async (): Promise<void> => {
+        await services.toggleTodo.execute(id);
+        await refreshTodoViews(services, state, dispatch);
+      }, text, dispatch, "todo");
     },
   };
 }
@@ -212,6 +255,7 @@ function createInitialState(initialNow: Date): TodoAppState {
     edit: null,
     form: { time: "", timeEnabled: false, title: "" },
     importConfirmationOpen: false,
+    preparedBackupImport: null,
     message: "",
     page: "clock",
     selectedDate: todayDate,
@@ -286,8 +330,12 @@ function reducer(state: TodoAppState, action: TodoAppAction): TodoAppState {
     return { ...state, edit: null };
   }
 
-  if (action.type === "IMPORT_CONFIRMATION_CHANGED") {
-    return { ...state, importConfirmationOpen: action.open };
+  if (action.type === "IMPORT_PREPARED") {
+    return { ...state, importConfirmationOpen: true, preparedBackupImport: action.preparedImport };
+  }
+
+  if (action.type === "IMPORT_CONFIRMATION_CLEARED") {
+    return { ...state, importConfirmationOpen: false, preparedBackupImport: null };
   }
 
   if (action.type === "MESSAGE_CHANGED") {
@@ -348,13 +396,15 @@ async function runTodoAction(
   action: () => Promise<void>,
   text: TextCatalog,
   dispatch: React.Dispatch<TodoAppAction>,
+  category: "backup" | "todo" = "backup",
 ): Promise<void> {
   try {
     await action();
   } catch (error) {
+    const template = category === "todo" ? text.messages.todoActionFailed : text.messages.backupFailed;
     dispatch({
       type: "MESSAGE_CHANGED",
-      message: formatText(text.messages.backupFailed, { message: actionErrorMessage(error, text) }),
+      message: formatText(template, { message: actionErrorMessage(error, text) }),
     });
   }
 }

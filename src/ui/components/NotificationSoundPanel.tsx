@@ -66,6 +66,7 @@ export function NotificationSoundPanel({ rhythm, text }: NotificationSoundPanelP
           ) : null}
         </div>
       </div>
+      {sound.volume === 0 && sound.mode !== "muted" ? <p className="warning-text">{text.sound.warnings.zeroVolume}</p> : null}
     </section>
   );
 }

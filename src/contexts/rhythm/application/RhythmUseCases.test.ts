@@ -90,6 +90,25 @@ function createUseCases(now: Date): {
   };
 }
 
+function createUseCasesWithPreferences(now: Date, preferences: UserPreferences): {
+  scheduler: FakeScheduler;
+  sound: FakeSound;
+  start: StartRhythmUseCase;
+} {
+  const runtime = RhythmRuntime.empty();
+  const settingsRepository = new FakeSettingsRepository(preferences);
+  const scheduler = new FakeScheduler();
+  const sound = new FakeSound();
+  const tray = new FakeTray();
+  const clock = new FixedClock(now);
+
+  return {
+    scheduler,
+    sound,
+    start: new StartRhythmUseCase(runtime, settingsRepository, scheduler, sound, tray, clock),
+  };
+}
+
 describe("Rhythm use cases", () => {
   it("starts the rhythm and schedules the next focus boundary", async () => {
     const useCases = createUseCases(new Date("2026-06-02T05:10:00"));
@@ -100,6 +119,19 @@ describe("Rhythm use cases", () => {
     expect(useCases.sound.prepare).toHaveBeenCalledOnce();
     expect(useCases.scheduler.scheduledAt?.getHours()).toBe(5);
     expect(useCases.scheduler.scheduledAt?.getMinutes()).toBe(50);
+  });
+
+  it("starts a late night one minute rhythm and schedules the first ring one minute later", async () => {
+    const preferences = UserPreferences.default()
+      .changeTerms(1, 1)
+      .changeDailyRhythm("23:00", "23:55");
+    const useCases = createUseCasesWithPreferences(new Date("2026-06-02T23:00:00"), preferences);
+
+    await useCases.start.execute();
+
+    expect(useCases.sound.prepare).toHaveBeenCalledOnce();
+    expect(useCases.scheduler.scheduledAt?.getHours()).toBe(23);
+    expect(useCases.scheduler.scheduledAt?.getMinutes()).toBe(1);
   });
 
   it("pauses, resumes, and cancels scheduled work around each transition", async () => {

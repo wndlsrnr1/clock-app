@@ -9,5 +9,5 @@ interface TimeInputFieldProps {
 }
 
 export function TimeInputField({ label, onChange, text, value }: TimeInputFieldProps): React.JSX.Element {
-  return <TimePickerField label={label} onChange={onChange} showLabel={true} text={text} value={value} />;
+  return <TimePickerField label={label} onChange={onChange} required={true} showLabel={true} text={text} value={value} />;
 }

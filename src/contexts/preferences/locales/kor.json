@@ -26,10 +26,14 @@
       "restMinutes": "휴식 시간",
       "dailyStart": "하루 시작",
       "dailyEnd": "하루 종료",
-      "autoStart": "자동 시작",
+      "autoStart": "시작프로그램에 등록",
       "save": "설정 저장",
       "decrease": "{label} 줄이기",
-      "increase": "{label} 늘리기"
+      "increase": "{label} 늘리기",
+      "minuteRange": "{min}-{max}분",
+      "nextAlarm": "다음 알림: {time}",
+      "nextAlarmUnavailable": "시간 설정을 확인해주세요.",
+      "outsideDailyRhythm": "현재는 리듬 시간 밖입니다."
     },
     "controls": {
       "start": "시작",
@@ -53,6 +57,10 @@
       "volume": "알림음 볼륨"
     },
     "volumeLabel": "앱 알림음 볼륨"
+    ,
+    "warnings": {
+      "zeroVolume": "볼륨이 0%입니다."
+    }
   },
   "todo": {
     "today": {
@@ -77,6 +85,11 @@
       "editDate": "Todo 날짜 수정",
       "editTime": "Todo 시간 수정"
     },
+    "validation": {
+      "titleRequired": "할 일을 입력해주세요.",
+      "titleTooLong": "할 일은 {max}자 이하로 입력해주세요.",
+      "titleCounter": "{count}/{max}"
+    },
     "timePicker": {
       "placeholder": "시간 선택",
       "directLabel": "직접 입력",
@@ -86,7 +99,8 @@
       "hourOption": "{hour}시",
       "minuteOption": "{minute}분",
       "clear": "비우기",
-      "close": "닫기"
+      "close": "닫기",
+      "invalid": "시간은 00:00-23:59로 입력해주세요."
     }
   },
   "calendar": {
@@ -110,10 +124,15 @@
     "importConfirmTitle": "백업 가져오기",
     "importConfirmDescription": "현재 설정과 Todo가 백업 파일 내용으로 전체 교체됩니다.",
     "confirmImport": "전체 교체",
-    "cancel": "취소"
+    "cancel": "취소",
+    "summaryTodos": "Todo {count}개",
+    "summaryTerms": "집중 {focus}분 / 휴식 {rest}분",
+    "summaryLanguage": "언어: {language}",
+    "summaryExportedAt": "백업 시각: {exportedAt}"
   },
   "messages": {
     "preferencesSaved": "설정을 저장했습니다.",
+    "preferencesFailed": "설정 저장 실패: {message}",
     "customSoundChanged": "알림음을 변경했습니다.",
     "soundMuted": "무음으로 설정했습니다. 기본 알림은 유지됩니다.",
     "soundUnmuted": "소리를 다시 켰습니다.",
@@ -126,6 +145,8 @@
     "rhythmStoppedForToday": "오늘의 리듬을 종료했습니다.",
     "languageChanged": "언어 설정을 변경했습니다.",
     "invalidTime": "시간은 14:30 또는 1430 형식으로 입력해주세요.",
+    "todoActionFailed": "Todo 작업 실패: {message}",
+    "soundActionFailed": "알림음 작업 실패: {message}",
     "backupExported": "백업 파일을 내보냈습니다.",
     "backupImported": "백업 파일로 전체 복원했습니다.",
     "backupFailed": "백업 작업 실패: {message}",

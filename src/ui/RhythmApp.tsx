@@ -23,8 +23,8 @@ export function RhythmApp({ services, initialNow = new Date() }: RhythmAppProps)
   const { containerRef, layoutMode } = useLayoutMode();
 
   return (
-    <main className="app-shell">
-      <section className={`box box--${layoutMode}`} ref={containerRef}>
+    <main className="app-shell" ref={containerRef}>
+      <section className={`box box--${layoutMode}`}>
         <nav className="app-nav" aria-label={text.navigation.aria}>
           <SegmentedControl
             ariaLabel={text.navigation.aria}
@@ -65,6 +65,7 @@ export function RhythmApp({ services, initialNow = new Date() }: RhythmAppProps)
                     onFocusMinutesChange={rhythm.changeFocusMinutes}
                     onRestMinutesChange={rhythm.changeRestMinutes}
                     onSave={rhythm.savePreferences}
+                    settingsPreview={rhythm.settingsPreview}
                     text={text}
                   />
                   <NotificationSoundPanel rhythm={rhythm} text={text} />

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { isOptionalTimeInputValid } from "../inputValidation";
 import { formatText, type TextCatalog } from "../textCatalog";
 import { SvgIcon } from "./SvgIcon";
 
@@ -9,6 +10,7 @@ interface TimePickerFieldProps {
   onChange(value: string): void;
   onCancel?: () => void;
   onCommit?: () => void;
+  required?: boolean;
   showLabel?: boolean;
 }
 
@@ -25,6 +27,7 @@ export function TimePickerField({
   onCancel,
   onChange,
   onCommit,
+  required = false,
   showLabel = false,
   text,
   value,
@@ -34,6 +37,7 @@ export function TimePickerField({
   const directInputLabel = formatText(text.todo.timePicker.directInput, { label });
   const displayValue = displayTimeValue(value);
   const directDisplay = displayDirectInputValue(value);
+  const isInvalid = required ? !isOptionalTimeInputValid(value) || value.trim().length === 0 : !isOptionalTimeInputValid(value);
 
   return (
     <div className={showLabel ? "time-picker-field with-label" : "time-picker-field"}>
@@ -41,6 +45,7 @@ export function TimePickerField({
       <div className="time-picker-control">
         <button
           aria-expanded={isOpen}
+          aria-invalid={isInvalid}
           aria-label={label}
           className="time-picker-trigger"
           onClick={() => setIsOpen((current: boolean): boolean => !current)}
@@ -66,6 +71,7 @@ export function TimePickerField({
                 <span className="time-picker-direct-entry">
                   <input
                     aria-label={directInputLabel}
+                    aria-invalid={isInvalid}
                     inputMode="numeric"
                     onChange={(event: React.ChangeEvent<HTMLInputElement>) => onChange(sanitizeTimeDigits(event.target.value))}
                     onKeyDown={(event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -97,6 +103,7 @@ export function TimePickerField({
                   </span>
                 </span>
               </label>
+              {isInvalid ? <p className="field-error">{text.todo.timePicker.invalid}</p> : null}
               <div className="time-picker-columns">
                 <div aria-label={text.todo.timePicker.hourGroup} className="time-picker-options" role="group">
                   {hourOptions.map((hour: string): React.JSX.Element => (
@@ -126,9 +133,11 @@ export function TimePickerField({
                 </div>
               </div>
               <div className="time-picker-actions">
-                <button className="mini-button" onClick={() => onChange("")} type="button">
-                  {text.todo.timePicker.clear}
-                </button>
+                {required ? null : (
+                  <button className="mini-button" onClick={() => onChange("")} type="button">
+                    {text.todo.timePicker.clear}
+                  </button>
+                )}
                 <button className="mini-button" onClick={() => setIsOpen(false)} type="button">
                   {text.todo.timePicker.close}
                 </button>

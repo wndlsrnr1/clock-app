@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { TodoItemSnapshot } from "../../contexts/todo/domain/TodoItem";
 import { formatText, type TextCatalog } from "../textCatalog";
+import { todoTitleMaxLength, validateTodoTitleInput } from "../inputValidation";
 import { IconButton } from "./IconButton";
 import { SvgIcon } from "./SvgIcon";
 import { TimePickerField } from "./TimePickerField";
@@ -42,6 +43,13 @@ export function TodoListPanel({
   todos,
 }: TodoListPanelProps): React.JSX.Element {
   const [draggedTodoId, setDraggedTodoId] = useState<string | null>(null);
+  const editTitleValidation = edit ? validateTodoTitleInput(edit.title, text) : null;
+  const editTitleErrorId = edit ? `todo-edit-title-error-${edit.id}` : undefined;
+  const editTitleCounterId = edit ? `todo-edit-title-counter-${edit.id}` : undefined;
+  const editTitleDescription = [
+    editTitleValidation?.error ? editTitleErrorId : null,
+    editTitleValidation?.counter ? editTitleCounterId : null,
+  ].filter(Boolean).join(" ") || undefined;
 
   if (todos.length === 0) {
     return <p className="empty-text">{text.todo.list.empty}</p>;
@@ -105,12 +113,19 @@ export function TodoListPanel({
               }}
             >
               <input
+                aria-describedby={editTitleDescription}
+                aria-invalid={editTitleValidation ? !editTitleValidation.isValid : false}
                 aria-label={text.todo.list.editTitle}
+                maxLength={todoTitleMaxLength}
+                required={true}
                 value={edit.title}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) => onChangeEditTitle(event.target.value)}
               />
+              {editTitleValidation?.error && editTitleErrorId ? <p className="field-error" id={editTitleErrorId}>{editTitleValidation.error}</p> : null}
+              {editTitleValidation?.counter && editTitleCounterId ? <p className="input-hint counter" id={editTitleCounterId}>{editTitleValidation.counter}</p> : null}
               <input
                 aria-label={text.todo.list.editDate}
+                required={true}
                 type="date"
                 value={edit.date}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) => onChangeEditDate(event.target.value)}
@@ -124,7 +139,7 @@ export function TodoListPanel({
                 value={edit.time}
               />
               <div className="todo-edit-actions">
-                <IconButton icon="check" label={text.todo.actions.save} onClick={() => void onSaveEdit()} variant="primary" />
+                <IconButton disabled={editTitleValidation ? !editTitleValidation.isValid : false} icon="check" label={text.todo.actions.save} onClick={() => void onSaveEdit()} variant="primary" />
                 <IconButton icon="x" label={text.todo.actions.cancel} onClick={onCancelEditing} variant="subtle" />
               </div>
             </div>

@@ -47,6 +47,22 @@ describe("RhythmSchedule", () => {
     expectLocalMinute(event.occursAt, "2026-06-03T05:50:00");
   });
 
+  it("schedules a one minute focus boundary inside a late night rhythm window", () => {
+    const schedule = RhythmSchedule.create({
+      dailyRhythm: DailyRhythm.create({
+        start: ClockTime.fromText("23:00"),
+        end: ClockTime.fromText("23:55"),
+      }),
+      focusTerm: DurationMinutes.create(1),
+      restTerm: DurationMinutes.create(1),
+    });
+
+    const event = schedule.nextEventAfter(new Date("2026-06-02T23:00:00"));
+
+    expect(event.kind).toBe("focusEnds");
+    expectLocalMinute(event.occursAt, "2026-06-02T23:01:00");
+  });
+
   it("supports active windows that cross midnight", () => {
     const schedule = RhythmSchedule.create({
       dailyRhythm: DailyRhythm.create({

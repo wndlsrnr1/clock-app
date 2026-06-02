@@ -35,6 +35,9 @@ export interface UserPreferencesSnapshot {
 }
 
 export class UserPreferences {
+  public static readonly focusMinutesRange = { min: 1, max: 180 };
+  public static readonly restMinutesRange = { min: 1, max: 60 };
+
   private constructor(
     public readonly focusMinutes: DurationMinutes,
     public readonly restMinutes: DurationMinutes,
@@ -200,16 +203,16 @@ export class UserPreferences {
   }
 
   private static createFocusTerm(value: number): DurationMinutes {
-    if (!Number.isInteger(value) || value < 1 || value > 180) {
-      throw new Error("Focus term must be between 1 and 180 minutes.");
+    if (!Number.isInteger(value) || value < UserPreferences.focusMinutesRange.min || value > UserPreferences.focusMinutesRange.max) {
+      throw new Error(`Focus term must be between ${UserPreferences.focusMinutesRange.min} and ${UserPreferences.focusMinutesRange.max} minutes.`);
     }
 
     return DurationMinutes.create(value);
   }
 
   private static createRestTerm(value: number): DurationMinutes {
-    if (!Number.isInteger(value) || value < 1 || value > 60) {
-      throw new Error("Rest term must be between 1 and 60 minutes.");
+    if (!Number.isInteger(value) || value < UserPreferences.restMinutesRange.min || value > UserPreferences.restMinutesRange.max) {
+      throw new Error(`Rest term must be between ${UserPreferences.restMinutesRange.min} and ${UserPreferences.restMinutesRange.max} minutes.`);
     }
 
     return DurationMinutes.create(value);

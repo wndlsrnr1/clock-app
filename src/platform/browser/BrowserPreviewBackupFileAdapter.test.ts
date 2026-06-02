@@ -14,9 +14,13 @@ describe("BrowserPreviewBackupFileAdapter", () => {
     const picker = new FakeJsonFilePicker();
     const clicked = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation((): void => {});
     const revokedUrls: Array<string> = [];
+    const blobs: Array<Blob> = [];
     const adapter = new BrowserPreviewBackupFileAdapter(
       picker,
-      (): string => "blob:clock-rhythm-backup",
+      (blob: Blob): string => {
+        blobs.push(blob);
+        return "blob:clock-rhythm-backup";
+      },
       (url: string): void => {
         revokedUrls.push(url);
       },
@@ -24,7 +28,10 @@ describe("BrowserPreviewBackupFileAdapter", () => {
 
     await adapter.saveBackup("{\"schemaVersion\":1}");
 
+    const downloadAnchor = document.querySelector<HTMLAnchorElement>("a[download='clock-rhythm-backup.json']");
     expect(clicked).toHaveBeenCalledTimes(1);
+    expect(blobs[0]?.type).toBe("application/json");
+    expect(downloadAnchor).not.toBeInTheDocument();
     expect(revokedUrls).toEqual(["blob:clock-rhythm-backup"]);
     clicked.mockRestore();
   });

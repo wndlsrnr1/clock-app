@@ -1,5 +1,6 @@
 import type { TextCatalog } from "../textCatalog";
 import type { TodoAppViewModel } from "../useTodoApp";
+import { todoTitleMaxLength, validateTodoTitleInput } from "../inputValidation";
 import { IconButton } from "./IconButton";
 import { TimePickerField } from "./TimePickerField";
 import { TodoListPanel } from "./TodoListPanel";
@@ -10,6 +11,13 @@ interface TodayTodoPanelProps {
 }
 
 export function TodayTodoPanel({ todo, text }: TodayTodoPanelProps): React.JSX.Element {
+  const titleValidation = validateTodoTitleInput(todo.form.title, text);
+  const titleErrorId = "today-todo-title-error";
+  const titleCounterId = "today-todo-title-counter";
+  const titleDescription = [titleValidation.error ? titleErrorId : null, titleValidation.counter ? titleCounterId : null]
+    .filter(Boolean)
+    .join(" ") || undefined;
+
   return (
     <section className="todo-panel" aria-labelledby="today-todo-title">
       <div className="panel-header">
@@ -27,8 +35,12 @@ export function TodayTodoPanel({ todo, text }: TodayTodoPanelProps): React.JSX.E
         }}
       >
         <input
+          aria-describedby={titleDescription}
+          aria-invalid={!titleValidation.isValid}
           aria-label={text.todo.today.inputLabel}
+          maxLength={todoTitleMaxLength}
           placeholder={text.todo.today.placeholder}
+          required={true}
           value={todo.form.title}
           onChange={(event: React.ChangeEvent<HTMLInputElement>) => todo.changeTitle(event.target.value)}
         />
@@ -37,8 +49,10 @@ export function TodayTodoPanel({ todo, text }: TodayTodoPanelProps): React.JSX.E
         ) : (
           <IconButton icon="clock" label={text.todo.actions.addTime} onClick={todo.showTimeInput} />
         )}
-        <IconButton icon="plus" label={text.todo.actions.add} type="submit" variant="primary" />
+        <IconButton disabled={!titleValidation.isValid} icon="plus" label={text.todo.actions.add} type="submit" variant="primary" />
       </form>
+      {titleValidation.error ? <p className="field-error" id={titleErrorId}>{titleValidation.error}</p> : null}
+      {titleValidation.counter ? <p className="input-hint counter" id={titleCounterId}>{titleValidation.counter}</p> : null}
       <TodoListPanel
         edit={todo.edit}
         onCancelEditing={todo.cancelEditing}

@@ -53,7 +53,7 @@ select {
 }
 
 .box--verticalCompact {
-  --clock-stage-size: min(33vw, 42vh);
+  --clock-stage-size: min(34vh, 72vw, 18rem);
 }
 
 .box--wideFocus {
@@ -116,6 +116,10 @@ select {
   grid-template-columns: minmax(16rem, 1fr) minmax(19rem, 1fr);
   gap: 1.75rem;
   align-items: center;
+}
+
+.box--verticalCompact .ui-grid {
+  grid-template-columns: 1fr;
 }
 
 .analog-wrapper {
@@ -303,7 +307,6 @@ select {
   font-size: 0.75rem;
 }
 
-.settings-form input[type="number"],
 .todo-form input,
 .todo-edit input {
   width: 100%;
@@ -477,23 +480,19 @@ select {
   box-shadow: none;
 }
 
-.number-stepper input[type="number"] {
+.number-stepper input {
   min-height: 2.75rem;
   border: none;
   border-radius: 0;
   background: transparent;
   box-shadow: none;
   text-align: center;
+  color: #e6fff9;
+  font: inherit;
 }
 
-.number-stepper input[type="number"]:focus-visible {
+.number-stepper input:focus-visible {
   outline: none;
-}
-
-.number-stepper input[type="number"]::-webkit-outer-spin-button,
-.number-stepper input[type="number"]::-webkit-inner-spin-button {
-  margin: 0;
-  appearance: none;
 }
 
 .time-picker-field {
@@ -673,6 +672,42 @@ select {
   margin: 0;
   color: #bffff8;
   font-size: 0.85rem;
+}
+
+.input-hint,
+.field-error,
+.warning-text {
+  margin: 0.35rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.input-hint {
+  color: rgba(191, 255, 248, 0.68);
+}
+
+.input-hint.counter {
+  text-align: right;
+}
+
+.field-error,
+.warning-text {
+  color: #ffb5d7;
+}
+
+.settings-preview {
+  display: grid;
+  gap: 0.15rem;
+  border: 1px solid rgba(0, 255, 255, 0.12);
+  border-radius: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  background: rgba(255, 255, 255, 0.035);
+  color: #bffff8;
+  font-size: 0.8rem;
+}
+
+.settings-preview p {
+  margin: 0;
 }
 
 .sound-panel,
@@ -904,6 +939,10 @@ select {
   gap: 1rem;
 }
 
+.box--verticalCompact .calendar-layout {
+  grid-template-columns: 1fr;
+}
+
 .calendar-board {
   min-width: 0;
 }
@@ -1068,6 +1107,24 @@ select {
   padding: 1rem;
   background: rgba(10, 10, 14, 0.98);
   box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.55), 0 0 2rem rgba(0, 255, 255, 0.08);
+}
+
+.backup-summary {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0.75rem 0;
+  border: 1px solid rgba(0, 255, 255, 0.14);
+  border-radius: 0.5rem;
+  padding: 0.65rem;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(230, 255, 249, 0.86);
+  font-size: 0.82rem;
+  list-style: none;
+}
+
+.backup-summary li {
+  margin: 0;
+  font-weight: 700;
 }
 
 .confirm-dialog h3 {

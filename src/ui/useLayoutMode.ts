@@ -8,7 +8,7 @@ interface LayoutSize {
 }
 
 export function determineLayoutMode(size: LayoutSize): LayoutMode {
-  if (size.height < size.width) {
+  if (size.height > size.width) {
     return "verticalCompact";
   }
 

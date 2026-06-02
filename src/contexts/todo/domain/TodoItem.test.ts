@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { TodoItem, type TodoItemSnapshot } from "./TodoItem";
 import { TodoList } from "./TodoList";
+import { TodoTitle } from "./TodoTitle";
 
 describe("TodoItem", () => {
   it("creates a simple date-only todo by default", () => {
@@ -44,6 +45,24 @@ describe("TodoItem", () => {
       now: new Date("2026-06-02T09:00:00"),
       title: " ",
     })).toThrow("Todo title is required.");
+  });
+
+  it("publishes the title length limit used by input validation", () => {
+    expect(TodoItem.create({
+      date: "2026-06-02",
+      displayOrder: 0,
+      id: "todo-long",
+      now: new Date("2026-06-02T09:00:00"),
+      title: "가".repeat(TodoTitle.maxLength),
+    }).snapshot().title).toHaveLength(TodoTitle.maxLength);
+
+    expect(() => TodoItem.create({
+      date: "2026-06-02",
+      displayOrder: 0,
+      id: "todo-too-long",
+      now: new Date("2026-06-02T09:00:00"),
+      title: "가".repeat(TodoTitle.maxLength + 1),
+    })).toThrow("Todo title must be 160 characters or less.");
   });
 
   it("restores legacy todos without display order from their created time", () => {

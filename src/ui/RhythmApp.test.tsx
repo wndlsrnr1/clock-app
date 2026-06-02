@@ -1,7 +1,8 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type { RhythmStatusSnapshot } from "../contexts/rhythm/application/RhythmStatusSnapshot";
+import type { PreparedBackupImport } from "../contexts/backup/application/BackupUseCases";
 import { UserPreferences as Preferences } from "../contexts/preferences/domain/UserPreferences";
 import type { TodoDaySummary } from "../contexts/todo/domain/TodoList";
 import type { TodoItemSnapshot } from "../contexts/todo/domain/TodoItem";
@@ -103,6 +104,7 @@ function createServices(initialTodos: Array<TodoItemSnapshot> = []): RhythmAppSe
       }),
     },
     exportBackup: { execute: vi.fn(() => Promise.resolve()) },
+    previewImportBackup: { execute: vi.fn(() => Promise.resolve(defaultPreparedBackupImport())) },
     importBackup: { execute: vi.fn(() => Promise.resolve()) },
   };
 }
@@ -123,19 +125,79 @@ function nextDisplayOrder(todos: Array<TodoItemSnapshot>, date: string): number 
   return displayOrders.length === 0 ? 0 : Math.max(...displayOrders) + 1;
 }
 
+function defaultPreparedBackupImport(): PreparedBackupImport {
+  return {
+    backupText: "{}",
+    summary: {
+      exportedAt: "2026-06-02T10:00:00.000Z",
+      focusMinutes: 50,
+      language: "kor",
+      restMinutes: 10,
+      todoCount: 0,
+    },
+  };
+}
+
 describe("RhythmApp", () => {
+  it("observes the app shell size when choosing layout mode", async () => {
+    const originalResizeObserver = globalThis.ResizeObserver;
+    let observedElement: Element | null = null;
+
+    class FakeResizeObserver {
+      public observe(element: Element): void {
+        observedElement = element;
+      }
+
+      public unobserve(): void {}
+
+      public disconnect(): void {}
+    }
+
+    globalThis.ResizeObserver = FakeResizeObserver as unknown as typeof ResizeObserver;
+
+    try {
+      render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={createServices()} />);
+
+      await waitFor((): void => {
+        expect(observedElement).toHaveClass("app-shell");
+      });
+    } finally {
+      globalThis.ResizeObserver = originalResizeObserver;
+    }
+  });
+
   it("renders the live clock and editable rhythm settings", () => {
     const services = createServices();
 
     render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
 
     expect(screen.getByText("05 : 10 : 00")).toBeInTheDocument();
-    expect(screen.getByLabelText("집중 시간")).toHaveValue(50);
-    expect(screen.getByLabelText("휴식 시간")).toHaveValue(10);
+    expect(screen.getByLabelText("집중 시간")).toHaveValue("50");
+    expect(screen.getByLabelText("휴식 시간")).toHaveValue("10");
     expect(screen.getByRole("button", { name: "하루 시작" })).toHaveTextContent("05:00");
     expect(screen.getByRole("button", { name: "하루 종료" })).toHaveTextContent("18:00");
+    expect(screen.getByText("다음 알림: 05:50")).toBeInTheDocument();
     expect(screen.getByText("대기")).toBeInTheDocument();
     expect(screen.queryByText("idle")).not.toBeInTheDocument();
+  });
+
+  it("keeps minute inputs as drafts until a valid value is committed", async () => {
+    const user = userEvent.setup();
+    const services = createServices();
+
+    render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
+
+    const focusInput = screen.getByLabelText("집중 시간");
+    await user.clear(focusInput);
+
+    expect(focusInput).toHaveValue("");
+    expect(screen.getAllByText("1-180분").length).toBeGreaterThan(0);
+
+    await user.type(focusInput, "181");
+    fireEvent.blur(focusInput);
+
+    expect(focusInput).toHaveValue("50");
+    expect(services.updatePreferences.execute).not.toHaveBeenCalled();
   });
 
   it("switches app copy between Korean and English", async () => {
@@ -171,6 +233,24 @@ describe("RhythmApp", () => {
 
     expect(screen.getByLabelText("Day start direct input")).toHaveValue("0500");
     expect(screen.queryByDisplayValue(/오전|오후/)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Clear" })).not.toBeInTheDocument();
+  });
+
+  it("keeps todo time optional while rhythm times are required", async () => {
+    const user = userEvent.setup();
+    const services = createServices();
+
+    render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
+
+    await user.click(screen.getByRole("button", { name: "시간 추가" }));
+    await user.click(screen.getByRole("button", { name: "Todo 시간 수정" }));
+
+    expect(await screen.findByRole("button", { name: "비우기" })).toBeInTheDocument();
+
+    await user.clear(screen.getByLabelText("Todo 시간 수정 직접 입력"));
+    await user.type(screen.getByLabelText("Todo 시간 수정 직접 입력"), "2360");
+
+    expect(screen.getByText("시간은 00:00-23:59로 입력해주세요.")).toBeInTheDocument();
   });
 
   it("delegates start and pause commands to use cases", async () => {
@@ -219,6 +299,32 @@ describe("RhythmApp", () => {
     expect(services.updateNotificationSoundVolume.execute).toHaveBeenCalledWith(0.4);
   });
 
+  it("warns when audible notification volume is zero", () => {
+    const services = createServices();
+    services.getStatus = {
+      execute: vi.fn(() => ({
+        ...idleStatus(),
+        notificationSound: Preferences.default().changeNotificationSoundVolume(0).notificationSound,
+      })),
+    };
+
+    render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
+
+    expect(screen.getByText("볼륨이 0%입니다.")).toBeInTheDocument();
+  });
+
+  it("shows sound action failures instead of losing them as unhandled promises", async () => {
+    const user = userEvent.setup();
+    const services = createServices();
+    services.previewNotificationSound = { execute: vi.fn(() => Promise.reject(new Error("play blocked"))) };
+
+    render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
+
+    await user.click(screen.getByRole("button", { name: "미리듣기" }));
+
+    expect(await screen.findByText("알림음 작업 실패: play blocked")).toBeInTheDocument();
+  });
+
   it("toggles mute back to an audible notification sound", async () => {
     const user = userEvent.setup();
     const services = createServices();
@@ -250,6 +356,36 @@ describe("RhythmApp", () => {
       title: "보고서 정리",
     });
     expect(await screen.findByText("보고서 정리")).toBeInTheDocument();
+  });
+
+  it("prevents empty today todo titles before calling the add use case", async () => {
+    const user = userEvent.setup();
+    const services = createServices();
+
+    render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
+
+    const titleInput = screen.getByLabelText("오늘 할 일 입력");
+    const addButton = screen.getByRole("button", { name: "추가" });
+
+    expect(addButton).toBeDisabled();
+    expect(titleInput).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByText("할 일을 입력해주세요.")).toBeInTheDocument();
+
+    await user.type(titleInput, "   ");
+
+    expect(addButton).toBeDisabled();
+    expect(services.addTodo.execute).not.toHaveBeenCalled();
+  });
+
+  it("shows a todo title counter near the title length limit", async () => {
+    const user = userEvent.setup();
+    const services = createServices();
+
+    render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
+
+    await user.type(screen.getByLabelText("오늘 할 일 입력"), "가".repeat(120));
+
+    expect(screen.getByText("120/160")).toBeInTheDocument();
   });
 
   it("moves the today todo view to the next date after midnight", async () => {
@@ -394,6 +530,23 @@ describe("RhythmApp", () => {
 
     expect(services.updateTodo.execute).toHaveBeenCalledTimes(1);
     expect(screen.queryByLabelText("Todo 제목 수정")).not.toBeInTheDocument();
+  });
+
+  it("prevents invalid todo edits before calling the update use case", async () => {
+    const user = userEvent.setup();
+    const services = createServices([todoSnapshot({ id: "todo-1", title: "보고서 정리" })]);
+
+    render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
+
+    await user.click(await screen.findByRole("button", { name: "수정" }));
+    await user.clear(screen.getByLabelText("Todo 제목 수정"));
+
+    expect(screen.getByRole("button", { name: "저장" })).toBeDisabled();
+    expect(screen.getByLabelText("Todo 제목 수정")).toHaveAttribute("aria-invalid", "true");
+
+    await user.click(screen.getByRole("button", { name: "저장" }));
+
+    expect(services.updateTodo.execute).not.toHaveBeenCalled();
   });
 
   it("shows todo time only when a time exists", async () => {
@@ -553,11 +706,66 @@ describe("RhythmApp", () => {
 
     await user.click(screen.getByRole("button", { name: "가져오기" }));
     expect(screen.getByRole("dialog", { name: "백업 가져오기" })).toBeInTheDocument();
+    expect(screen.getByText("Todo 0개")).toBeInTheDocument();
+    expect(screen.getByText("집중 50분 / 휴식 10분")).toBeInTheDocument();
     expect(screen.getByText("현재 설정과 Todo가 백업 파일 내용으로 전체 교체됩니다.")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "전체 교체" }));
 
     expect(services.importBackup.execute).toHaveBeenCalledOnce();
     expect(await screen.findByText("백업 파일로 전체 복원했습니다.")).toBeInTheDocument();
+  });
+
+  it("does not import a backup when the replacement confirmation is cancelled", async () => {
+    const user = userEvent.setup();
+    const services = createServices();
+
+    render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
+
+    await user.click(screen.getByRole("button", { name: "캘린더" }));
+    await user.click(screen.getByRole("button", { name: "가져오기" }));
+    await user.click(screen.getByRole("button", { name: "취소" }));
+
+    expect(services.importBackup.execute).not.toHaveBeenCalled();
+    expect(screen.queryByRole("dialog", { name: "백업 가져오기" })).not.toBeInTheDocument();
+  });
+
+  it("reloads todo views after a backup import succeeds", async () => {
+    const user = userEvent.setup();
+    const services = createServices();
+
+    render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
+
+    await user.click(screen.getByRole("button", { name: "캘린더" }));
+    const todosLoadedBeforeImport = vi.mocked(services.getTodosByDate.execute).mock.calls.length;
+    const summariesLoadedBeforeImport = vi.mocked(services.getTodoCalendarSummary.execute).mock.calls.length;
+
+    await user.click(screen.getByRole("button", { name: "가져오기" }));
+    await user.click(screen.getByRole("button", { name: "전체 교체" }));
+
+    await waitFor((): void => {
+      expect(vi.mocked(services.getTodosByDate.execute).mock.calls.length).toBeGreaterThan(todosLoadedBeforeImport);
+      expect(vi.mocked(services.getTodoCalendarSummary.execute).mock.calls.length).toBeGreaterThan(summariesLoadedBeforeImport);
+    });
+  });
+
+  it("shows localized backup failure messages without leaving the import dialog open", async () => {
+    const user = userEvent.setup();
+    const services = createServices();
+    services.exportBackup = { execute: vi.fn(() => Promise.reject(new Error("export failed"))) };
+    services.importBackup = { execute: vi.fn(() => Promise.reject(new Error("import failed"))) };
+
+    render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
+
+    await user.click(screen.getByRole("button", { name: "캘린더" }));
+    await user.click(screen.getByRole("button", { name: "내보내기" }));
+
+    expect(await screen.findByText("백업 작업 실패: export failed")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "가져오기" }));
+    await user.click(screen.getByRole("button", { name: "전체 교체" }));
+
+    expect(await screen.findByText("백업 작업 실패: import failed")).toBeInTheDocument();
+    expect(screen.getByRole("dialog", { name: "백업 가져오기" })).toBeInTheDocument();
   });
 });
 

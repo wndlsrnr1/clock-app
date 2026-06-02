@@ -1,4 +1,4 @@
-import type { TextCatalog } from "../textCatalog";
+import { formatText, type TextCatalog } from "../textCatalog";
 import type { TodoAppViewModel } from "../useTodoApp";
 
 interface DataManagementPanelProps {
@@ -30,6 +30,17 @@ export function DataManagementPanel({ text, todo }: DataManagementPanelProps): R
           <div className="confirm-dialog">
             <h3 id="backup-import-title">{text.backup.importConfirmTitle}</h3>
             <p>{text.backup.importConfirmDescription}</p>
+            {todo.preparedBackupImport ? (
+              <ul className="backup-summary">
+                <li>{formatText(text.backup.summaryTodos, { count: todo.preparedBackupImport.summary.todoCount })}</li>
+                <li>{formatText(text.backup.summaryTerms, {
+                    focus: todo.preparedBackupImport.summary.focusMinutes,
+                    rest: todo.preparedBackupImport.summary.restMinutes,
+                  })}</li>
+                <li>{formatText(text.backup.summaryLanguage, { language: todo.preparedBackupImport.summary.language })}</li>
+                <li>{formatText(text.backup.summaryExportedAt, { exportedAt: todo.preparedBackupImport.summary.exportedAt })}</li>
+              </ul>
+            ) : null}
             <div className="todo-edit-actions">
               <button className="mini-button subtle" onClick={todo.cancelImportBackup} type="button">
                 {text.backup.cancel}

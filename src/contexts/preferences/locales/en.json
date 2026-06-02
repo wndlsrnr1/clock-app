@@ -26,10 +26,14 @@
       "restMinutes": "Rest",
       "dailyStart": "Day start",
       "dailyEnd": "Day end",
-      "autoStart": "Auto start",
+      "autoStart": "Register as startup app",
       "save": "Save settings",
       "decrease": "Decrease {label}",
-      "increase": "Increase {label}"
+      "increase": "Increase {label}",
+      "minuteRange": "{min}-{max} min",
+      "nextAlarm": "Next alarm: {time}",
+      "nextAlarmUnavailable": "Check the time settings.",
+      "outsideDailyRhythm": "Current time is outside the rhythm window."
     },
     "controls": {
       "start": "Start",
@@ -52,7 +56,10 @@
       "stopPreview": "Stop preview",
       "volume": "Sound volume"
     },
-    "volumeLabel": "App notification volume"
+    "volumeLabel": "App notification volume",
+    "warnings": {
+      "zeroVolume": "Volume is 0%."
+    }
   },
   "todo": {
     "today": {
@@ -77,6 +84,11 @@
       "editDate": "Edit todo date",
       "editTime": "Edit todo time"
     },
+    "validation": {
+      "titleRequired": "Enter a task.",
+      "titleTooLong": "Tasks must be {max} characters or less.",
+      "titleCounter": "{count}/{max}"
+    },
     "timePicker": {
       "placeholder": "Select time",
       "directLabel": "Direct input",
@@ -86,7 +98,8 @@
       "hourOption": "{hour}:00",
       "minuteOption": "{minute} min",
       "clear": "Clear",
-      "close": "Close"
+      "close": "Close",
+      "invalid": "Enter time from 00:00 to 23:59."
     }
   },
   "calendar": {
@@ -110,10 +123,15 @@
     "importConfirmTitle": "Import backup",
     "importConfirmDescription": "Current settings and todos will be fully replaced by the backup file.",
     "confirmImport": "Replace all",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "summaryTodos": "{count} todos",
+    "summaryTerms": "Focus {focus} min / Rest {rest} min",
+    "summaryLanguage": "Language: {language}",
+    "summaryExportedAt": "Exported at: {exportedAt}"
   },
   "messages": {
     "preferencesSaved": "Settings saved.",
+    "preferencesFailed": "Settings save failed: {message}",
     "customSoundChanged": "Notification sound changed.",
     "soundMuted": "Sound muted. OS notifications stay on.",
     "soundUnmuted": "Sound turned on.",
@@ -126,6 +144,8 @@
     "rhythmStoppedForToday": "Today rhythm ended.",
     "languageChanged": "Language changed.",
     "invalidTime": "Enter time as 14:30 or 1430.",
+    "todoActionFailed": "Todo action failed: {message}",
+    "soundActionFailed": "Sound action failed: {message}",
     "backupExported": "Backup exported.",
     "backupImported": "Backup imported and all local data was replaced.",
     "backupFailed": "Backup action failed: {message}",

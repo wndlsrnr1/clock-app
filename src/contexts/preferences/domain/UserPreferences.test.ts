@@ -101,4 +101,17 @@ describe("UserPreferences", () => {
     expect(preferences.notificationSound.customSource).toBe("/user-sounds/notification.mp3");
     expect(preferences.notificationSound.volume).toBe(1);
   });
+
+  it("publishes the rhythm term ranges used by input validation", () => {
+    expect(UserPreferences.default().changeTerms(UserPreferences.focusMinutesRange.min, UserPreferences.restMinutesRange.min).snapshot()).toMatchObject({
+      focusMinutes: 1,
+      restMinutes: 1,
+    });
+    expect(UserPreferences.default().changeTerms(UserPreferences.focusMinutesRange.max, UserPreferences.restMinutesRange.max).snapshot()).toMatchObject({
+      focusMinutes: 180,
+      restMinutes: 60,
+    });
+    expect(() => UserPreferences.default().changeTerms(UserPreferences.focusMinutesRange.max + 1, 10)).toThrow("Focus term must be between 1 and 180 minutes.");
+    expect(() => UserPreferences.default().changeTerms(50, UserPreferences.restMinutesRange.max + 1)).toThrow("Rest term must be between 1 and 60 minutes.");
+  });
 });

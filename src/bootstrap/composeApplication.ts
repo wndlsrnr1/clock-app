@@ -1,5 +1,5 @@
 import chimeSoundUrl from "../assets/CHIME14.mp3";
-import { ExportBackupUseCase, ImportBackupUseCase } from "../contexts/backup/application/BackupUseCases";
+import { ExportBackupUseCase, ImportBackupUseCase, PreviewBackupImportUseCase } from "../contexts/backup/application/BackupUseCases";
 import { ChangeLanguagePreferenceUseCase } from "../contexts/preferences/application/LanguagePreferenceUseCase";
 import { ChooseCustomNotificationSoundUseCase, PreviewNotificationSoundUseCase, SetNotificationSoundModeUseCase, StopNotificationSoundPreviewUseCase, UpdateNotificationSoundVolumeUseCase } from "../contexts/preferences/application/NotificationSoundUseCases";
 import { UpdatePreferencesUseCase } from "../contexts/preferences/application/UpdatePreferencesUseCase";
@@ -83,7 +83,8 @@ export async function composeApplication(): Promise<ComposedApplication> {
     toggleTodo: new ToggleTodoUseCase(todoRepository, clock),
     updateTodo: new UpdateTodoUseCase(todoRepository, clock),
     exportBackup: new ExportBackupUseCase(settingsRepository, todoRepository, backupFile, clock),
-    importBackup: new ImportBackupUseCase(settingsRepository, todoRepository, backupFile),
+    previewImportBackup: new PreviewBackupImportUseCase(backupFile),
+    importBackup: new ImportBackupUseCase(settingsRepository, todoRepository),
     changeLanguage: new ChangeLanguagePreferenceUseCase(settingsRepository, runtime),
   };
 

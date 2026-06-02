@@ -15,6 +15,19 @@ interface ClockRhythmBackup {
   todos: Array<TodoItemSnapshot>;
 }
 
+export interface BackupImportSummary {
+  exportedAt: string;
+  focusMinutes: number;
+  language: UserPreferencesSnapshot["language"];
+  restMinutes: number;
+  todoCount: number;
+}
+
+export interface PreparedBackupImport {
+  backupText: string;
+  summary: BackupImportSummary;
+}
+
 export class ExportBackupUseCase {
   public constructor(
     private readonly settingsRepository: SettingsRepository,
@@ -40,22 +53,42 @@ export class ImportBackupUseCase {
   public constructor(
     private readonly settingsRepository: SettingsRepository,
     private readonly todoRepository: TodoRepository,
-    private readonly backupFile: BackupFilePort,
   ) {}
 
-  public async execute(): Promise<void> {
-    const backupText = await this.backupFile.readBackup();
-
-    if (backupText === null) {
-      return;
-    }
-
-    const backup = parseBackup(backupText);
+  public async execute(preparedImport: PreparedBackupImport): Promise<void> {
+    const backup = parseBackup(preparedImport.backupText);
     const preferences = UserPreferences.restore(sanitizePreferencesForImport(backup.preferences));
     const todos = backup.todos.map((todo: TodoItemSnapshot): TodoItem => TodoItem.restore(todo));
 
     await this.settingsRepository.save(preferences);
     await this.todoRepository.saveAll(todos);
+  }
+}
+
+export class PreviewBackupImportUseCase {
+  public constructor(
+    private readonly backupFile: BackupFilePort,
+  ) {}
+
+  public async execute(): Promise<PreparedBackupImport | null> {
+    const backupText = await this.backupFile.readBackup();
+
+    if (backupText === null) {
+      return null;
+    }
+
+    const backup = parseBackup(backupText);
+
+    return {
+      backupText,
+      summary: {
+        exportedAt: backup.exportedAt,
+        focusMinutes: backup.preferences.focusMinutes,
+        language: backup.preferences.language ?? "kor",
+        restMinutes: backup.preferences.restMinutes,
+        todoCount: backup.todos.length,
+      },
+    };
   }
 }
 
