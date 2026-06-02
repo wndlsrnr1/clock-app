@@ -1,6 +1,7 @@
 import { os } from "@neutralinojs/lib";
 import { GoogleTasksCredentialRepository, type GoogleTasksCredential } from "./GoogleTasksCredentialRepository";
 import { GoogleTasksSettingsRepository, type PendingGoogleAuthorization } from "./GoogleTasksSettingsRepository";
+import { GoogleHttpErrorSummary } from "./GoogleHttpErrorSummary";
 
 interface UrlOpenerPort {
   open(url: string): Promise<void> | void;
@@ -76,7 +77,7 @@ export class GoogleTasksAuthAdapter {
     });
 
     if (!response.ok) {
-      throw new Error("Google 인증 토큰을 발급받지 못했습니다.");
+      throw new Error(await GoogleHttpErrorSummary.message("Google 인증 토큰을 발급받지 못했습니다.", response));
     }
 
     const token = await response.json() as GoogleTokenResponse;

@@ -92,4 +92,24 @@ describe("GoogleTasksAuthAdapter", () => {
     expect(fetcher).toHaveBeenCalledOnce();
     expect(String(fetcher.mock.calls[0]?.[1]?.body)).toContain("code=raw-code");
   });
+
+  it("summarizes a token exchange failure without exposing the authorization code", async () => {
+    const { adapter, fetcher } = await createAdapter();
+    fetcher.mockImplementation((): Promise<Response> => Promise.resolve(new Response(JSON.stringify({
+      error: "invalid_grant",
+      error_description: "Malformed authorization code.",
+    }), {
+      headers: { "Content-Type": "application/json" },
+      status: 400,
+    })));
+
+    await expect(adapter.completeAuthorization("raw-secret-code"))
+      .rejects.toThrow("Google 인증 토큰을 발급받지 못했습니다. (HTTP 400: invalid_grant - Malformed authorization code.)");
+
+    const error = await adapter.completeAuthorization("raw-secret-code")
+      .then((): Error => new Error("expected failure"))
+      .catch((caught: unknown): Error => caught as Error);
+
+    expect(error.message).not.toContain("raw-secret-code");
+  });
 });

@@ -556,6 +556,22 @@ describe("RhythmApp", () => {
     expect(await screen.findByText("Google 작업 실패: Google Tasks 목록을 먼저 선택해주세요.")).toBeInTheDocument();
     expect(screen.getByText("로컬 할 일")).toBeInTheDocument();
   });
+
+  it("shows a localized authorization failure message without clearing local todos", async () => {
+    const user = userEvent.setup();
+    const services = createServices([todoSnapshot({ id: "todo-1", title: "로컬 할 일" })]);
+    services.completeGoogleAuthorization = {
+      execute: vi.fn(() => Promise.reject(new Error("Google 인증 토큰을 발급받지 못했습니다. (HTTP 400: invalid_grant)"))),
+    };
+
+    render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
+    await user.click(screen.getByRole("button", { name: "캘린더" }));
+    await user.type(screen.getByLabelText("Google 인증 코드"), "raw-code");
+    await user.click(screen.getByRole("button", { name: "인증 저장" }));
+
+    expect(await screen.findByText("Google 작업 실패: Google 인증 토큰을 발급받지 못했습니다. (HTTP 400: invalid_grant)")).toBeInTheDocument();
+    expect(screen.getByText("로컬 할 일")).toBeInTheDocument();
+  });
 });
 
 function todoSnapshot(overrides: Partial<TodoItemSnapshot>): TodoItemSnapshot {

@@ -1,4 +1,5 @@
 import { GoogleTasksCredentialRepository, type GoogleTasksCredential } from "./GoogleTasksCredentialRepository";
+import { GoogleHttpErrorSummary } from "./GoogleHttpErrorSummary";
 import type { GoogleTaskPayload, GoogleTaskResource } from "./GoogleTasksMapper";
 import type { GoogleTasksApiPort } from "./GoogleTasksSyncAdapter";
 import { GoogleTasksSettingsRepository } from "./GoogleTasksSettingsRepository";
@@ -85,7 +86,7 @@ export class GoogleTasksApiAdapter implements GoogleTasksApiPort {
     });
 
     if (!response.ok) {
-      throw new Error("Google Tasks API 요청에 실패했습니다.");
+      throw new Error(await GoogleHttpErrorSummary.message("Google Tasks API 요청에 실패했습니다.", response));
     }
 
     return response.json() as Promise<TResponse>;
@@ -118,7 +119,7 @@ export class GoogleTasksApiAdapter implements GoogleTasksApiPort {
     });
 
     if (!response.ok) {
-      throw new Error("Google Tasks 인증 갱신에 실패했습니다.");
+      throw new Error(await GoogleHttpErrorSummary.message("Google Tasks 인증 갱신에 실패했습니다.", response));
     }
 
     const token = await response.json() as RefreshTokenResponse;
