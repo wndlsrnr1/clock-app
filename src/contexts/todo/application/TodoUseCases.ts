@@ -1,6 +1,6 @@
 import { TodoItem, type TodoItemSnapshot } from "../domain/TodoItem";
 import { TodoList, type TodoDaySummary } from "../domain/TodoList";
-import type { TodoClock, TodoIdGenerator, TodoRepository } from "./ports";
+import type { TodoClock, TodoDeletionSyncPort, TodoIdGenerator, TodoRepository } from "./ports";
 
 export interface AddTodoCommand {
   title: string;
@@ -160,10 +160,19 @@ export class ReorderTodosUseCase {
 }
 
 export class DeleteTodoUseCase {
-  public constructor(private readonly todoRepository: TodoRepository) {}
+  public constructor(
+    private readonly todoRepository: TodoRepository,
+    private readonly deletionSync?: TodoDeletionSyncPort,
+  ) {}
 
   public async execute(id: string): Promise<void> {
     const todos = await this.todoRepository.getAll();
+    const target = todos.find((todo: TodoItem): boolean => todo.todoId === id);
+
+    if (target?.snapshot().googleTaskId) {
+      await this.deletionSync?.recordDeletedTodo(target);
+    }
+
     await this.todoRepository.saveAll(todos.filter((todo: TodoItem): boolean => todo.todoId !== id));
   }
 }

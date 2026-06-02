@@ -13,11 +13,16 @@ export interface TodoClock {
   now(): Date;
 }
 
+export interface TodoDeletionSyncPort {
+  recordDeletedTodo(todo: TodoItem): Promise<void>;
+}
+
 export interface TodoSyncResult {
   todos: Array<TodoItem>;
   uploaded: number;
   imported: number;
   updated: number;
+  deleted: number;
 }
 
 export interface TodoSyncPort {

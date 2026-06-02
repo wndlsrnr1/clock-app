@@ -8,6 +8,10 @@ interface FetchPort {
   (input: RequestInfo | URL, init?: RequestInit): Promise<Response>;
 }
 
+function browserFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  return globalThis.fetch(input, init);
+}
+
 interface GoogleTaskListResource {
   id: string;
   title: string;
@@ -36,7 +40,7 @@ export class GoogleTasksApiAdapter implements GoogleTasksApiPort {
   public constructor(
     private readonly settingsRepository: GoogleTasksSettingsRepository,
     private readonly credentialRepository: GoogleTasksCredentialRepository,
-    private readonly fetcher: FetchPort = fetch,
+    private readonly fetcher: FetchPort = browserFetch,
   ) {}
 
   public async listTaskLists(): Promise<Array<GoogleTaskListSnapshot>> {
@@ -75,21 +79,40 @@ export class GoogleTasksApiAdapter implements GoogleTasksApiPort {
     });
   }
 
-  private async request<TResponse>(url: string, init: RequestInit = {}): Promise<TResponse> {
-    const credential = await this.validCredential();
-    const response = await this.fetcher(url, {
-      ...init,
-      headers: {
-        ...(init.headers as Record<string, string> | undefined),
-        Authorization: `Bearer ${credential.accessToken}`,
-      },
+  public async deleteTask(taskListId: string, googleTaskId: string): Promise<void> {
+    const response = await this.authorizedFetch(`https://tasks.googleapis.com/tasks/v1/lists/${encodeURIComponent(taskListId)}/tasks/${encodeURIComponent(googleTaskId)}`, {
+      method: "DELETE",
     });
+
+    if (response.status === 404) {
+      return;
+    }
+
+    if (!response.ok) {
+      throw new Error(await GoogleHttpErrorSummary.message("Google Tasks API 요청에 실패했습니다.", response));
+    }
+  }
+
+  private async request<TResponse>(url: string, init: RequestInit = {}): Promise<TResponse> {
+    const response = await this.authorizedFetch(url, init);
 
     if (!response.ok) {
       throw new Error(await GoogleHttpErrorSummary.message("Google Tasks API 요청에 실패했습니다.", response));
     }
 
     return response.json() as Promise<TResponse>;
+  }
+
+  private async authorizedFetch(url: string, init: RequestInit = {}): Promise<Response> {
+    const credential = await this.validCredential();
+
+    return this.fetcher(url, {
+      ...init,
+      headers: {
+        ...(init.headers as Record<string, string> | undefined),
+        Authorization: `Bearer ${credential.accessToken}`,
+      },
+    });
   }
 
   private async validCredential(): Promise<GoogleTasksCredential> {
@@ -108,12 +131,18 @@ export class GoogleTasksApiAdapter implements GoogleTasksApiPort {
 
   private async refreshCredential(credential: GoogleTasksCredential): Promise<GoogleTasksCredential> {
     const settings = await this.settingsRepository.get();
+    const refreshRequest = new URLSearchParams({
+      client_id: settings.clientId,
+      grant_type: "refresh_token",
+      refresh_token: credential.refreshToken,
+    });
+
+    if (settings.clientSecret) {
+      refreshRequest.set("client_secret", settings.clientSecret);
+    }
+
     const response = await this.fetcher("https://oauth2.googleapis.com/token", {
-      body: new URLSearchParams({
-        client_id: settings.clientId,
-        grant_type: "refresh_token",
-        refresh_token: credential.refreshToken,
-      }),
+      body: refreshRequest,
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       method: "POST",
     });

@@ -18,6 +18,7 @@ class InMemoryTodoRepository implements TodoRepository {
 class FakeTodoSyncPort implements TodoSyncPort {
   public async sync(todos: Array<TodoItem>): Promise<TodoSyncResult> {
     return {
+      deleted: 1,
       imported: 1,
       todos: [
         ...todos.map((todo: TodoItem): TodoItem => todo.connectGoogleTask("google-1", new Date("2026-06-02T09:00:00"))),
@@ -47,6 +48,7 @@ describe("SyncGoogleTodosUseCase", () => {
 
     expect(result.uploaded).toBe(1);
     expect(result.imported).toBe(1);
+    expect(result.deleted).toBe(1);
     expect(saved.map((todo: TodoItem): string => todo.snapshot().title)).toEqual(["로컬 할 일", "가져온 할 일"]);
   });
 });

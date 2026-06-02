@@ -10,6 +10,18 @@ export interface GoogleTasksApiPort {
   listTasks(taskListId: string): Promise<Array<GoogleTaskResource>>;
   insertTask(taskListId: string, payload: GoogleTaskPayload): Promise<GoogleTaskResource>;
   patchTask(taskListId: string, googleTaskId: string, payload: GoogleTaskPayload): Promise<GoogleTaskResource>;
+  deleteTask(taskListId: string, googleTaskId: string): Promise<void>;
+}
+
+export interface GoogleTasksPendingDeletion {
+  taskListId: string;
+  googleTaskId: string;
+  deletedAt: string;
+}
+
+export interface GoogleTasksPendingDeletionPort {
+  listPendingDeletions(taskListId: string): Promise<Array<GoogleTasksPendingDeletion>>;
+  removePendingDeletion(taskListId: string, googleTaskId: string): Promise<void>;
 }
 
 export class GoogleTasksSyncAdapter implements TodoSyncPort {
@@ -18,6 +30,7 @@ export class GoogleTasksSyncAdapter implements TodoSyncPort {
     private readonly api: GoogleTasksApiPort,
     private readonly idGenerator: TodoIdGenerator,
     private readonly clock: TodoClock,
+    private readonly pendingDeletions: GoogleTasksPendingDeletionPort = new EmptyGoogleTasksPendingDeletionPort(),
   ) {}
 
   public async sync(todos: Array<TodoItem>): Promise<TodoSyncResult> {
@@ -27,6 +40,7 @@ export class GoogleTasksSyncAdapter implements TodoSyncPort {
       throw new Error("Google Tasks 목록을 먼저 선택해주세요.");
     }
 
+    const deleted = await this.deletePendingTasks(taskListId);
     const remoteTasks = await this.api.listTasks(taskListId);
     const uploadedTodos: Array<TodoItem> = [];
     let uploaded = 0;
@@ -62,11 +76,25 @@ export class GoogleTasksSyncAdapter implements TodoSyncPort {
     }
 
     return {
+      deleted,
       imported: importedTodos.length,
       todos: [...uploadedTodos, ...importedTodos],
       updated,
       uploaded,
     };
+  }
+
+  private async deletePendingTasks(taskListId: string): Promise<number> {
+    const pendingDeletions = await this.pendingDeletions.listPendingDeletions(taskListId);
+    let deleted = 0;
+
+    for (const deletion of pendingDeletions) {
+      await this.api.deleteTask(deletion.taskListId, deletion.googleTaskId);
+      await this.pendingDeletions.removePendingDeletion(deletion.taskListId, deletion.googleTaskId);
+      deleted += 1;
+    }
+
+    return deleted;
   }
 
   private static nextDisplayOrderForDate(todos: Array<TodoItem>, date: string): number {
@@ -80,4 +108,12 @@ export class GoogleTasksSyncAdapter implements TodoSyncPort {
 
     return Math.max(...displayOrders) + 1;
   }
+}
+
+class EmptyGoogleTasksPendingDeletionPort implements GoogleTasksPendingDeletionPort {
+  public async listPendingDeletions(): Promise<Array<GoogleTasksPendingDeletion>> {
+    return [];
+  }
+
+  public async removePendingDeletion(): Promise<void> {}
 }

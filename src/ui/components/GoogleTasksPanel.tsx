@@ -32,7 +32,16 @@ export function GoogleTasksPanel({ text, todo }: GoogleTasksPanelProps): React.J
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) => todo.changeGoogleClientId(event.target.value)}
               />
             </label>
-            <button className="btn secondary compact google-action" onClick={() => void todo.saveGoogleClientId()} type="button">{text.todo.actions.save}</button>
+            <label className="field-label">
+              <span className="label">{text.googleTasks.clientSecretLabel}</span>
+              <input
+                aria-label="Google Client Secret"
+                type="password"
+                value={todo.google.clientSecret}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) => todo.changeGoogleClientSecret(event.target.value)}
+              />
+            </label>
+            <button className="btn secondary compact google-action" onClick={() => void todo.saveGoogleOAuthClient()} type="button">{text.googleTasks.oauthClientSave}</button>
           </div>
         </GoogleTaskStep>
         <GoogleTaskStep

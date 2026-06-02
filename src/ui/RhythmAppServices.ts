@@ -57,8 +57,13 @@ export interface GetTodoCalendarSummaryService {
   execute(month: string): Promise<Record<string, TodoDaySummary>>;
 }
 
-export interface SaveGoogleClientService {
-  execute(clientId: string): Promise<unknown>;
+export interface SaveGoogleOAuthClientCommand {
+  clientId: string;
+  clientSecret: string;
+}
+
+export interface SaveGoogleOAuthClientService {
+  execute(command: SaveGoogleOAuthClientCommand): Promise<unknown>;
 }
 
 export interface GoogleTaskListSnapshot {
@@ -79,7 +84,7 @@ export interface SelectGoogleTaskListService {
 }
 
 export interface SyncGoogleTodosService {
-  execute(): Promise<{ uploaded: number; imported: number; updated: number }>;
+  execute(): Promise<{ uploaded: number; imported: number; updated: number; deleted: number }>;
 }
 
 export interface RhythmAppServices {
@@ -105,7 +110,7 @@ export interface RhythmAppServices {
   beginGoogleAuthorization: { execute(): Promise<string> };
   completeGoogleAuthorization: CompleteGoogleAuthorizationService;
   listGoogleTaskLists: ListGoogleTaskListsService;
-  saveGoogleClientId: SaveGoogleClientService;
+  saveGoogleOAuthClient: SaveGoogleOAuthClientService;
   selectGoogleTaskList: SelectGoogleTaskListService;
   syncGoogleTodos: SyncGoogleTodosService;
   changeLanguage: ChangeLanguageService;

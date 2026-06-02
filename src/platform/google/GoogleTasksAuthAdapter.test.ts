@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { GoogleTasksAuthAdapter } from "./GoogleTasksAuthAdapter";
 import { GoogleTasksCredentialRepository } from "./GoogleTasksCredentialRepository";
 import { GoogleTasksSettingsRepository } from "./GoogleTasksSettingsRepository";
@@ -56,6 +56,10 @@ async function createAdapter(): Promise<{
 }
 
 describe("GoogleTasksAuthAdapter", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it("exchanges a redirect URL only when the OAuth state matches", async () => {
     const { adapter, credentials, fetcher } = await createAdapter();
 
@@ -91,6 +95,53 @@ describe("GoogleTasksAuthAdapter", () => {
 
     expect(fetcher).toHaveBeenCalledOnce();
     expect(String(fetcher.mock.calls[0]?.[1]?.body)).toContain("code=raw-code");
+  });
+
+  it("includes the saved OAuth client secret when exchanging an authorization code", async () => {
+    const storage = new FakeStorage();
+    const settings = new GoogleTasksSettingsRepository(storage);
+    const credentials = new GoogleTasksCredentialRepository(storage);
+    const fetcher = vi.fn<typeof fetch>((): Promise<Response> => Promise.resolve(tokenResponse()));
+    await settings.saveOAuthClient({
+      clientId: "client-id",
+      clientSecret: "client-secret",
+    });
+    await settings.savePendingAuthorization({
+      codeVerifier: "code-verifier",
+      redirectUri: "http://127.0.0.1:5174/google-oauth",
+      state: "expected-state",
+    });
+
+    const adapter = new GoogleTasksAuthAdapter(settings, credentials, { open: vi.fn() }, fetcher);
+
+    await adapter.completeAuthorization("raw-code");
+
+    const requestInit = fetcher.mock.calls[0]?.[1] as RequestInit | undefined;
+    expect(String(requestInit?.body)).toContain("client_secret=client-secret");
+  });
+
+  it("calls the browser fetch function with the browser global receiver", async () => {
+    const storage = new FakeStorage();
+    const settings = new GoogleTasksSettingsRepository(storage);
+    const credentials = new GoogleTasksCredentialRepository(storage);
+    let fetchWasCalledWithGlobalReceiver = false;
+    vi.stubGlobal("fetch", function browserFetch(this: unknown): Promise<Response> {
+      fetchWasCalledWithGlobalReceiver = Object.is(this, globalThis);
+
+      return Promise.resolve(tokenResponse());
+    });
+    await settings.saveClientId("client-id");
+    await settings.savePendingAuthorization({
+      codeVerifier: "code-verifier",
+      redirectUri: "http://127.0.0.1:5174/google-oauth",
+      state: "expected-state",
+    });
+
+    const adapter = new GoogleTasksAuthAdapter(settings, credentials, { open: vi.fn() });
+
+    await adapter.completeAuthorization("http://127.0.0.1:5174/google-oauth?code=code-ok&state=expected-state");
+
+    expect(fetchWasCalledWithGlobalReceiver).toBe(true);
   });
 
   it("summarizes a token exchange failure without exposing the authorization code", async () => {

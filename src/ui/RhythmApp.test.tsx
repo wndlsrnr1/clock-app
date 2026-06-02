@@ -106,9 +106,9 @@ function createServices(initialTodos: Array<TodoItemSnapshot> = []): RhythmAppSe
     beginGoogleAuthorization: { execute: vi.fn(() => Promise.resolve("https://accounts.google.com/mock")) },
     completeGoogleAuthorization: { execute: vi.fn(() => Promise.resolve()) },
     listGoogleTaskLists: { execute: vi.fn(() => Promise.resolve([] as Array<GoogleTaskListSnapshot>)) },
-    saveGoogleClientId: { execute: vi.fn(() => Promise.resolve()) },
+    saveGoogleOAuthClient: { execute: vi.fn(() => Promise.resolve()) },
     selectGoogleTaskList: { execute: vi.fn(() => Promise.resolve()) },
-    syncGoogleTodos: { execute: vi.fn(() => Promise.resolve({ imported: 0, updated: 0, uploaded: 0 })) },
+    syncGoogleTodos: { execute: vi.fn(() => Promise.resolve({ deleted: 0, imported: 0, updated: 0, uploaded: 0 })) },
   };
 }
 
@@ -536,12 +536,29 @@ describe("RhythmApp", () => {
     await user.click(screen.getByRole("button", { name: "캘린더" }));
 
     expect(screen.getByRole("heading", { name: "Google Tasks 연동" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Client ID 도움말" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "OAuth Client 도움말" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "인증 도움말" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Tasks 목록 도움말" })).toBeInTheDocument();
-    expect(screen.getByText("Google Cloud Console에서 만든 Desktop OAuth Client ID를 저장합니다.")).toBeInTheDocument();
+    expect(screen.getByText("Google Cloud Console에서 만든 Desktop OAuth Client ID와 Client Secret을 저장합니다.")).toBeInTheDocument();
     expect(screen.getByText("브라우저 인증 후 redirect URL 전체를 붙여넣는 것을 권장합니다. code 값만 붙여넣어도 동작합니다.")).toBeInTheDocument();
     expect(screen.getByText("연동할 Google Tasks 목록을 고르고 로컬 Todo와 수동 동기화합니다.")).toBeInTheDocument();
+  });
+
+  it("saves Google OAuth Client ID and Client Secret together", async () => {
+    const user = userEvent.setup();
+    const services = createServices();
+
+    render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
+
+    await user.click(screen.getByRole("button", { name: "캘린더" }));
+    await user.type(screen.getByLabelText("Google Client ID"), "desktop-client-id.apps.googleusercontent.com");
+    await user.type(screen.getByLabelText("Google Client Secret"), "desktop-client-secret");
+    await user.click(screen.getByRole("button", { name: "OAuth 정보 저장" }));
+
+    expect(services.saveGoogleOAuthClient.execute).toHaveBeenCalledWith({
+      clientId: "desktop-client-id.apps.googleusercontent.com",
+      clientSecret: "desktop-client-secret",
+    });
   });
 
   it("shows a localized Google failure message without clearing local todos", async () => {
@@ -555,6 +572,18 @@ describe("RhythmApp", () => {
 
     expect(await screen.findByText("Google 작업 실패: Google Tasks 목록을 먼저 선택해주세요.")).toBeInTheDocument();
     expect(screen.getByText("로컬 할 일")).toBeInTheDocument();
+  });
+
+  it("shows Google sync deleted count in the completion message", async () => {
+    const user = userEvent.setup();
+    const services = createServices();
+    services.syncGoogleTodos = { execute: vi.fn(() => Promise.resolve({ deleted: 4, imported: 2, updated: 3, uploaded: 1 })) };
+
+    render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
+    await user.click(screen.getByRole("button", { name: "캘린더" }));
+    await user.click(screen.getByRole("button", { name: "수동 동기화" }));
+
+    expect(await screen.findByText("Google 동기화 완료: 업로드 1, 가져오기 2, 업데이트 3, 삭제 4")).toBeInTheDocument();
   });
 
   it("shows a localized authorization failure message without clearing local todos", async () => {

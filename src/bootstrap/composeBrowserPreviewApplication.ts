@@ -62,7 +62,7 @@ export function composeBrowserPreviewApplication(): { services: RhythmAppService
       beginGoogleAuthorization: { execute: () => Promise.resolve("https://accounts.google.com/mock") },
       completeGoogleAuthorization: { execute: () => Promise.resolve() },
       listGoogleTaskLists: { execute: () => Promise.resolve([{ id: "preview", title: "Preview Tasks" }]) },
-      saveGoogleClientId: { execute: () => Promise.resolve() },
+      saveGoogleOAuthClient: { execute: () => Promise.resolve() },
       selectGoogleTaskList: { execute: () => Promise.resolve() },
       syncGoogleTodos: new SyncGoogleTodosUseCase(todoRepository, googleSync),
       changeLanguage: new ChangeLanguagePreferenceUseCase(settingsRepository, runtime),
@@ -236,6 +236,7 @@ class BrowserPreviewNotificationSoundFilePort extends BrowserPreviewNotification
 class BrowserPreviewTodoSyncPort implements TodoSyncPort {
   public async sync(todos: Array<TodoItem>): Promise<TodoSyncResult> {
     return {
+      deleted: 0,
       imported: 0,
       todos,
       updated: 0,

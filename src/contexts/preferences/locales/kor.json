@@ -104,9 +104,11 @@
   "googleTasks": {
     "eyebrow": "Google",
     "title": "Google Tasks 연동",
-    "clientIdTitle": "Client ID",
+    "clientIdTitle": "OAuth Client",
     "clientIdLabel": "Client ID",
-    "clientIdHelp": "Google Cloud Console에서 만든 Desktop OAuth Client ID를 저장합니다.",
+    "clientSecretLabel": "Client Secret",
+    "oauthClientSave": "OAuth 정보 저장",
+    "clientIdHelp": "Google Cloud Console에서 만든 Desktop OAuth Client ID와 Client Secret을 저장합니다.",
     "authTitle": "인증",
     "authOpen": "인증 URL 열기",
     "authCodeLabel": "인증 code 또는 redirect URL",
@@ -138,9 +140,9 @@
     "invalidTime": "시간은 14:30 또는 1430 형식으로 입력해주세요.",
     "googleAuthorizationStarted": "인증 URL을 열었습니다. 리디렉션 URL의 code 값을 붙여넣어 주세요. {url}",
     "googleAuthorizationSaved": "Google Tasks 인증을 저장했습니다.",
-    "googleClientIdSaved": "Google Client ID를 저장했습니다.",
+    "googleOAuthClientSaved": "Google OAuth 정보를 저장했습니다.",
     "googleTaskListSelected": "Google Tasks 목록을 선택했습니다.",
-    "googleSyncCompleted": "Google 동기화 완료: 업로드 {uploaded}, 가져오기 {imported}, 업데이트 {updated}",
+    "googleSyncCompleted": "Google 동기화 완료: 업로드 {uploaded}, 가져오기 {imported}, 업데이트 {updated}, 삭제 {deleted}",
     "googleActionFailed": "Google 작업 실패: {message}",
     "unknownError": "알 수 없는 오류"
   }

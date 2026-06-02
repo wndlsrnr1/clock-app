@@ -11,6 +11,7 @@ export class SyncGoogleTodosUseCase {
     await this.todoRepository.saveAll(result.todos);
 
     return {
+      deleted: result.deleted,
       imported: result.imported,
       updated: result.updated,
       uploaded: result.uploaded,

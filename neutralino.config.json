@@ -37,7 +37,7 @@
       "icon": "/dist/icon.png",
       "exitProcessOnClose": false,
       "injectGlobals": true,
-      "injectClientLibrary": true
+      "injectClientLibrary": false
     }
   },
   "cli": {
@@ -46,11 +46,13 @@
     "clientLibrary": "/dist/neutralino.js",
     "frontendLibrary": {
       "patchFile": "/index.html",
-      "devUrl": "http://127.0.0.1:5173",
+      "devUrl": "http://localhost:14557",
       "projectPath": "/",
       "initCommand": "npm install",
-      "devCommand": "npm run dev:vite",
+      "devCommand": "npm run dev:vite -- --host localhost --port 14557 --strictPort",
       "buildCommand": "npm run build:vite"
-    }
+    },
+    "binaryVersion": "6.7.0",
+    "clientVersion": "6.7.0"
   }
 }

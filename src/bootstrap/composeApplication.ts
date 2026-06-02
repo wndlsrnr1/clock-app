@@ -16,6 +16,7 @@ import { PlatformEnvironmentDetector } from "../platform/environment/PlatformEnv
 import { GoogleTasksApiAdapter } from "../platform/google/GoogleTasksApiAdapter";
 import { GoogleTasksAuthAdapter } from "../platform/google/GoogleTasksAuthAdapter";
 import { GoogleTasksCredentialRepository } from "../platform/google/GoogleTasksCredentialRepository";
+import { GoogleTasksPendingDeletionRepository } from "../platform/google/GoogleTasksPendingDeletionRepository";
 import { GoogleTasksSettingsRepository } from "../platform/google/GoogleTasksSettingsRepository";
 import { GoogleTasksSyncAdapter } from "../platform/google/GoogleTasksSyncAdapter";
 import { NeutralinoCommandExecutor } from "../platform/neutralino/NeutralinoCommandExecutor";
@@ -60,7 +61,8 @@ export async function composeApplication(): Promise<ComposedApplication> {
   const googleCredentials = new GoogleTasksCredentialRepository();
   const googleAuth = new GoogleTasksAuthAdapter(googleSettings, googleCredentials);
   const googleApi = new GoogleTasksApiAdapter(googleSettings, googleCredentials);
-  const googleSync = new GoogleTasksSyncAdapter(googleSettings, googleApi, todoIdGenerator, clock);
+  const googlePendingDeletions = new GoogleTasksPendingDeletionRepository(googleSettings, clock);
+  const googleSync = new GoogleTasksSyncAdapter(googleSettings, googleApi, todoIdGenerator, clock, googlePendingDeletions);
   const autoStart = createAutoStartAdapter(
     await new PlatformEnvironmentDetector().detect(),
     new NeutralinoCommandExecutor(),
@@ -84,7 +86,7 @@ export async function composeApplication(): Promise<ComposedApplication> {
     updateNotificationSoundVolume: new UpdateNotificationSoundVolumeUseCase(settingsRepository),
     useDefaultNotificationSound: { execute: () => notificationSoundMode.useDefault() },
     addTodo: new AddTodoUseCase(todoRepository, todoIdGenerator, clock),
-    deleteTodo: new DeleteTodoUseCase(todoRepository),
+    deleteTodo: new DeleteTodoUseCase(todoRepository, googlePendingDeletions),
     getTodoCalendarSummary: new GetTodoCalendarSummaryUseCase(todoRepository),
     getTodosByDate: new GetTodosByDateUseCase(todoRepository),
     reorderTodos: new ReorderTodosUseCase(todoRepository, clock),
@@ -93,7 +95,7 @@ export async function composeApplication(): Promise<ComposedApplication> {
     beginGoogleAuthorization: { execute: (): Promise<string> => googleAuth.beginAuthorization() },
     completeGoogleAuthorization: { execute: (codeOrUrl: string) => googleAuth.completeAuthorization(codeOrUrl) },
     listGoogleTaskLists: { execute: () => googleApi.listTaskLists() },
-    saveGoogleClientId: { execute: (clientId: string) => googleSettings.saveClientId(clientId) },
+    saveGoogleOAuthClient: { execute: (client) => googleSettings.saveOAuthClient(client) },
     selectGoogleTaskList: { execute: (taskListId: string) => googleSettings.selectTaskList(taskListId) },
     syncGoogleTodos: new SyncGoogleTodosUseCase(todoRepository, googleSync),
     changeLanguage: new ChangeLanguagePreferenceUseCase(settingsRepository, runtime),

@@ -104,9 +104,11 @@
   "googleTasks": {
     "eyebrow": "Google",
     "title": "Google Tasks sync",
-    "clientIdTitle": "Client ID",
+    "clientIdTitle": "OAuth Client",
     "clientIdLabel": "Client ID",
-    "clientIdHelp": "Save the Desktop OAuth Client ID created in Google Cloud Console.",
+    "clientSecretLabel": "Client Secret",
+    "oauthClientSave": "Save OAuth info",
+    "clientIdHelp": "Save the Desktop OAuth Client ID and Client Secret created in Google Cloud Console.",
     "authTitle": "Authorization",
     "authOpen": "Open auth URL",
     "authCodeLabel": "Auth code or redirect URL",
@@ -138,9 +140,9 @@
     "invalidTime": "Enter time as 14:30 or 1430.",
     "googleAuthorizationStarted": "Opened authorization URL. Paste the code value from the redirect URL. {url}",
     "googleAuthorizationSaved": "Google Tasks authorization saved.",
-    "googleClientIdSaved": "Google Client ID saved.",
+    "googleOAuthClientSaved": "Google OAuth info saved.",
     "googleTaskListSelected": "Google Tasks list selected.",
-    "googleSyncCompleted": "Google sync completed: uploaded {uploaded}, imported {imported}, updated {updated}",
+    "googleSyncCompleted": "Google sync completed: uploaded {uploaded}, imported {imported}, updated {updated}, deleted {deleted}",
     "googleActionFailed": "Google action failed: {message}",
     "unknownError": "Unknown error"
   }

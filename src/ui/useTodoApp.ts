@@ -23,6 +23,7 @@ interface TodoEditState {
 
 interface GoogleTasksState {
   clientId: string;
+  clientSecret: string;
   authorizationCode: string;
   taskLists: Array<GoogleTaskListSnapshot>;
   selectedTaskListId: string;
@@ -90,7 +91,8 @@ export interface TodoAppViewModel {
   moveCalendarMonth(offset: -1 | 1): Promise<void>;
   goToTodayMonth(): Promise<void>;
   changeGoogleClientId(clientId: string): void;
-  saveGoogleClientId(): Promise<void>;
+  changeGoogleClientSecret(clientSecret: string): void;
+  saveGoogleOAuthClient(): Promise<void>;
   beginGoogleAuthorization(): Promise<void>;
   changeAuthorizationCode(code: string): void;
   completeGoogleAuthorization(): Promise<void>;
@@ -146,6 +148,7 @@ export function useTodoApp(services: RhythmAppServices, currentNow: Date, text: 
     changeEditTime: (time: string): void => dispatch({ type: "EDIT_CHANGED", field: "time", value: time }),
     changeEditTitle: (title: string): void => dispatch({ type: "EDIT_CHANGED", field: "title", value: title }),
     changeGoogleClientId: (clientId: string): void => dispatch({ type: "GOOGLE_CHANGED", field: "clientId", value: clientId }),
+    changeGoogleClientSecret: (clientSecret: string): void => dispatch({ type: "GOOGLE_CHANGED", field: "clientSecret", value: clientSecret }),
     changeTime: (time: string): void => dispatch({ type: "TODO_FORM_CHANGED", field: "time", value: time }),
     changeTitle: (title: string): void => dispatch({ type: "TODO_FORM_CHANGED", field: "title", value: title }),
     completeGoogleAuthorization: async (): Promise<void> => {
@@ -197,10 +200,13 @@ export function useTodoApp(services: RhythmAppServices, currentNow: Date, text: 
       dispatch({ type: "EDIT_CLEARED" });
       await refreshTodoViews(services, state, dispatch);
     },
-    saveGoogleClientId: async (): Promise<void> => {
+    saveGoogleOAuthClient: async (): Promise<void> => {
       await runGoogleAction(async (): Promise<void> => {
-        await services.saveGoogleClientId.execute(state.google.clientId);
-        dispatch({ type: "MESSAGE_CHANGED", message: text.messages.googleClientIdSaved });
+        await services.saveGoogleOAuthClient.execute({
+          clientId: state.google.clientId,
+          clientSecret: state.google.clientSecret,
+        });
+        dispatch({ type: "MESSAGE_CHANGED", message: text.messages.googleOAuthClientSaved });
       }, text, dispatch);
     },
     selectDate: async (date: string): Promise<void> => {
@@ -230,6 +236,7 @@ export function useTodoApp(services: RhythmAppServices, currentNow: Date, text: 
         dispatch({
           type: "MESSAGE_CHANGED",
           message: formatText(text.messages.googleSyncCompleted, {
+            deleted: result.deleted,
             imported: result.imported,
             updated: result.updated,
             uploaded: result.uploaded,
@@ -253,7 +260,7 @@ function createInitialState(initialNow: Date): TodoAppState {
     calendarSummary: {},
     edit: null,
     form: { time: "", timeEnabled: false, title: "" },
-    google: { authorizationCode: "", clientId: "", selectedTaskListId: "", taskLists: [] },
+    google: { authorizationCode: "", clientId: "", clientSecret: "", selectedTaskListId: "", taskLists: [] },
     message: "",
     page: "clock",
     selectedDate: todayDate,

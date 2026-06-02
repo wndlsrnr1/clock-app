@@ -11,6 +11,10 @@ interface FetchPort {
   (input: RequestInfo | URL, init?: RequestInit): Promise<Response>;
 }
 
+function browserFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  return globalThis.fetch(input, init);
+}
+
 interface GoogleTokenResponse {
   access_token: string;
   refresh_token?: string;
@@ -31,7 +35,7 @@ export class GoogleTasksAuthAdapter {
     private readonly settingsRepository: GoogleTasksSettingsRepository,
     private readonly credentialRepository: GoogleTasksCredentialRepository,
     private readonly opener: UrlOpenerPort = os,
-    private readonly fetcher: FetchPort = fetch,
+    private readonly fetcher: FetchPort = browserFetch,
     private readonly cryptoPort: Crypto = crypto,
   ) {}
 
@@ -63,15 +67,20 @@ export class GoogleTasksAuthAdapter {
     }
 
     this.validateRedirectAuthorization(authorizationCode, settings.pendingAuthorization);
+    const tokenRequest = new URLSearchParams({
+      client_id: settings.clientId,
+      code: authorizationCode.code,
+      code_verifier: settings.pendingAuthorization.codeVerifier,
+      grant_type: "authorization_code",
+      redirect_uri: settings.pendingAuthorization.redirectUri,
+    });
+
+    if (settings.clientSecret) {
+      tokenRequest.set("client_secret", settings.clientSecret);
+    }
 
     const response = await this.fetcher("https://oauth2.googleapis.com/token", {
-      body: new URLSearchParams({
-        client_id: settings.clientId,
-        code: authorizationCode.code,
-        code_verifier: settings.pendingAuthorization.codeVerifier,
-        grant_type: "authorization_code",
-        redirect_uri: settings.pendingAuthorization.redirectUri,
-      }),
+      body: tokenRequest,
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       method: "POST",
     });

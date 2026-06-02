@@ -10,8 +10,14 @@ export interface PendingGoogleAuthorization {
 
 export interface GoogleTasksSettings {
   clientId: string;
+  clientSecret: string;
   taskListId: string | null;
   pendingAuthorization: PendingGoogleAuthorization | null;
+}
+
+export interface GoogleOAuthClientSettings {
+  clientId: string;
+  clientSecret: string;
 }
 
 export class GoogleTasksSettingsRepository implements GoogleTasksSettingsPort {
@@ -35,6 +41,17 @@ export class GoogleTasksSettingsRepository implements GoogleTasksSettingsPort {
     const settings = {
       ...(await this.get()),
       clientId: clientId.trim(),
+    };
+    await this.save(settings);
+
+    return settings;
+  }
+
+  public async saveOAuthClient(client: GoogleOAuthClientSettings): Promise<GoogleTasksSettings> {
+    const settings = {
+      ...(await this.get()),
+      clientId: client.clientId.trim(),
+      clientSecret: client.clientSecret.trim(),
     };
     await this.save(settings);
 
@@ -72,6 +89,7 @@ export class GoogleTasksSettingsRepository implements GoogleTasksSettingsPort {
   private static default(): GoogleTasksSettings {
     return {
       clientId: "",
+      clientSecret: "",
       pendingAuthorization: null,
       taskListId: null,
     };
@@ -80,6 +98,7 @@ export class GoogleTasksSettingsRepository implements GoogleTasksSettingsPort {
   private static restore(settings: Partial<GoogleTasksSettings>): GoogleTasksSettings {
     return {
       clientId: settings.clientId ?? "",
+      clientSecret: settings.clientSecret ?? "",
       pendingAuthorization: settings.pendingAuthorization ?? null,
       taskListId: settings.taskListId ?? null,
     };
