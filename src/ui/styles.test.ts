@@ -23,6 +23,21 @@ describe("time picker styles", () => {
     expect(modalRule?.groups?.body).toContain("display: grid;");
     expect(modalRule?.groups?.body).toContain("place-items: center;");
   });
+
+  it("uses the visible time slots as the input surface", () => {
+    const css = readFileSync(join(process.cwd(), "src/ui/styles.css"), "utf-8");
+    const entryInputRule = css.match(/\.time-picker-direct-entry input\s*\{(?<body>[^}]*)\}/);
+    const displayRule = css.match(/\.time-picker-direct-display\s*\{(?<body>[^}]*)\}/);
+    const focusRule = css.match(/\.time-picker-direct-entry:focus-within \.time-picker-direct-display\s*\{(?<body>[^}]*)\}/);
+
+    expect(entryInputRule?.groups?.body).toContain("opacity: 0;");
+    expect(entryInputRule?.groups?.body).toContain("border: 0;");
+    expect(entryInputRule?.groups?.body).toContain("background: transparent;");
+    expect(entryInputRule?.groups?.body).toContain("padding: 0;");
+    expect(displayRule?.groups?.body).toContain("grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);");
+    expect(displayRule?.groups?.body).toContain("font-variant-numeric: tabular-nums;");
+    expect(focusRule?.groups?.body).toContain("border-color: rgba(124, 253, 240, 0.42);");
+  });
 });
 
 describe("app shell styles", () => {

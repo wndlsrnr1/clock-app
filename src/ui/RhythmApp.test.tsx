@@ -271,7 +271,15 @@ describe("RhythmApp", () => {
     expect(document.querySelector(".time-picker-popover")).not.toBeInTheDocument();
 
     const addTime = await screen.findByLabelText("Todo 시간 수정 직접 입력") as HTMLInputElement;
-    await user.type(addTime, "14:30");
+    expect(document.querySelector(".time-picker-direct-display")).toHaveTextContent("-- : --");
+    await user.type(addTime, "1");
+    expect(document.querySelector(".time-picker-direct-display")).toHaveTextContent("1- : --");
+    await user.type(addTime, "4");
+    expect(document.querySelector(".time-picker-direct-display")).toHaveTextContent("14 : --");
+    await user.type(addTime, ":3");
+    expect(addTime).toHaveValue("143");
+    expect(document.querySelector(".time-picker-direct-display")).toHaveTextContent("14 : 3-");
+    await user.type(addTime, "0");
     expect(addTime).toHaveValue("1430");
     expect(document.querySelector(".time-picker-direct-display")).toHaveTextContent("14 : 30");
     expect(document.querySelector(".time-picker-direct-separator")).toHaveTextContent(":");
