@@ -174,6 +174,8 @@ describe("RhythmApp", () => {
     expect(screen.getByText("05 : 10 : 00")).toBeInTheDocument();
     expect(screen.getByLabelText("집중 시간")).toHaveValue("50");
     expect(screen.getByLabelText("휴식 시간")).toHaveValue("10");
+    expect(screen.getByText("분 · 1-180")).toBeInTheDocument();
+    expect(screen.getByText("분 · 1-60")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "하루 시작" })).toHaveTextContent("05:00");
     expect(screen.getByRole("button", { name: "하루 종료" })).toHaveTextContent("18:00");
     expect(screen.getByText("다음 알림: 05:50")).toBeInTheDocument();
@@ -191,7 +193,8 @@ describe("RhythmApp", () => {
     await user.clear(focusInput);
 
     expect(focusInput).toHaveValue("");
-    expect(screen.getAllByText("1-180분").length).toBeGreaterThan(0);
+    expect(screen.getByText("분 · 1-180")).toBeInTheDocument();
+    expect(screen.queryByText("1-180분")).not.toBeInTheDocument();
 
     await user.type(focusInput, "181");
     fireEvent.blur(focusInput);
@@ -231,9 +234,42 @@ describe("RhythmApp", () => {
 
     await user.click(dayStart);
 
-    expect(screen.getByLabelText("Day start direct input")).toHaveValue("0500");
+    const directInput = screen.getByLabelText("Day start direct input") as HTMLInputElement;
+    await waitFor((): void => {
+      expect(directInput).toHaveFocus();
+    });
+    expect(directInput).toHaveValue("0500");
+    expect(directInput.selectionStart).toBe(0);
+    expect(directInput.selectionEnd).toBe(4);
     expect(screen.queryByDisplayValue(/오전|오후/)).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Clear" })).not.toBeInTheDocument();
+  });
+
+  it("focuses the visible time slots immediately and marks direct input as editing", async () => {
+    const user = userEvent.setup();
+    const services = createServices();
+
+    render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
+
+    await user.click(screen.getByRole("button", { name: "하루 시작" }));
+
+    const directInput = await screen.findByLabelText("하루 시작 직접 입력") as HTMLInputElement;
+    await waitFor((): void => {
+      expect(directInput).toHaveFocus();
+    });
+
+    expect(screen.getByText("입력 중")).toBeInTheDocument();
+    expect(document.querySelector(".time-picker-direct-entry")).toHaveClass("editing");
+
+    await user.keyboard("2300");
+
+    expect(directInput).toHaveValue("2300");
+    expect(document.querySelector(".time-picker-direct-display")).toHaveTextContent("23 : 00");
+
+    directInput.blur();
+    fireEvent.pointerDown(document.querySelector(".time-picker-direct-entry") as HTMLElement);
+
+    expect(directInput).toHaveFocus();
   });
 
   it("keeps todo time optional while rhythm times are required", async () => {
@@ -368,13 +404,33 @@ describe("RhythmApp", () => {
     const addButton = screen.getByRole("button", { name: "추가" });
 
     expect(addButton).toBeDisabled();
-    expect(titleInput).toHaveAttribute("aria-invalid", "true");
-    expect(screen.getByText("할 일을 입력해주세요.")).toBeInTheDocument();
+    expect(titleInput).toHaveAttribute("aria-invalid", "false");
+    expect(screen.queryByText("할 일을 입력해주세요.")).not.toBeInTheDocument();
 
     await user.type(titleInput, "   ");
 
     expect(addButton).toBeDisabled();
+    expect(titleInput).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByText("할 일을 입력해주세요.")).toBeInTheDocument();
+    expect(titleInput.closest(".todo-title-field")?.querySelector(".field-feedback")).toContainElement(screen.getByText("할 일을 입력해주세요."));
     expect(services.addTodo.execute).not.toHaveBeenCalled();
+  });
+
+  it("shows the today todo title error only after a previously edited title is cleared", async () => {
+    const user = userEvent.setup();
+    const services = createServices();
+
+    render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
+
+    const titleInput = screen.getByLabelText("오늘 할 일 입력");
+
+    expect(screen.queryByText("할 일을 입력해주세요.")).not.toBeInTheDocument();
+
+    await user.type(titleInput, "보고서");
+    await user.clear(titleInput);
+
+    expect(titleInput).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByText("할 일을 입력해주세요.")).toBeInTheDocument();
   });
 
   it("shows a todo title counter near the title length limit", async () => {
@@ -443,93 +499,108 @@ describe("RhythmApp", () => {
   });
 
   it("normalizes typed todo time through the time picker when adding and editing todos", async () => {
-    const user = userEvent.setup();
-    const services = createServices();
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      vi.setSystemTime(new Date("2026-06-02T05:10:00"));
+      const user = userEvent.setup();
+      const services = createServices();
 
-    render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
+      render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
 
-    await user.type(screen.getByLabelText("오늘 할 일 입력"), "보고서 정리");
-    await user.click(screen.getByRole("button", { name: "시간 추가" }));
+      await user.type(screen.getByLabelText("오늘 할 일 입력"), "보고서 정리");
+      await user.click(screen.getByRole("button", { name: "시간 추가" }));
 
-    await user.click(screen.getByRole("button", { name: "Todo 시간 수정" }));
-    expect(await screen.findByRole("dialog", { name: "Todo 시간 수정" })).toHaveClass("time-picker-modal");
-    expect(document.querySelector(".time-picker-popover")).not.toBeInTheDocument();
+      await user.click(screen.getByRole("button", { name: "Todo 시간 수정" }));
+      expect(await screen.findByRole("dialog", { name: "Todo 시간 수정" })).toHaveClass("time-picker-modal");
+      expect(document.querySelector(".time-picker-popover")).not.toBeInTheDocument();
 
-    const addTime = await screen.findByLabelText("Todo 시간 수정 직접 입력") as HTMLInputElement;
-    expect(document.querySelector(".time-picker-direct-display")).toHaveTextContent("-- : --");
-    await user.type(addTime, "1");
-    expect(document.querySelector(".time-picker-direct-display")).toHaveTextContent("1- : --");
-    await user.type(addTime, "4");
-    expect(document.querySelector(".time-picker-direct-display")).toHaveTextContent("14 : --");
-    await user.type(addTime, ":3");
-    expect(addTime).toHaveValue("143");
-    expect(document.querySelector(".time-picker-direct-display")).toHaveTextContent("14 : 3-");
-    await user.type(addTime, "0");
-    expect(addTime).toHaveValue("1430");
-    expect(document.querySelector(".time-picker-direct-display")).toHaveTextContent("14 : 30");
-    expect(document.querySelector(".time-picker-direct-separator")).toHaveTextContent(":");
-    expect(screen.getByRole("button", { name: "Todo 시간 수정" })).toHaveTextContent("14:30");
-    await user.click(screen.getByRole("button", { name: "추가" }));
+      const addTime = await screen.findByLabelText("Todo 시간 수정 직접 입력") as HTMLInputElement;
+      expect(document.querySelector(".time-picker-direct-display")).toHaveTextContent("-- : --");
+      await waitFor((): void => {
+        expect(addTime).toHaveFocus();
+      });
+      await user.keyboard("1");
+      expect(document.querySelector(".time-picker-direct-display")).toHaveTextContent("1- : --");
+      await user.keyboard("4");
+      expect(document.querySelector(".time-picker-direct-display")).toHaveTextContent("14 : --");
+      await user.keyboard(":3");
+      expect(addTime).toHaveValue("143");
+      expect(document.querySelector(".time-picker-direct-display")).toHaveTextContent("14 : 3-");
+      await user.keyboard("0");
+      expect(addTime).toHaveValue("1430");
+      expect(document.querySelector(".time-picker-direct-display")).toHaveTextContent("14 : 30");
+      expect(document.querySelector(".time-picker-direct-separator")).toHaveTextContent(":");
+      expect(screen.getByRole("button", { name: "Todo 시간 수정" })).toHaveTextContent("14:30");
+      await user.click(screen.getByRole("button", { name: "추가" }));
 
-    expect(services.addTodo.execute).toHaveBeenCalledWith({
-      date: "2026-06-02",
-      time: "14:30",
-      title: "보고서 정리",
-    });
+      expect(services.addTodo.execute).toHaveBeenCalledWith({
+        date: "2026-06-02",
+        time: "14:30",
+        title: "보고서 정리",
+      });
 
-    await user.click(await screen.findByRole("button", { name: "수정" }));
-    await user.click(screen.getByRole("button", { name: "Todo 시간 수정" }));
-    await user.click(screen.getByRole("button", { name: "09시" }));
-    await user.click(screen.getByRole("button", { name: "05분" }));
-    fireEvent.keyDown(screen.getByLabelText("Todo 제목 수정"), { key: "Enter" });
+      await user.click(await screen.findByRole("button", { name: "수정" }));
+      await user.click(screen.getByRole("button", { name: "Todo 시간 수정" }));
+      await user.click(screen.getByRole("button", { name: "09시" }));
+      await user.click(screen.getByRole("button", { name: "05분" }));
+      fireEvent.keyDown(screen.getByLabelText("Todo 제목 수정"), { key: "Enter" });
 
-    expect(services.updateTodo.execute).toHaveBeenCalledWith({
-      date: "2026-06-02",
-      id: "todo-1",
-      time: "09:05",
-      title: "보고서 정리",
-    });
+      expect(services.updateTodo.execute).toHaveBeenCalledWith({
+        date: "2026-06-02",
+        id: "todo-1",
+        time: "09:05",
+        title: "보고서 정리",
+      });
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("saves or cancels todo edits with explicit buttons while keeping Escape cancel", async () => {
-    const user = userEvent.setup();
-    const services = createServices([todoSnapshot({ id: "todo-1", title: "보고서 정리" })]);
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    try {
+      vi.setSystemTime(new Date("2026-06-02T05:10:00"));
+      const user = userEvent.setup();
+      const services = createServices([todoSnapshot({ id: "todo-1", title: "보고서 정리" })]);
 
-    render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
+      render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
 
-    await user.click(await screen.findByRole("button", { name: "수정" }));
+      await user.click(await screen.findByRole("button", { name: "수정" }));
 
-    const editTitle = screen.getByLabelText("Todo 제목 수정");
-    expect(screen.getByRole("button", { name: "저장" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "취소" })).toBeInTheDocument();
+      const editTitle = screen.getByLabelText("Todo 제목 수정");
+      expect(screen.getByRole("button", { name: "저장" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "취소" })).toBeInTheDocument();
 
-    await user.clear(editTitle);
-    await user.type(editTitle, "취소될 제목");
-    await user.click(screen.getByRole("button", { name: "취소" }));
+      await user.clear(editTitle);
+      await user.type(editTitle, "취소될 제목");
+      await user.click(screen.getByRole("button", { name: "취소" }));
 
-    expect(services.updateTodo.execute).not.toHaveBeenCalled();
-    expect(screen.queryByLabelText("Todo 제목 수정")).not.toBeInTheDocument();
-    expect(await screen.findByText("보고서 정리")).toBeInTheDocument();
+      expect(services.updateTodo.execute).not.toHaveBeenCalled();
+      expect(screen.queryByLabelText("Todo 제목 수정")).not.toBeInTheDocument();
+      expect(await screen.findByText("보고서 정리")).toBeInTheDocument();
 
-    await user.click(await screen.findByRole("button", { name: "수정" }));
-    await user.clear(screen.getByLabelText("Todo 제목 수정"));
-    await user.type(screen.getByLabelText("Todo 제목 수정"), "저장될 제목");
-    await user.click(screen.getByRole("button", { name: "저장" }));
+      await user.click(await screen.findByRole("button", { name: "수정" }));
+      await user.clear(screen.getByLabelText("Todo 제목 수정"));
+      await user.type(screen.getByLabelText("Todo 제목 수정"), "저장될 제목");
+      await user.click(screen.getByRole("button", { name: "저장" }));
 
-    expect(services.updateTodo.execute).toHaveBeenCalledWith({
-      date: "2026-06-02",
-      id: "todo-1",
-      time: null,
-      title: "저장될 제목",
-    });
+      expect(services.updateTodo.execute).toHaveBeenCalledWith({
+        date: "2026-06-02",
+        id: "todo-1",
+        time: null,
+        title: "저장될 제목",
+      });
 
-    await user.click(await screen.findByRole("button", { name: "수정" }));
-    await user.clear(screen.getByLabelText("Todo 제목 수정"));
-    await user.type(screen.getByLabelText("Todo 제목 수정"), "취소될 제목");
-    fireEvent.keyDown(screen.getByLabelText("Todo 제목 수정"), { key: "Escape" });
+      await user.click(await screen.findByRole("button", { name: "수정" }));
+      await user.clear(screen.getByLabelText("Todo 제목 수정"));
+      await user.type(screen.getByLabelText("Todo 제목 수정"), "취소될 제목");
+      fireEvent.keyDown(screen.getByLabelText("Todo 제목 수정"), { key: "Escape" });
 
-    expect(services.updateTodo.execute).toHaveBeenCalledTimes(1);
-    expect(screen.queryByLabelText("Todo 제목 수정")).not.toBeInTheDocument();
+      expect(services.updateTodo.execute).toHaveBeenCalledTimes(1);
+      expect(screen.queryByLabelText("Todo 제목 수정")).not.toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("prevents invalid todo edits before calling the update use case", async () => {
@@ -675,13 +746,32 @@ describe("RhythmApp", () => {
     expect(await screen.findByRole("heading", { name: "2026년 07월" })).toBeInTheDocument();
   });
 
+  it("shows data management as a top-level data tab instead of a calendar footer", async () => {
+    const user = userEvent.setup();
+    const services = createServices();
+
+    render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
+
+    expect(screen.getByRole("button", { name: "데이터" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "캘린더" }));
+
+    expect(screen.queryByRole("heading", { name: "데이터 관리" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "데이터" }));
+
+    expect(screen.getByRole("heading", { name: "데이터 관리" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "내보내기" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "가져오기" })).toBeInTheDocument();
+  });
+
   it("replaces Google Tasks setup with data management controls", async () => {
     const user = userEvent.setup();
     const services = createServices();
 
     render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
 
-    await user.click(screen.getByRole("button", { name: "캘린더" }));
+    await user.click(screen.getByRole("button", { name: "데이터" }));
 
     expect(screen.getByRole("heading", { name: "데이터 관리" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "내보내기" })).toBeInTheDocument();
@@ -698,7 +788,7 @@ describe("RhythmApp", () => {
 
     render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
 
-    await user.click(screen.getByRole("button", { name: "캘린더" }));
+    await user.click(screen.getByRole("button", { name: "데이터" }));
     await user.click(screen.getByRole("button", { name: "내보내기" }));
 
     expect(services.exportBackup.execute).toHaveBeenCalledOnce();
@@ -721,7 +811,7 @@ describe("RhythmApp", () => {
 
     render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
 
-    await user.click(screen.getByRole("button", { name: "캘린더" }));
+    await user.click(screen.getByRole("button", { name: "데이터" }));
     await user.click(screen.getByRole("button", { name: "가져오기" }));
     await user.click(screen.getByRole("button", { name: "취소" }));
 
@@ -735,7 +825,7 @@ describe("RhythmApp", () => {
 
     render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
 
-    await user.click(screen.getByRole("button", { name: "캘린더" }));
+    await user.click(screen.getByRole("button", { name: "데이터" }));
     const todosLoadedBeforeImport = vi.mocked(services.getTodosByDate.execute).mock.calls.length;
     const summariesLoadedBeforeImport = vi.mocked(services.getTodoCalendarSummary.execute).mock.calls.length;
 
@@ -756,7 +846,7 @@ describe("RhythmApp", () => {
 
     render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
 
-    await user.click(screen.getByRole("button", { name: "캘린더" }));
+    await user.click(screen.getByRole("button", { name: "데이터" }));
     await user.click(screen.getByRole("button", { name: "내보내기" }));
 
     expect(await screen.findByText("백업 작업 실패: export failed")).toBeInTheDocument();

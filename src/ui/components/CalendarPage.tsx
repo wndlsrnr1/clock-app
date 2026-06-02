@@ -3,7 +3,6 @@ import type { TodoAppViewModel } from "../useTodoApp";
 import { calendarDays, type CalendarDayCell } from "../calendarDays";
 import { formatMonthLabel } from "../dateFormat";
 import { formatText, type TextCatalog } from "../textCatalog";
-import { DataManagementPanel } from "./DataManagementPanel";
 import { TodoListPanel } from "./TodoListPanel";
 
 interface CalendarPageProps {
@@ -68,7 +67,6 @@ export function CalendarPage({ language, text, todo }: CalendarPageProps): React
           />
         </section>
       </div>
-      <DataManagementPanel text={text} todo={todo} />
     </section>
   );
 }

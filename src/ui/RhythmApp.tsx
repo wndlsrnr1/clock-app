@@ -1,5 +1,6 @@
 import { AnalogClock } from "./components/AnalogClock";
 import { CalendarPage } from "./components/CalendarPage";
+import { DataPage } from "./components/DataPage";
 import { DigitalClock } from "./components/DigitalClock";
 import { NotificationSoundPanel } from "./components/NotificationSoundPanel";
 import { RhythmControls } from "./components/RhythmControls";
@@ -28,10 +29,23 @@ export function RhythmApp({ services, initialNow = new Date() }: RhythmAppProps)
         <nav className="app-nav" aria-label={text.navigation.aria}>
           <SegmentedControl
             ariaLabel={text.navigation.aria}
-            onChange={(page) => (page === "clock" ? todo.showClock() : todo.showCalendar())}
+            onChange={(page) => {
+              if (page === "clock") {
+                void todo.showClock();
+                return;
+              }
+
+              if (page === "calendar") {
+                void todo.showCalendar();
+                return;
+              }
+
+              void todo.showData();
+            }}
             options={[
               { label: text.navigation.clock, value: "clock" },
               { label: text.navigation.calendar, value: "calendar" },
+              { label: text.navigation.data, value: "data" },
             ]}
             value={todo.page}
           />
@@ -82,8 +96,10 @@ export function RhythmApp({ services, initialNow = new Date() }: RhythmAppProps)
             </div>
             <TodayTodoPanel todo={todo} text={text} />
           </>
-        ) : (
+        ) : todo.page === "calendar" ? (
           <CalendarPage language={rhythm.status.language} todo={todo} text={text} />
+        ) : (
+          <DataPage todo={todo} text={text} />
         )}
       </section>
     </main>

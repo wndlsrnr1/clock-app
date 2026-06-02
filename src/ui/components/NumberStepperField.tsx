@@ -27,11 +27,9 @@ export function NumberStepperField({
 }: NumberStepperFieldProps): React.JSX.Element {
   const inputId = useId();
   const hintId = useId();
-  const errorId = useId();
   const [draftState, setDraftState] = useState<NumberStepperDraft>({ committedValue: value, value: String(value) });
   const draft = draftState.committedValue === value ? draftState.value : String(value);
   const validation = validateMinuteInput(draft, min, max, text);
-  const descriptionId = validation.error ? `${hintId} ${errorId}` : hintId;
 
   const commitDraft = (): void => {
     if (!validation.isValid) {
@@ -46,7 +44,10 @@ export function NumberStepperField({
 
   return (
     <div>
-      <label className="label" htmlFor={inputId}>{label}</label>
+      <div className="field-label-row">
+        <label className="label" htmlFor={inputId}>{label}</label>
+        <span className="field-meta-pill">{validation.meta}</span>
+      </div>
       <span className="number-stepper">
         <IconButton
           icon="minus"
@@ -56,7 +57,7 @@ export function NumberStepperField({
           variant="subtle"
         />
         <input
-          aria-describedby={descriptionId}
+          aria-describedby={hintId}
           aria-invalid={!validation.isValid}
           aria-label={label}
           id={inputId}
@@ -82,8 +83,9 @@ export function NumberStepperField({
           variant="subtle"
         />
       </span>
-      <p className="input-hint" id={hintId}>{validation.hint}</p>
-      {validation.error ? <p className="field-error" id={errorId}>{validation.error}</p> : null}
+      <div className="field-feedback" id={hintId}>
+        {validation.error ? <p className="field-error">{validation.error}</p> : null}
+      </div>
     </div>
   );
 }

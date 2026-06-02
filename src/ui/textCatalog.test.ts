@@ -10,6 +10,11 @@ describe("text catalog", () => {
     expect(createTranslator("kor").status.values.idle).toBe("대기");
     expect(createTranslator("en").status.values.idle).toBe("Idle");
   });
+
+  it("translates the top-level data tab by language", () => {
+    expect(createTranslator("kor").navigation.data).toBe("데이터");
+    expect(createTranslator("en").navigation.data).toBe("Data");
+  });
 });
 
 function flattenKeys(value: unknown, prefix = ""): Array<string> {

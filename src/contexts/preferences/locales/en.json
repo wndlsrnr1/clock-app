@@ -2,7 +2,8 @@
   "navigation": {
     "aria": "App view",
     "clock": "Clock",
-    "calendar": "Calendar"
+    "calendar": "Calendar",
+    "data": "Data"
   },
   "language": {
     "label": "Language",
@@ -30,7 +31,8 @@
       "save": "Save settings",
       "decrease": "Decrease {label}",
       "increase": "Increase {label}",
-      "minuteRange": "{min}-{max} min",
+      "minuteMeta": "min · {min}-{max}",
+      "minuteRange": "Enter {min}-{max} min.",
       "nextAlarm": "Next alarm: {time}",
       "nextAlarmUnavailable": "Check the time settings.",
       "outsideDailyRhythm": "Current time is outside the rhythm window."
@@ -93,6 +95,7 @@
       "placeholder": "Select time",
       "directLabel": "Direct input",
       "directInput": "{label} direct input",
+      "editing": "Editing",
       "hourGroup": "Select hour",
       "minuteGroup": "Select minute",
       "hourOption": "{hour}:00",

@@ -13,6 +13,7 @@ export interface MinuteInputValidation {
   error: string | null;
   hint: string;
   isValid: boolean;
+  meta: string;
 }
 
 export const todoTitleMaxLength = TodoTitle.maxLength;
@@ -45,6 +46,7 @@ export function validateTodoTitleInput(value: string, text: TextCatalog): TextIn
 
 export function validateMinuteInput(value: string, min: number, max: number, text: TextCatalog): MinuteInputValidation {
   const hint = formatText(text.rhythm.settings.minuteRange, { max, min });
+  const meta = formatText(text.rhythm.settings.minuteMeta, { max, min });
   const numberValue = Number(value);
 
   if (!/^\d+$/.test(value) || !Number.isInteger(numberValue) || numberValue < min || numberValue > max) {
@@ -52,6 +54,7 @@ export function validateMinuteInput(value: string, min: number, max: number, tex
       error: hint,
       hint,
       isValid: false,
+      meta,
     };
   }
 
@@ -59,6 +62,7 @@ export function validateMinuteInput(value: string, min: number, max: number, tex
     error: null,
     hint,
     isValid: true,
+    meta,
   };
 }
 

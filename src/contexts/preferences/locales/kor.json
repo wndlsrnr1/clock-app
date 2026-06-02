@@ -2,7 +2,8 @@
   "navigation": {
     "aria": "앱 화면",
     "clock": "시계",
-    "calendar": "캘린더"
+    "calendar": "캘린더",
+    "data": "데이터"
   },
   "language": {
     "label": "언어",
@@ -30,7 +31,8 @@
       "save": "설정 저장",
       "decrease": "{label} 줄이기",
       "increase": "{label} 늘리기",
-      "minuteRange": "{min}-{max}분",
+      "minuteMeta": "분 · {min}-{max}",
+      "minuteRange": "{min}-{max}분으로 입력해주세요.",
       "nextAlarm": "다음 알림: {time}",
       "nextAlarmUnavailable": "시간 설정을 확인해주세요.",
       "outsideDailyRhythm": "현재는 리듬 시간 밖입니다."
@@ -94,6 +96,7 @@
       "placeholder": "시간 선택",
       "directLabel": "직접 입력",
       "directInput": "{label} 직접 입력",
+      "editing": "입력 중",
       "hourGroup": "시 선택",
       "minuteGroup": "분 선택",
       "hourOption": "{hour}시",

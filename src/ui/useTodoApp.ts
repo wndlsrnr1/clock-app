@@ -8,7 +8,7 @@ import { validateTodoTitleInput } from "./inputValidation";
 import { formatText, type TextCatalog } from "./textCatalog";
 import { normalizeOptionalTimeText } from "./timeText";
 
-export type AppPage = "clock" | "calendar";
+export type AppPage = "clock" | "calendar" | "data";
 
 interface TodoFormState {
   title: string;
@@ -70,6 +70,7 @@ export interface TodoAppViewModel {
   message: string;
   showClock(): Promise<void>;
   showCalendar(): Promise<void>;
+  showData(): Promise<void>;
   changeTitle(title: string): void;
   showTimeInput(): void;
   changeTime(time: string): void;
@@ -234,6 +235,9 @@ export function useTodoApp(services: RhythmAppServices, currentNow: Date, text: 
     showClock: async (): Promise<void> => {
       dispatch({ type: "PAGE_CHANGED", page: "clock" });
       await refreshToday(services, state.todayDate, dispatch);
+    },
+    showData: async (): Promise<void> => {
+      dispatch({ type: "PAGE_CHANGED", page: "data" });
     },
     showTimeInput: (): void => dispatch({ type: "TODO_FORM_CHANGED", field: "timeEnabled", value: true }),
     startEditing: (todo: TodoItemSnapshot): void => dispatch({ type: "EDIT_STARTED", todo }),

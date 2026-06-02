@@ -28,6 +28,7 @@ describe("time picker styles", () => {
     const css = readFileSync(join(process.cwd(), "src/ui/styles.css"), "utf-8");
     const entryInputRule = css.match(/\.time-picker-direct-entry input\s*\{(?<body>[^}]*)\}/);
     const displayRule = css.match(/\.time-picker-direct-display\s*\{(?<body>[^}]*)\}/);
+    const editingRule = css.match(/\.time-picker-direct-entry\.editing \.time-picker-direct-display\s*\{(?<body>[^}]*)\}/);
     const focusRule = css.match(/\.time-picker-direct-entry:focus-within \.time-picker-direct-display\s*\{(?<body>[^}]*)\}/);
 
     expect(entryInputRule?.groups?.body).toContain("opacity: 0;");
@@ -36,7 +37,28 @@ describe("time picker styles", () => {
     expect(entryInputRule?.groups?.body).toContain("padding: 0;");
     expect(displayRule?.groups?.body).toContain("grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);");
     expect(displayRule?.groups?.body).toContain("font-variant-numeric: tabular-nums;");
+    expect(editingRule?.groups?.body).toContain("border-color: rgba(124, 253, 240, 0.5);");
     expect(focusRule?.groups?.body).toContain("border-color: rgba(124, 253, 240, 0.42);");
+  });
+
+  it("reserves feedback space below fields so validation does not shift the panel", () => {
+    const css = readFileSync(join(process.cwd(), "src/ui/styles.css"), "utf-8");
+    const labelRowRule = css.match(/\.field-label-row\s*\{(?<body>[^}]*)\}/);
+    const labelInRowRule = css.match(/\.field-label-row \.label\s*\{(?<body>[^}]*)\}/);
+    const metaRule = css.match(/\.field-meta-pill\s*\{(?<body>[^}]*)\}/);
+    const feedbackRule = css.match(/\.field-feedback\s*\{(?<body>[^}]*)\}/);
+    const feedbackTextRule = css.match(/\.field-feedback \.field-error,\s*\.field-feedback \.input-hint\s*\{(?<body>[^}]*)\}/);
+    const todoTitleFieldRule = css.match(/\.todo-title-field\s*\{(?<body>[^}]*)\}/);
+
+    expect(labelRowRule?.groups?.body).toContain("display: flex;");
+    expect(labelRowRule?.groups?.body).toContain("margin-bottom:");
+    expect(labelInRowRule?.groups?.body).toContain("margin-bottom: 0;");
+    expect(labelInRowRule?.groups?.body).toContain("line-height: 1.35;");
+    expect(metaRule?.groups?.body).toContain("white-space: nowrap;");
+    expect(feedbackRule?.groups?.body).toContain("min-height:");
+    expect(feedbackTextRule?.groups?.body).toContain("margin: 0;");
+    expect(todoTitleFieldRule?.groups?.body).toContain("display: grid;");
+    expect(todoTitleFieldRule?.groups?.body).toContain("align-content: start;");
   });
 });
 
@@ -71,5 +93,13 @@ describe("app shell styles", () => {
     expect(wideRule?.groups?.body).toContain("--clock-stage-size: min(33vw, 28rem);");
     expect(clockRule?.groups?.body).toContain("width: var(--clock-stage-size);");
     expect(tickRule?.groups?.body).toContain("transform-origin: 50% calc(var(--clock-stage-size) / 2 - 0.625rem);");
+  });
+
+  it("keeps data management as a standalone page surface", () => {
+    const css = readFileSync(join(process.cwd(), "src/ui/styles.css"), "utf-8");
+    const dataPageRule = css.match(/\.data-page\s*\{(?<body>[^}]*)\}/);
+
+    expect(dataPageRule?.groups?.body).toContain("display: grid;");
+    expect(dataPageRule?.groups?.body).toContain("align-content: start;");
   });
 });

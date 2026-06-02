@@ -455,6 +455,43 @@ select {
   box-shadow: 0 0 1rem rgba(255, 0, 230, 0.2);
 }
 
+.field-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.45rem;
+}
+
+.field-label-row .label {
+  margin-bottom: 0;
+  line-height: 1.35;
+}
+
+.field-meta-pill,
+.input-state-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.35rem;
+  border: 1px solid rgba(0, 255, 255, 0.16);
+  border-radius: 999px;
+  padding: 0 0.45rem;
+  background: rgba(0, 255, 255, 0.055);
+  color: rgba(191, 255, 248, 0.78);
+  font-size: 0.68rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.input-state-pill {
+  border-color: rgba(124, 253, 240, 0.28);
+  color: #e6fff9;
+}
+
+.field-meta-pill {
+  white-space: nowrap;
+}
+
 .number-stepper {
   display: grid;
   grid-template-columns: 2.75rem minmax(0, 1fr) 2.75rem;
@@ -558,10 +595,16 @@ select {
 .time-picker-direct {
   display: grid;
   gap: 0.35rem;
-  margin-bottom: 0.65rem;
   color: #c9a5ff;
   font-size: 0.72rem;
   font-weight: 800;
+}
+
+.time-picker-direct-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
 }
 
 .time-picker-direct input {
@@ -610,6 +653,15 @@ select {
 .time-picker-direct-entry:focus-within .time-picker-direct-display {
   border-color: rgba(124, 253, 240, 0.42);
   box-shadow: 0 0 0 1px rgba(124, 253, 240, 0.16), 0 0 0.85rem rgba(124, 253, 240, 0.08) inset;
+}
+
+.time-picker-direct-entry.editing .time-picker-direct-display {
+  border-color: rgba(124, 253, 240, 0.5);
+  box-shadow: 0 0 0 1px rgba(124, 253, 240, 0.2), 0 0 1rem rgba(124, 253, 240, 0.1) inset;
+}
+
+.time-picker-direct-entry.editing .time-picker-direct-separator {
+  color: #bffff8;
 }
 
 .time-picker-direct-slot {
@@ -682,6 +734,16 @@ select {
   line-height: 1.35;
 }
 
+.field-feedback {
+  min-height: 1.15rem;
+  margin-top: 0.35rem;
+}
+
+.field-feedback .field-error,
+.field-feedback .input-hint {
+  margin: 0;
+}
+
 .input-hint {
   color: rgba(191, 255, 248, 0.68);
 }
@@ -708,6 +770,11 @@ select {
 
 .settings-preview p {
   margin: 0;
+}
+
+.data-page {
+  display: grid;
+  align-content: start;
 }
 
 .sound-panel,
@@ -759,8 +826,15 @@ select {
 .todo-form {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: start;
   gap: 0.625rem;
-  margin-bottom: 0.875rem;
+  margin-bottom: 0.35rem;
+}
+
+.todo-title-field {
+  display: grid;
+  align-content: start;
+  min-width: 0;
 }
 
 .btn.compact {

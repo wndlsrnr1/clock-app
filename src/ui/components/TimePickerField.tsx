@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { isOptionalTimeInputValid } from "../inputValidation";
 import { formatText, type TextCatalog } from "../textCatalog";
 import { SvgIcon } from "./SvgIcon";
@@ -32,12 +32,37 @@ export function TimePickerField({
   text,
   value,
 }: TimePickerFieldProps): React.JSX.Element {
+  const directInputRef = useRef<HTMLInputElement>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [isDirectInputFocused, setIsDirectInputFocused] = useState(false);
   const selectedTime = parsedTimeParts(value);
   const directInputLabel = formatText(text.todo.timePicker.directInput, { label });
   const displayValue = displayTimeValue(value);
   const directDisplay = displayDirectInputValue(value);
   const isInvalid = required ? !isOptionalTimeInputValid(value) || value.trim().length === 0 : !isOptionalTimeInputValid(value);
+
+  useLayoutEffect((): void => {
+    if (!isOpen) {
+      return;
+    }
+
+    directInputRef.current?.focus();
+    directInputRef.current?.select();
+  }, [isOpen]);
+
+  const focusDirectInput = (): void => {
+    directInputRef.current?.focus();
+    directInputRef.current?.select();
+  };
+
+  const changeDirectInput = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    const nextValue = sanitizeTimeDigits(event.target.value);
+    onChange(nextValue);
+
+    window.requestAnimationFrame((): void => {
+      directInputRef.current?.setSelectionRange(nextValue.length, nextValue.length);
+    });
+  };
 
   return (
     <div className={showLabel ? "time-picker-field with-label" : "time-picker-field"}>
@@ -67,13 +92,25 @@ export function TimePickerField({
           >
             <div className="time-picker-dialog" onClick={(event: React.MouseEvent<HTMLDivElement>) => event.stopPropagation()}>
               <label className="time-picker-direct">
-                <span>{text.todo.timePicker.directLabel}</span>
-                <span className="time-picker-direct-entry">
+                <span className="time-picker-direct-label">
+                  <span>{text.todo.timePicker.directLabel}</span>
+                  {isDirectInputFocused ? <span className="input-state-pill">{text.todo.timePicker.editing}</span> : null}
+                </span>
+                <span
+                  className={isDirectInputFocused ? "time-picker-direct-entry editing" : "time-picker-direct-entry"}
+                  onClick={focusDirectInput}
+                  onPointerDown={(event: React.PointerEvent<HTMLSpanElement>) => {
+                    event.preventDefault();
+                    focusDirectInput();
+                  }}
+                >
                   <input
                     aria-label={directInputLabel}
                     aria-invalid={isInvalid}
                     inputMode="numeric"
-                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => onChange(sanitizeTimeDigits(event.target.value))}
+                    onChange={changeDirectInput}
+                    onFocus={() => setIsDirectInputFocused(true)}
+                    onBlur={() => setIsDirectInputFocused(false)}
                     onKeyDown={(event: React.KeyboardEvent<HTMLInputElement>) => {
                       if (event.key === "Enter" && onCommit) {
                         event.preventDefault();
@@ -93,6 +130,7 @@ export function TimePickerField({
                       }
                     }}
                     placeholder="1430"
+                    ref={directInputRef}
                     type="text"
                     value={sanitizeTimeDigits(value)}
                   />
@@ -103,7 +141,9 @@ export function TimePickerField({
                   </span>
                 </span>
               </label>
-              {isInvalid ? <p className="field-error">{text.todo.timePicker.invalid}</p> : null}
+              <div className="field-feedback">
+                {isInvalid ? <p className="field-error">{text.todo.timePicker.invalid}</p> : null}
+              </div>
               <div className="time-picker-columns">
                 <div aria-label={text.todo.timePicker.hourGroup} className="time-picker-options" role="group">
                   {hourOptions.map((hour: string): React.JSX.Element => (

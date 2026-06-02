@@ -121,8 +121,10 @@ export function TodoListPanel({
                 value={edit.title}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) => onChangeEditTitle(event.target.value)}
               />
-              {editTitleValidation?.error && editTitleErrorId ? <p className="field-error" id={editTitleErrorId}>{editTitleValidation.error}</p> : null}
-              {editTitleValidation?.counter && editTitleCounterId ? <p className="input-hint counter" id={editTitleCounterId}>{editTitleValidation.counter}</p> : null}
+              <div className="field-feedback">
+                {editTitleValidation?.error && editTitleErrorId ? <p className="field-error" id={editTitleErrorId}>{editTitleValidation.error}</p> : null}
+                {editTitleValidation?.counter && editTitleCounterId ? <p className="input-hint counter" id={editTitleCounterId}>{editTitleValidation.counter}</p> : null}
+              </div>
               <input
                 aria-label={text.todo.list.editDate}
                 required={true}
