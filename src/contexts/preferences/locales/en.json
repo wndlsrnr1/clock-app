@@ -112,7 +112,7 @@
     "authCodeLabel": "Auth code or redirect URL",
     "authCodeAria": "Google authorization code",
     "authSave": "Save auth",
-    "authHelp": "After browser authorization, paste the full redirect URL or only the code value.",
+    "authHelp": "After browser authorization, pasting the full redirect URL is recommended. Pasting only the code still works.",
     "taskListTitle": "Task list",
     "taskListLoad": "Load lists",
     "taskListLabel": "Linked list",
@@ -140,6 +140,8 @@
     "googleAuthorizationSaved": "Google Tasks authorization saved.",
     "googleClientIdSaved": "Google Client ID saved.",
     "googleTaskListSelected": "Google Tasks list selected.",
-    "googleSyncCompleted": "Google sync completed: uploaded {uploaded}, imported {imported}, updated {updated}"
+    "googleSyncCompleted": "Google sync completed: uploaded {uploaded}, imported {imported}, updated {updated}",
+    "googleActionFailed": "Google action failed: {message}",
+    "unknownError": "Unknown error"
   }
 }

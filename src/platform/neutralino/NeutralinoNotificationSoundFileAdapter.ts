@@ -50,7 +50,7 @@ export class NeutralinoNotificationSoundFileAdapter implements NotificationSound
       throw new Error("20MB 이하의 mp3 파일만 알림음으로 사용할 수 있습니다.");
     }
 
-    const soundsDirectory = `${this.paths.dataPath}/sounds`;
+    const soundsDirectory = this.soundsDirectory();
     const targetPath = `${soundsDirectory}/notification.mp3`;
     const binarySound = await this.neutralinoFilesystem.readBinaryFile(selectedPath);
 
@@ -62,6 +62,22 @@ export class NeutralinoNotificationSoundFileAdapter implements NotificationSound
       fileName: parts.filename,
       source: "/user-sounds/notification.mp3",
     };
+  }
+
+  public async restoreCustomSoundMount(): Promise<boolean> {
+    const soundsDirectory = this.soundsDirectory();
+
+    try {
+      await this.neutralinoFilesystem.getStats(soundsDirectory);
+      await this.mountSoundsDirectory(soundsDirectory);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private soundsDirectory(): string {
+    return `${this.paths.dataPath}/sounds`;
   }
 
   private async mountSoundsDirectory(soundsDirectory: string): Promise<void> {

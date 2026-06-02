@@ -8,7 +8,10 @@ export class DeadlineScheduler implements SchedulerPort {
     const taskId = `deadline-${this.nextId}`;
     this.nextId += 1;
     const delay = Math.max(0, occursAt.getTime() - Date.now());
-    const timer = setTimeout(callback, delay);
+    const timer = setTimeout((): void => {
+      this.timers.delete(taskId);
+      callback();
+    }, delay);
     this.timers.set(taskId, timer);
 
     return taskId;
@@ -25,4 +28,3 @@ export class DeadlineScheduler implements SchedulerPort {
     this.timers.delete(taskId);
   }
 }
-

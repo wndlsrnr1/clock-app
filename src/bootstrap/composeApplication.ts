@@ -5,6 +5,7 @@ import { UpdatePreferencesUseCase } from "../contexts/preferences/application/Up
 import { GetRhythmStatusUseCase } from "../contexts/rhythm/application/GetRhythmStatusUseCase";
 import { PauseRhythmUseCase } from "../contexts/rhythm/application/PauseRhythmUseCase";
 import { ResumeRhythmUseCase } from "../contexts/rhythm/application/ResumeRhythmUseCase";
+import { RunningRhythmRescheduler } from "../contexts/rhythm/application/RunningRhythmRescheduler";
 import { RhythmRuntime } from "../contexts/rhythm/application/RhythmRuntime";
 import { StartRhythmUseCase } from "../contexts/rhythm/application/StartRhythmUseCase";
 import { StopRhythmForTodayUseCase } from "../contexts/rhythm/application/StopRhythmForTodayUseCase";
@@ -48,8 +49,12 @@ export async function composeApplication(): Promise<ComposedApplication> {
   const tray = new NeutralinoTrayAdapter("/dist/icon.png");
   const clock = new NeutralinoSystemClock();
   const notification = new NeutralinoNotificationAdapter();
+  const rhythmRescheduler = new RunningRhythmRescheduler(runtime, scheduler, notification, sound, clock);
   const windowAdapter = new NeutralinoWindowAdapter();
   const notificationSoundFiles = new NeutralinoNotificationSoundFileAdapter();
+  if (savedPreferences.notificationSound.mode === "custom" && savedPreferences.notificationSound.customSource === "/user-sounds/notification.mp3") {
+    await notificationSoundFiles.restoreCustomSoundMount();
+  }
   const notificationSoundMode = new SetNotificationSoundModeUseCase(settingsRepository);
   const googleSettings = new GoogleTasksSettingsRepository();
   const googleCredentials = new GoogleTasksCredentialRepository();
@@ -71,7 +76,7 @@ export async function composeApplication(): Promise<ComposedApplication> {
     resumeRhythm: new ResumeRhythmUseCase(runtime, scheduler, tray, clock, notification, sound),
     stopForToday: new StopRhythmForTodayUseCase(runtime, scheduler, tray, clock),
     getStatus: new GetRhythmStatusUseCase(runtime),
-    updatePreferences: new UpdatePreferencesUseCase(settingsRepository, autoStart, runtime),
+    updatePreferences: new UpdatePreferencesUseCase(settingsRepository, autoStart, runtime, rhythmRescheduler),
     chooseCustomNotificationSound: new ChooseCustomNotificationSoundUseCase(settingsRepository, notificationSoundFiles),
     muteNotificationSound: { execute: () => notificationSoundMode.toggleMute() },
     previewNotificationSound: new PreviewNotificationSoundUseCase(sound),

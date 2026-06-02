@@ -17,7 +17,7 @@ interface RhythmAppProps {
 
 export function RhythmApp({ services, initialNow = new Date() }: RhythmAppProps): React.JSX.Element {
   const rhythm = useRhythmApp(services, initialNow);
-  const todo = useTodoApp(services, initialNow, rhythm.text);
+  const todo = useTodoApp(services, rhythm.now, rhythm.text);
   const text = rhythm.text;
 
   return (

@@ -30,5 +30,22 @@ describe("DeadlineScheduler", () => {
     expect(callback).not.toHaveBeenCalled();
     vi.useRealTimers();
   });
+
+  it("removes completed timers after the callback runs", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-02T05:10:00"));
+    const scheduler = new DeadlineScheduler();
+
+    scheduler.schedule(new Date("2026-06-02T05:10:05"), vi.fn());
+    expect(scheduledTimerCount(scheduler)).toBe(1);
+
+    vi.advanceTimersByTime(5000);
+
+    expect(scheduledTimerCount(scheduler)).toBe(0);
+    vi.useRealTimers();
+  });
 });
 
+function scheduledTimerCount(scheduler: DeadlineScheduler): number {
+  return (scheduler as unknown as { timers: Map<string, ReturnType<typeof setTimeout>> }).timers.size;
+}

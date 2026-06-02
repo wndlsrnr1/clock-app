@@ -10,11 +10,16 @@ export interface UpdatePreferencesCommand {
   autoStartEnabled: boolean;
 }
 
+export interface PreferenceChangeRescheduler {
+  rescheduleIfRunning(): void;
+}
+
 export class UpdatePreferencesUseCase {
   public constructor(
     private readonly settingsRepository: SettingsRepository,
     private readonly autoStart: AutoStartPort,
     private readonly runtime: RhythmRuntime | null = null,
+    private readonly rescheduler: PreferenceChangeRescheduler | null = null,
   ) {}
 
   public async execute(command: UpdatePreferencesCommand): Promise<UserPreferences> {
@@ -24,6 +29,7 @@ export class UpdatePreferencesUseCase {
       .changeAutoStart(command.autoStartEnabled);
     await this.settingsRepository.save(preferences);
     this.runtime?.replacePreferences(preferences);
+    this.rescheduler?.rescheduleIfRunning();
 
     if (preferences.autoStart.enabled) {
       await this.autoStart.enable();

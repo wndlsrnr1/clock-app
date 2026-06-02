@@ -44,6 +44,7 @@ interface TodoAppState {
 
 type TodoAppAction =
   | { type: "PAGE_CHANGED"; page: AppPage }
+  | { type: "TODAY_CHANGED"; todayDate: string }
   | { type: "TODAY_TODOS_LOADED"; todos: Array<TodoItemSnapshot> }
   | { type: "SELECTED_DATE_TODOS_LOADED"; todos: Array<TodoItemSnapshot> }
   | { type: "CALENDAR_SUMMARY_LOADED"; summary: Record<string, TodoDaySummary> }
@@ -98,14 +99,21 @@ export interface TodoAppViewModel {
   syncGoogleTodos(): Promise<void>;
 }
 
-export function useTodoApp(services: RhythmAppServices, initialNow: Date, text: TextCatalog): TodoAppViewModel {
-  const [state, dispatch] = useReducer(reducer, createInitialState(initialNow));
+export function useTodoApp(services: RhythmAppServices, currentNow: Date, text: TextCatalog): TodoAppViewModel {
+  const [state, dispatch] = useReducer(reducer, createInitialState(currentNow));
+  const currentTodayDate = formatDateKey(currentNow);
 
   useEffect((): void => {
     void refreshToday(services, state.todayDate, dispatch);
     void refreshSelectedDate(services, state.selectedDate, dispatch);
     void refreshCalendarSummary(services, state.calendarMonth, dispatch);
   }, [services, state.todayDate, state.selectedDate, state.calendarMonth]);
+
+  useEffect((): void => {
+    if (state.todayDate !== currentTodayDate) {
+      dispatch({ type: "TODAY_CHANGED", todayDate: currentTodayDate });
+    }
+  }, [currentTodayDate, state.todayDate]);
 
   const changeCalendarMonth = async (month: string): Promise<void> => {
     dispatch({ type: "CALENDAR_MONTH_CHANGED", month });
@@ -126,8 +134,10 @@ export function useTodoApp(services: RhythmAppServices, initialNow: Date, text: 
       await refreshTodoViews(services, state, dispatch);
     },
     beginGoogleAuthorization: async (): Promise<void> => {
-      const authorizationUrl = await services.beginGoogleAuthorization.execute();
-      dispatch({ type: "MESSAGE_CHANGED", message: formatText(text.messages.googleAuthorizationStarted, { url: authorizationUrl }) });
+      await runGoogleAction(async (): Promise<void> => {
+        const authorizationUrl = await services.beginGoogleAuthorization.execute();
+        dispatch({ type: "MESSAGE_CHANGED", message: formatText(text.messages.googleAuthorizationStarted, { url: authorizationUrl }) });
+      }, text, dispatch);
     },
     cancelEditing: (): void => dispatch({ type: "EDIT_CLEARED" }),
     changeAuthorizationCode: (code: string): void => dispatch({ type: "GOOGLE_CHANGED", field: "authorizationCode", value: code }),
@@ -139,16 +149,20 @@ export function useTodoApp(services: RhythmAppServices, initialNow: Date, text: 
     changeTime: (time: string): void => dispatch({ type: "TODO_FORM_CHANGED", field: "time", value: time }),
     changeTitle: (title: string): void => dispatch({ type: "TODO_FORM_CHANGED", field: "title", value: title }),
     completeGoogleAuthorization: async (): Promise<void> => {
-      await services.completeGoogleAuthorization.execute(state.google.authorizationCode);
-      dispatch({ type: "MESSAGE_CHANGED", message: text.messages.googleAuthorizationSaved });
+      await runGoogleAction(async (): Promise<void> => {
+        await services.completeGoogleAuthorization.execute(state.google.authorizationCode);
+        dispatch({ type: "MESSAGE_CHANGED", message: text.messages.googleAuthorizationSaved });
+      }, text, dispatch);
     },
     deleteTodo: async (id: string): Promise<void> => {
       await services.deleteTodo.execute(id);
       await refreshTodoViews(services, state, dispatch);
     },
     loadGoogleTaskLists: async (): Promise<void> => {
-      const taskLists = await services.listGoogleTaskLists.execute();
-      dispatch({ type: "GOOGLE_CHANGED", field: "taskLists", value: taskLists });
+      await runGoogleAction(async (): Promise<void> => {
+        const taskLists = await services.listGoogleTaskLists.execute();
+        dispatch({ type: "GOOGLE_CHANGED", field: "taskLists", value: taskLists });
+      }, text, dispatch);
     },
     goToTodayMonth: async (): Promise<void> => {
       const todayMonth = state.todayDate.slice(0, 7);
@@ -184,17 +198,21 @@ export function useTodoApp(services: RhythmAppServices, initialNow: Date, text: 
       await refreshTodoViews(services, state, dispatch);
     },
     saveGoogleClientId: async (): Promise<void> => {
-      await services.saveGoogleClientId.execute(state.google.clientId);
-      dispatch({ type: "MESSAGE_CHANGED", message: text.messages.googleClientIdSaved });
+      await runGoogleAction(async (): Promise<void> => {
+        await services.saveGoogleClientId.execute(state.google.clientId);
+        dispatch({ type: "MESSAGE_CHANGED", message: text.messages.googleClientIdSaved });
+      }, text, dispatch);
     },
     selectDate: async (date: string): Promise<void> => {
       dispatch({ type: "SELECTED_DATE_CHANGED", date });
       await refreshSelectedDate(services, date, dispatch);
     },
     selectGoogleTaskList: async (taskListId: string): Promise<void> => {
-      await services.selectGoogleTaskList.execute(taskListId);
-      dispatch({ type: "GOOGLE_CHANGED", field: "selectedTaskListId", value: taskListId });
-      dispatch({ type: "MESSAGE_CHANGED", message: text.messages.googleTaskListSelected });
+      await runGoogleAction(async (): Promise<void> => {
+        await services.selectGoogleTaskList.execute(taskListId);
+        dispatch({ type: "GOOGLE_CHANGED", field: "selectedTaskListId", value: taskListId });
+        dispatch({ type: "MESSAGE_CHANGED", message: text.messages.googleTaskListSelected });
+      }, text, dispatch);
     },
     showCalendar: async (): Promise<void> => {
       dispatch({ type: "PAGE_CHANGED", page: "calendar" });
@@ -207,16 +225,18 @@ export function useTodoApp(services: RhythmAppServices, initialNow: Date, text: 
     showTimeInput: (): void => dispatch({ type: "TODO_FORM_CHANGED", field: "timeEnabled", value: true }),
     startEditing: (todo: TodoItemSnapshot): void => dispatch({ type: "EDIT_STARTED", todo }),
     syncGoogleTodos: async (): Promise<void> => {
-      const result = await services.syncGoogleTodos.execute();
-      dispatch({
-        type: "MESSAGE_CHANGED",
-        message: formatText(text.messages.googleSyncCompleted, {
-          imported: result.imported,
-          updated: result.updated,
-          uploaded: result.uploaded,
-        }),
-      });
-      await refreshTodoViews(services, state, dispatch);
+      await runGoogleAction(async (): Promise<void> => {
+        const result = await services.syncGoogleTodos.execute();
+        dispatch({
+          type: "MESSAGE_CHANGED",
+          message: formatText(text.messages.googleSyncCompleted, {
+            imported: result.imported,
+            updated: result.updated,
+            uploaded: result.uploaded,
+          }),
+        });
+        await refreshTodoViews(services, state, dispatch);
+      }, text, dispatch);
     },
     toggleTodo: async (id: string): Promise<void> => {
       await services.toggleTodo.execute(id);
@@ -246,6 +266,18 @@ function createInitialState(initialNow: Date): TodoAppState {
 function reducer(state: TodoAppState, action: TodoAppAction): TodoAppState {
   if (action.type === "PAGE_CHANGED") {
     return { ...state, page: action.page };
+  }
+
+  if (action.type === "TODAY_CHANGED") {
+    const followsToday = state.selectedDate === state.todayDate;
+    const nextTodayMonth = action.todayDate.slice(0, 7);
+
+    return {
+      ...state,
+      calendarMonth: followsToday && state.calendarMonth === state.todayDate.slice(0, 7) ? nextTodayMonth : state.calendarMonth,
+      selectedDate: followsToday ? action.todayDate : state.selectedDate,
+      todayDate: action.todayDate,
+    };
   }
 
   if (action.type === "TODAY_TODOS_LOADED") {
@@ -352,4 +384,27 @@ function normalizedTodoTime(
     dispatch({ type: "MESSAGE_CHANGED", message: text.messages.invalidTime });
     return { failed: true };
   }
+}
+
+async function runGoogleAction(
+  action: () => Promise<void>,
+  text: TextCatalog,
+  dispatch: React.Dispatch<TodoAppAction>,
+): Promise<void> {
+  try {
+    await action();
+  } catch (error) {
+    dispatch({
+      type: "MESSAGE_CHANGED",
+      message: formatText(text.messages.googleActionFailed, { message: googleErrorMessage(error, text) }),
+    });
+  }
+}
+
+function googleErrorMessage(error: unknown, text: TextCatalog): string {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  return text.messages.unknownError;
 }

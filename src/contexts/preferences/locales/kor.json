@@ -112,7 +112,7 @@
     "authCodeLabel": "인증 code 또는 redirect URL",
     "authCodeAria": "Google 인증 코드",
     "authSave": "인증 저장",
-    "authHelp": "브라우저 인증 후 리디렉션 URL 전체 또는 code 값만 붙여넣습니다.",
+    "authHelp": "브라우저 인증 후 redirect URL 전체를 붙여넣는 것을 권장합니다. code 값만 붙여넣어도 동작합니다.",
     "taskListTitle": "Tasks 목록",
     "taskListLoad": "목록 불러오기",
     "taskListLabel": "연동 목록",
@@ -140,6 +140,8 @@
     "googleAuthorizationSaved": "Google Tasks 인증을 저장했습니다.",
     "googleClientIdSaved": "Google Client ID를 저장했습니다.",
     "googleTaskListSelected": "Google Tasks 목록을 선택했습니다.",
-    "googleSyncCompleted": "Google 동기화 완료: 업로드 {uploaded}, 가져오기 {imported}, 업데이트 {updated}"
+    "googleSyncCompleted": "Google 동기화 완료: 업로드 {uploaded}, 가져오기 {imported}, 업데이트 {updated}",
+    "googleActionFailed": "Google 작업 실패: {message}",
+    "unknownError": "알 수 없는 오류"
   }
 }

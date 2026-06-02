@@ -7,6 +7,7 @@ import { GetRhythmStatusUseCase } from "../contexts/rhythm/application/GetRhythm
 import { PauseRhythmUseCase } from "../contexts/rhythm/application/PauseRhythmUseCase";
 import type { AutoStartPort, NotificationPort, SettingsRepository, SoundPort, SystemClock, TrayPort } from "../contexts/rhythm/application/ports";
 import { ResumeRhythmUseCase } from "../contexts/rhythm/application/ResumeRhythmUseCase";
+import { RunningRhythmRescheduler } from "../contexts/rhythm/application/RunningRhythmRescheduler";
 import { RhythmRuntime } from "../contexts/rhythm/application/RhythmRuntime";
 import { StartRhythmUseCase } from "../contexts/rhythm/application/StartRhythmUseCase";
 import { StopRhythmForTodayUseCase } from "../contexts/rhythm/application/StopRhythmForTodayUseCase";
@@ -32,6 +33,7 @@ export function composeBrowserPreviewApplication(): { services: RhythmAppService
   const tray = new BrowserPreviewTrayAdapter();
   const clock = new BrowserPreviewClock();
   const notification = new BrowserPreviewNotificationAdapter();
+  const rhythmRescheduler = new RunningRhythmRescheduler(runtime, scheduler, notification, sound, clock);
   const autoStart = new BrowserPreviewAutoStartAdapter();
   const notificationSoundMode = new SetNotificationSoundModeUseCase(settingsRepository);
   const googleSync = new BrowserPreviewTodoSyncPort();
@@ -43,7 +45,7 @@ export function composeBrowserPreviewApplication(): { services: RhythmAppService
       resumeRhythm: new ResumeRhythmUseCase(runtime, scheduler, tray, clock, notification, sound),
       stopForToday: new StopRhythmForTodayUseCase(runtime, scheduler, tray, clock),
       getStatus: new GetRhythmStatusUseCase(runtime),
-      updatePreferences: new UpdatePreferencesUseCase(settingsRepository, autoStart, runtime),
+      updatePreferences: new UpdatePreferencesUseCase(settingsRepository, autoStart, runtime, rhythmRescheduler),
       chooseCustomNotificationSound: new ChooseCustomNotificationSoundUseCase(settingsRepository, new BrowserPreviewNotificationSoundFilePort()),
       muteNotificationSound: { execute: () => notificationSoundMode.toggleMute() },
       previewNotificationSound: new PreviewNotificationSoundUseCase(sound),

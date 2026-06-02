@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type { RhythmStatusSnapshot } from "../contexts/rhythm/application/RhythmStatusSnapshot";
@@ -257,6 +257,60 @@ describe("RhythmApp", () => {
     expect(await screen.findByText("보고서 정리")).toBeInTheDocument();
   });
 
+  it("moves the today todo view to the next date after midnight", async () => {
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(new Date("2026-06-02T23:59:59"));
+      const services = createServices();
+
+      render(<RhythmApp initialNow={new Date("2026-06-02T23:59:59")} services={services} />);
+
+      expect(screen.getByText("2026-06-02")).toBeInTheDocument();
+
+      vi.setSystemTime(new Date("2026-06-03T00:00:00"));
+      act(() => {
+        vi.advanceTimersByTime(500);
+      });
+
+      expect(screen.getByText("2026-06-03")).toBeInTheDocument();
+
+      fireEvent.change(screen.getByLabelText("오늘 할 일 입력"), { target: { value: "새 날짜 할 일" } });
+      fireEvent.click(screen.getByRole("button", { name: "추가" }));
+
+      expect(services.addTodo.execute).toHaveBeenCalledWith({
+        date: "2026-06-03",
+        time: null,
+        title: "새 날짜 할 일",
+      });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("keeps a manually selected calendar date when the app crosses midnight", async () => {
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(new Date("2026-06-02T23:59:59"));
+      const services = createServices();
+
+      render(<RhythmApp initialNow={new Date("2026-06-02T23:59:59")} services={services} />);
+      fireEvent.click(screen.getByRole("button", { name: "캘린더" }));
+      fireEvent.click(screen.getByRole("button", { name: "2026-06-05 할 일 없음" }));
+
+      expect(screen.getByRole("heading", { name: "2026-06-05" })).toBeInTheDocument();
+
+      vi.setSystemTime(new Date("2026-06-03T00:00:00"));
+      act(() => {
+        vi.advanceTimersByTime(500);
+      });
+
+      expect(screen.getByRole("heading", { name: "2026-06-05" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "2026-06-03 할 일 없음" })).toHaveClass("today");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("normalizes typed todo time through the time picker when adding and editing todos", async () => {
     const user = userEvent.setup();
     const services = createServices();
@@ -486,8 +540,21 @@ describe("RhythmApp", () => {
     expect(screen.getByRole("button", { name: "인증 도움말" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Tasks 목록 도움말" })).toBeInTheDocument();
     expect(screen.getByText("Google Cloud Console에서 만든 Desktop OAuth Client ID를 저장합니다.")).toBeInTheDocument();
-    expect(screen.getByText("브라우저 인증 후 리디렉션 URL 전체 또는 code 값만 붙여넣습니다.")).toBeInTheDocument();
+    expect(screen.getByText("브라우저 인증 후 redirect URL 전체를 붙여넣는 것을 권장합니다. code 값만 붙여넣어도 동작합니다.")).toBeInTheDocument();
     expect(screen.getByText("연동할 Google Tasks 목록을 고르고 로컬 Todo와 수동 동기화합니다.")).toBeInTheDocument();
+  });
+
+  it("shows a localized Google failure message without clearing local todos", async () => {
+    const user = userEvent.setup();
+    const services = createServices([todoSnapshot({ id: "todo-1", title: "로컬 할 일" })]);
+    services.syncGoogleTodos = { execute: vi.fn(() => Promise.reject(new Error("Google Tasks 목록을 먼저 선택해주세요."))) };
+
+    render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
+    await user.click(screen.getByRole("button", { name: "캘린더" }));
+    await user.click(screen.getByRole("button", { name: "수동 동기화" }));
+
+    expect(await screen.findByText("Google 작업 실패: Google Tasks 목록을 먼저 선택해주세요.")).toBeInTheDocument();
+    expect(screen.getByText("로컬 할 일")).toBeInTheDocument();
   });
 });
 

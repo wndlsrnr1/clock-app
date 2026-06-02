@@ -1,6 +1,6 @@
 import { os } from "@neutralinojs/lib";
 import { GoogleTasksCredentialRepository, type GoogleTasksCredential } from "./GoogleTasksCredentialRepository";
-import { GoogleTasksSettingsRepository } from "./GoogleTasksSettingsRepository";
+import { GoogleTasksSettingsRepository, type PendingGoogleAuthorization } from "./GoogleTasksSettingsRepository";
 
 interface UrlOpenerPort {
   open(url: string): Promise<void> | void;
@@ -15,6 +15,12 @@ interface GoogleTokenResponse {
   refresh_token?: string;
   expires_in: number;
   scope?: string;
+}
+
+interface AuthorizationCodeInput {
+  code: string;
+  redirectUri: string | null;
+  state: string | null;
 }
 
 export class GoogleTasksAuthAdapter {
@@ -49,16 +55,18 @@ export class GoogleTasksAuthAdapter {
 
   public async completeAuthorization(codeOrUrl: string): Promise<GoogleTasksCredential> {
     const settings = await this.settingsRepository.get();
-    const code = this.extractAuthorizationCode(codeOrUrl);
+    const authorizationCode = this.extractAuthorizationCode(codeOrUrl);
 
     if (!settings.clientId || !settings.pendingAuthorization) {
       throw new Error("Google 인증을 먼저 시작해주세요.");
     }
 
+    this.validateRedirectAuthorization(authorizationCode, settings.pendingAuthorization);
+
     const response = await this.fetcher("https://oauth2.googleapis.com/token", {
       body: new URLSearchParams({
         client_id: settings.clientId,
-        code,
+        code: authorizationCode.code,
         code_verifier: settings.pendingAuthorization.codeVerifier,
         grant_type: "authorization_code",
         redirect_uri: settings.pendingAuthorization.redirectUri,
@@ -130,11 +138,15 @@ export class GoogleTasksAuthAdapter {
     return `http://127.0.0.1:${port}/google-oauth`;
   }
 
-  private extractAuthorizationCode(codeOrUrl: string): string {
+  private extractAuthorizationCode(codeOrUrl: string): AuthorizationCodeInput {
     const trimmedValue = codeOrUrl.trim();
 
     if (!trimmedValue.startsWith("http")) {
-      return trimmedValue;
+      return {
+        code: trimmedValue,
+        redirectUri: null,
+        state: null,
+      };
     }
 
     const parsedUrl = new URL(trimmedValue);
@@ -144,6 +156,30 @@ export class GoogleTasksAuthAdapter {
       throw new Error("Google 인증 code를 찾을 수 없습니다.");
     }
 
-    return code;
+    return {
+      code,
+      redirectUri: `${parsedUrl.origin}${parsedUrl.pathname}`,
+      state: parsedUrl.searchParams.get("state"),
+    };
+  }
+
+  private validateRedirectAuthorization(
+    authorizationCode: AuthorizationCodeInput,
+    pendingAuthorization: PendingGoogleAuthorization,
+  ): void {
+    if (!authorizationCode.redirectUri) {
+      return;
+    }
+
+    const expectedRedirectUrl = new URL(pendingAuthorization.redirectUri);
+    const expectedRedirectUri = `${expectedRedirectUrl.origin}${expectedRedirectUrl.pathname}`;
+
+    if (authorizationCode.redirectUri !== expectedRedirectUri) {
+      throw new Error("Google 인증 redirect URL이 일치하지 않습니다.");
+    }
+
+    if (authorizationCode.state !== pendingAuthorization.state) {
+      throw new Error("Google 인증 state가 일치하지 않습니다.");
+    }
   }
 }

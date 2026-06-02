@@ -31,6 +31,14 @@ class FakeAutoStart implements AutoStartPort {
   }
 }
 
+class FakePreferenceChangeRescheduler {
+  public called = 0;
+
+  public rescheduleIfRunning(): void {
+    this.called += 1;
+  }
+}
+
 describe("UpdatePreferencesUseCase", () => {
   it("saves editable terms and enables auto start through the port", async () => {
     const repository = new FakeSettingsRepository();
@@ -52,5 +60,21 @@ describe("UpdatePreferencesUseCase", () => {
     expect(preferences.autoStart.enabled).toBe(true);
     expect(autoStart.enabled).toBe(true);
   });
-});
 
+  it("asks the running rhythm rescheduler to refresh the next scheduled event after saving preferences", async () => {
+    const repository = new FakeSettingsRepository();
+    const autoStart = new FakeAutoStart();
+    const rescheduler = new FakePreferenceChangeRescheduler();
+    const useCase = new UpdatePreferencesUseCase(repository, autoStart, null, rescheduler);
+
+    await useCase.execute({
+      focusMinutes: 45,
+      restMinutes: 15,
+      dailyStart: "09:00",
+      dailyEnd: "22:00",
+      autoStartEnabled: false,
+    });
+
+    expect(rescheduler.called).toBe(1);
+  });
+});
