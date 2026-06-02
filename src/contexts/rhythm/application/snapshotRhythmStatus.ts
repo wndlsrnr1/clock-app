@@ -11,6 +11,7 @@ export function snapshotRhythmStatus(runtime: RhythmRuntime): RhythmStatusSnapsh
     autoStartEnabled: runtime.preferences.autoStart.enabled,
     notificationSound: runtime.preferences.notificationSound,
     language: runtime.preferences.language,
+    theme: runtime.preferences.theme,
     initialSetupCompleted: runtime.preferences.initialSetupCompleted,
   };
 }

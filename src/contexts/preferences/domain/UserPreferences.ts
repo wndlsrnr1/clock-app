@@ -7,6 +7,18 @@ export interface AutoStartPreference {
 }
 
 export type LanguagePreference = "kor" | "en";
+export type ThemePreference =
+  | "current"
+  | "tokyo-night"
+  | "one-dark-pro"
+  | "catppuccin-mocha"
+  | "nord"
+  | "dracula-official"
+  | "gruvbox"
+  | "monokai-pro"
+  | "night-owl"
+  | "synthwave-84"
+  | "ayu-mirage-dark";
 export type NotificationSoundMode = "default" | "custom" | "muted";
 export type AudibleNotificationSoundMode = Exclude<NotificationSoundMode, "muted">;
 
@@ -32,12 +44,26 @@ export interface UserPreferencesSnapshot {
   autoStartEnabled: boolean;
   notificationSound: NotificationSoundPreference;
   language: LanguagePreference;
+  theme: ThemePreference;
   initialSetupCompleted: boolean;
 }
 
 export class UserPreferences {
   public static readonly focusMinutesRange = { min: 1, max: 180 };
   public static readonly restMinutesRange = { min: 1, max: 60 };
+  public static readonly themes: ReadonlyArray<ThemePreference> = [
+    "current",
+    "tokyo-night",
+    "one-dark-pro",
+    "catppuccin-mocha",
+    "nord",
+    "dracula-official",
+    "gruvbox",
+    "monokai-pro",
+    "night-owl",
+    "synthwave-84",
+    "ayu-mirage-dark",
+  ];
 
   private constructor(
     public readonly focusMinutes: DurationMinutes,
@@ -46,6 +72,7 @@ export class UserPreferences {
     public readonly autoStart: AutoStartPreference,
     public readonly notificationSound: NotificationSoundPreference,
     public readonly language: LanguagePreference,
+    public readonly theme: ThemePreference,
     public readonly initialSetupCompleted: boolean,
   ) {}
 
@@ -57,6 +84,7 @@ export class UserPreferences {
       { enabled: false },
       UserPreferences.defaultNotificationSound(),
       "kor",
+      "current",
       false,
     );
   }
@@ -69,6 +97,7 @@ export class UserPreferences {
     autoStartEnabled: boolean;
     notificationSound?: Partial<NotificationSoundPreference>;
     language?: string;
+    theme?: string;
     initialSetupCompleted?: boolean;
   }): UserPreferences {
     return new UserPreferences(
@@ -81,6 +110,7 @@ export class UserPreferences {
       { enabled: properties.autoStartEnabled },
       UserPreferences.restoreNotificationSound(properties.notificationSound),
       UserPreferences.restoreLanguage(properties.language),
+      UserPreferences.restoreTheme(properties.theme),
       properties.initialSetupCompleted === true,
     );
   }
@@ -93,6 +123,7 @@ export class UserPreferences {
       this.autoStart,
       this.notificationSound,
       this.language,
+      this.theme,
       this.initialSetupCompleted,
     );
   }
@@ -108,6 +139,7 @@ export class UserPreferences {
       this.autoStart,
       this.notificationSound,
       this.language,
+      this.theme,
       this.initialSetupCompleted,
     );
   }
@@ -120,6 +152,7 @@ export class UserPreferences {
       { enabled },
       this.notificationSound,
       this.language,
+      this.theme,
       this.initialSetupCompleted,
     );
   }
@@ -132,6 +165,7 @@ export class UserPreferences {
       this.autoStart,
       UserPreferences.defaultNotificationSound(this.notificationSound.volume),
       this.language,
+      this.theme,
       this.initialSetupCompleted,
     );
   }
@@ -154,6 +188,7 @@ export class UserPreferences {
         volume: this.notificationSound.volume,
       },
       this.language,
+      this.theme,
       this.initialSetupCompleted,
     );
   }
@@ -172,6 +207,7 @@ export class UserPreferences {
         volume: this.notificationSound.volume,
       },
       this.language,
+      this.theme,
       this.initialSetupCompleted,
     );
   }
@@ -187,6 +223,7 @@ export class UserPreferences {
         volume: UserPreferences.validateNotificationSoundVolume(volume),
       },
       this.language,
+      this.theme,
       this.initialSetupCompleted,
     );
   }
@@ -199,6 +236,20 @@ export class UserPreferences {
       this.autoStart,
       this.notificationSound,
       UserPreferences.validateLanguage(language),
+      this.theme,
+      this.initialSetupCompleted,
+    );
+  }
+
+  public changeTheme(theme: ThemePreference): UserPreferences {
+    return new UserPreferences(
+      this.focusMinutes,
+      this.restMinutes,
+      this.dailyRhythm,
+      this.autoStart,
+      this.notificationSound,
+      this.language,
+      UserPreferences.validateTheme(theme),
       this.initialSetupCompleted,
     );
   }
@@ -211,6 +262,7 @@ export class UserPreferences {
       this.autoStart,
       this.notificationSound,
       this.language,
+      this.theme,
       true,
     );
   }
@@ -224,6 +276,7 @@ export class UserPreferences {
       language: this.language,
       notificationSound: this.notificationSound,
       restMinutes: this.restMinutes.value,
+      theme: this.theme,
       initialSetupCompleted: this.initialSetupCompleted,
     };
   }
@@ -296,6 +349,7 @@ export class UserPreferences {
       this.autoStart,
       sound,
       this.language,
+      this.theme,
       this.initialSetupCompleted,
     );
   }
@@ -402,5 +456,21 @@ export class UserPreferences {
 
   private static validateLanguage(language: LanguagePreference): LanguagePreference {
     return language;
+  }
+
+  private static restoreTheme(theme: string | undefined): ThemePreference {
+    if (UserPreferences.isThemePreference(theme)) {
+      return theme;
+    }
+
+    return "current";
+  }
+
+  private static validateTheme(theme: ThemePreference): ThemePreference {
+    return theme;
+  }
+
+  private static isThemePreference(theme: string | undefined): theme is ThemePreference {
+    return typeof theme === "string" && UserPreferences.themes.includes(theme as ThemePreference);
   }
 }

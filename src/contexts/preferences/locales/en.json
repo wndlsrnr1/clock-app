@@ -3,7 +3,8 @@
     "aria": "App view",
     "clock": "Clock",
     "calendar": "Calendar",
-    "data": "Data"
+    "data": "Data",
+    "theme": "Theme"
   },
   "language": {
     "label": "Language",
@@ -143,6 +144,14 @@
     "summaryLanguage": "Language: {language}",
     "summaryExportedAt": "Exported at: {exportedAt}"
   },
+  "theme": {
+    "eyebrow": "Theme",
+    "title": "Theme",
+    "description": "Keep the design structure and change only the color skin.",
+    "currentName": "Current",
+    "selected": "Selected",
+    "select": "theme selection"
+  },
   "messages": {
     "preferencesSaved": "Settings saved.",
     "preferencesFailed": "Settings save failed: {message}",
@@ -157,6 +166,7 @@
     "rhythmPaused": "Focus window paused.",
     "rhythmStoppedForToday": "Today focus window ended.",
     "languageChanged": "Language changed.",
+    "themeChanged": "Theme changed.",
     "invalidTime": "Enter time as 14:30 or 1430.",
     "todoActionFailed": "Todo action failed: {message}",
     "soundActionFailed": "Sound action failed: {message}",

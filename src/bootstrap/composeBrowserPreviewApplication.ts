@@ -2,6 +2,7 @@ import chimeSoundUrl from "../assets/CHIME14.mp3";
 import { ExportBackupUseCase, ImportBackupUseCase, PreviewBackupImportUseCase } from "../contexts/backup/application/BackupUseCases";
 import { ChangeLanguagePreferenceUseCase } from "../contexts/preferences/application/LanguagePreferenceUseCase";
 import { ChooseCustomNotificationSoundUseCase, PreviewNotificationSoundUseCase, SetNotificationSoundModeUseCase, StopNotificationSoundPreviewUseCase, UpdateNotificationSoundVolumeUseCase } from "../contexts/preferences/application/NotificationSoundUseCases";
+import { ChangeThemePreferenceUseCase } from "../contexts/preferences/application/ThemePreferenceUseCase";
 import { UpdatePreferencesUseCase } from "../contexts/preferences/application/UpdatePreferencesUseCase";
 import { UserPreferences } from "../contexts/preferences/domain/UserPreferences";
 import { GetRhythmStatusUseCase } from "../contexts/rhythm/application/GetRhythmStatusUseCase";
@@ -64,6 +65,7 @@ export function composeBrowserPreviewApplication(): { services: RhythmAppService
       previewImportBackup: new PreviewBackupImportUseCase(backupFile),
       importBackup: new ImportBackupUseCase(settingsRepository, todoRepository),
       changeLanguage: new ChangeLanguagePreferenceUseCase(settingsRepository, runtime),
+      changeTheme: new ChangeThemePreferenceUseCase(settingsRepository, runtime),
     },
   };
 }
@@ -89,6 +91,7 @@ class BrowserPreviewSettingsRepository implements SettingsRepository {
       language: preferences.language,
       notificationSound: preferences.notificationSound,
       restMinutes: preferences.restMinutes.value,
+      theme: preferences.theme,
     }));
   }
 
@@ -109,6 +112,7 @@ class BrowserPreviewSettingsRepository implements SettingsRepository {
         language?: UserPreferences["language"];
         notificationSound?: UserPreferences["notificationSound"];
         restMinutes: number;
+        theme?: UserPreferences["theme"];
       });
     } catch {
       return UserPreferences.default();

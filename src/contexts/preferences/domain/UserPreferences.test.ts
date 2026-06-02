@@ -13,6 +13,7 @@ describe("UserPreferences", () => {
     expect(preferences.notificationSound.mode).toBe("default");
     expect(preferences.notificationSound.volume).toBe(1);
     expect(preferences.language).toBe("kor");
+    expect(preferences.theme).toBe("current");
     expect(preferences.initialSetupCompleted).toBe(false);
   });
 
@@ -95,6 +96,40 @@ describe("UserPreferences", () => {
       language: "en",
       restMinutes: 10,
     }).language).toBe("en");
+  });
+
+  it("changes and restores the app theme preference", () => {
+    const preferences = UserPreferences.default().changeTheme("tokyo-night");
+
+    expect(preferences.theme).toBe("tokyo-night");
+    expect(preferences.snapshot().theme).toBe("tokyo-night");
+    expect(UserPreferences.restore({
+      autoStartEnabled: false,
+      dailyEnd: "18:00",
+      dailyStart: "05:00",
+      focusMinutes: 50,
+      restMinutes: 10,
+      theme: "tokyo-night",
+    }).theme).toBe("tokyo-night");
+  });
+
+  it("restores legacy or unknown theme values to the current theme", () => {
+    expect(UserPreferences.restore({
+      autoStartEnabled: false,
+      dailyEnd: "18:00",
+      dailyStart: "05:00",
+      focusMinutes: 50,
+      restMinutes: 10,
+    }).theme).toBe("current");
+
+    expect(UserPreferences.restore({
+      autoStartEnabled: false,
+      dailyEnd: "18:00",
+      dailyStart: "05:00",
+      focusMinutes: 50,
+      restMinutes: 10,
+      theme: "unknown-theme",
+    }).theme).toBe("current");
   });
 
   it("validates app notification sound volume", () => {

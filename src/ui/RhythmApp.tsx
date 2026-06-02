@@ -2,6 +2,7 @@ import { CalendarPage } from "./components/CalendarPage";
 import { ClockPage } from "./components/ClockPage";
 import { DataPage } from "./components/DataPage";
 import { SegmentedControl } from "./components/SegmentedControl";
+import { ThemePage } from "./components/ThemePage";
 import type { RhythmAppServices } from "./RhythmAppServices";
 import { useLayoutMode } from "./useLayoutMode";
 import { useRhythmApp } from "./useRhythmApp";
@@ -19,7 +20,7 @@ export function RhythmApp({ services, initialNow = new Date() }: RhythmAppProps)
   const { containerRef, layoutMode } = useLayoutMode();
 
   return (
-    <main className="app-shell" ref={containerRef}>
+    <main className="app-shell" data-theme={rhythm.status.theme} ref={containerRef}>
       <section className={`box box--${layoutMode}`}>
         <nav className="app-nav" aria-label={text.navigation.aria}>
           <SegmentedControl
@@ -35,12 +36,18 @@ export function RhythmApp({ services, initialNow = new Date() }: RhythmAppProps)
                 return;
               }
 
-              void todo.showData();
+              if (page === "data") {
+                void todo.showData();
+                return;
+              }
+
+              void todo.showTheme();
             }}
             options={[
               { label: text.navigation.clock, value: "clock" },
               { label: text.navigation.calendar, value: "calendar" },
               { label: text.navigation.data, value: "data" },
+              { label: text.navigation.theme, value: "theme" },
             ]}
             value={todo.page}
           />
@@ -58,8 +65,10 @@ export function RhythmApp({ services, initialNow = new Date() }: RhythmAppProps)
           <ClockPage rhythm={rhythm} text={text} todo={todo} />
         ) : todo.page === "calendar" ? (
           <CalendarPage language={rhythm.status.language} todo={todo} text={text} />
-        ) : (
+        ) : todo.page === "data" ? (
           <DataPage todo={todo} text={text} />
+        ) : (
+          <ThemePage rhythm={rhythm} text={text} />
         )}
       </section>
     </main>

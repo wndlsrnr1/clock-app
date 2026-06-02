@@ -15,6 +15,7 @@ function status(overrides: Partial<RhythmStatusSnapshot> = {}): RhythmStatusSnap
     notificationSound: UserPreferences.default().notificationSound,
     restMinutes: 10,
     sessionStatus: "idle",
+    theme: "current",
     ...overrides,
   };
 }

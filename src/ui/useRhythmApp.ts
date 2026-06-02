@@ -1,5 +1,5 @@
 import { useEffect, useReducer, type Dispatch } from "react";
-import type { LanguagePreference } from "../contexts/preferences/domain/UserPreferences";
+import type { LanguagePreference, ThemePreference } from "../contexts/preferences/domain/UserPreferences";
 import type { RhythmStatusSnapshot } from "../contexts/rhythm/application/RhythmStatusSnapshot";
 import type { UpdatePreferencesCommand } from "../contexts/preferences/application/UpdatePreferencesUseCase";
 import type { RhythmAppServices } from "./RhythmAppServices";
@@ -45,6 +45,7 @@ export interface RhythmAppViewModel {
   chooseCustomNotificationSound(): Promise<void>;
   changeNotificationSoundVolume(volume: number): Promise<void>;
   changeLanguage(language: LanguagePreference): Promise<void>;
+  changeTheme(theme: ThemePreference): Promise<void>;
   muteNotificationSound(): Promise<void>;
   toggleNotificationSoundPreview(): Promise<void>;
   useDefaultNotificationSound(): Promise<void>;
@@ -95,6 +96,7 @@ export function useRhythmApp(services: RhythmAppServices, initialNow: Date): Rhy
             language: preferences.language,
             notificationSound: preferences.notificationSound,
             restMinutes: preferences.restMinutes.value,
+            theme: preferences.theme,
             initialSetupCompleted: preferences.initialSetupCompleted,
           },
         });
@@ -122,6 +124,11 @@ export function useRhythmApp(services: RhythmAppServices, initialNow: Date): Rhy
       const nextText = createTranslator(preferences.language);
       dispatch({ type: "STATUS_CHANGED", status: { ...state.status, language: preferences.language, notificationSound: preferences.notificationSound } });
       dispatch({ type: "MESSAGE_CHANGED", message: nextText.messages.languageChanged });
+    },
+    changeTheme: async (theme: ThemePreference): Promise<void> => {
+      const preferences = await services.changeTheme.execute(theme);
+      dispatch({ type: "STATUS_CHANGED", status: { ...state.status, theme: preferences.theme } });
+      dispatch({ type: "MESSAGE_CHANGED", message: text.messages.themeChanged });
     },
     muteNotificationSound: async (): Promise<void> => {
       await runSoundAction(async (): Promise<void> => {

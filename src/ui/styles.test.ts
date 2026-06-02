@@ -37,8 +37,8 @@ describe("time picker styles", () => {
     expect(entryInputRule?.groups?.body).toContain("padding: 0;");
     expect(displayRule?.groups?.body).toContain("grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);");
     expect(displayRule?.groups?.body).toContain("font-variant-numeric: tabular-nums;");
-    expect(editingRule?.groups?.body).toContain("border-color: rgba(124, 253, 240, 0.5);");
-    expect(focusRule?.groups?.body).toContain("border-color: rgba(124, 253, 240, 0.42);");
+    expect(editingRule?.groups?.body).toContain("border-color: color-mix(in srgb, var(--accent-focus), transparent 42%);");
+    expect(focusRule?.groups?.body).toContain("border-color: color-mix(in srgb, var(--accent-focus), transparent 50%);");
   });
 
   it("reserves feedback space below fields so validation does not shift the panel", () => {
@@ -63,6 +63,59 @@ describe("time picker styles", () => {
 });
 
 describe("app shell styles", () => {
+  it("defines the current theme and all imported palette themes with the core color tokens", () => {
+    const css = readFileSync(join(process.cwd(), "src/ui/styles.css"), "utf-8");
+    const themeIds = [
+      "current",
+      "tokyo-night",
+      "one-dark-pro",
+      "catppuccin-mocha",
+      "nord",
+      "dracula-official",
+      "gruvbox",
+      "monokai-pro",
+      "night-owl",
+      "synthwave-84",
+      "ayu-mirage-dark",
+    ];
+    const requiredTokens = [
+      "--app-bg",
+      "--surface",
+      "--surface-strong",
+      "--text-main",
+      "--text-muted",
+      "--accent-a",
+      "--accent-b",
+      "--danger",
+      "--border-soft",
+      "--glow-a",
+      "--glow-b",
+      "--button-text-on-accent",
+    ];
+
+    for (const themeId of themeIds) {
+      const themeRule = css.match(new RegExp(`\\[data-theme="${themeId}"\\]\\s*\\{(?<body>[^}]*)\\}`));
+
+      expect(themeRule?.groups?.body, `${themeId} theme rule`).toBeTruthy();
+      for (const token of requiredTokens) {
+        expect(themeRule?.groups?.body, `${themeId} ${token}`).toContain(`${token}:`);
+      }
+    }
+  });
+
+  it("drives the app shell and main surfaces from theme tokens", () => {
+    const css = readFileSync(join(process.cwd(), "src/ui/styles.css"), "utf-8");
+    const appShellRule = css.match(/\.app-shell\s*\{(?<body>[^}]*)\}/);
+    const boxRule = css.match(/\.box\s*\{(?<body>[^}]*)\}/);
+    const segmentedActiveRule = css.match(/\.segmented-control-button\.active\s*\{(?<body>[^}]*)\}/);
+
+    expect(appShellRule?.groups?.body).toContain("var(--app-bg)");
+    expect(boxRule?.groups?.body).toContain("var(--surface)");
+    expect(boxRule?.groups?.body).toContain("var(--border-soft)");
+    expect(segmentedActiveRule?.groups?.body).toContain("var(--accent-a)");
+    expect(segmentedActiveRule?.groups?.body).toContain("var(--accent-b)");
+  });
+
   it("keeps the outer app frame fixed while page content changes", () => {
     const css = readFileSync(join(process.cwd(), "src/ui/styles.css"), "utf-8");
     const appShellRule = css.match(/\.app-shell\s*\{(?<body>[^}]*)\}/);

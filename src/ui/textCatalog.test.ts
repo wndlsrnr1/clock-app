@@ -16,6 +16,13 @@ describe("text catalog", () => {
     expect(createTranslator("en").navigation.data).toBe("Data");
   });
 
+  it("translates the top-level theme tab and theme page copy by language", () => {
+    expect(createTranslator("kor").navigation.theme).toBe("테마");
+    expect(createTranslator("kor").theme.title).toBe("테마");
+    expect(createTranslator("en").navigation.theme).toBe("Theme");
+    expect(createTranslator("en").theme.title).toBe("Theme");
+  });
+
   it("uses focus window wording for user-facing rhythm copy", () => {
     const koreanTextValues = collectTextValues(createTranslator("kor"));
     const englishTextValues = collectTextValues(createTranslator("en"));

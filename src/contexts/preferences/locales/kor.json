@@ -3,7 +3,8 @@
     "aria": "앱 화면",
     "clock": "시계",
     "calendar": "캘린더",
-    "data": "데이터"
+    "data": "데이터",
+    "theme": "테마"
   },
   "language": {
     "label": "언어",
@@ -144,6 +145,14 @@
     "summaryLanguage": "언어: {language}",
     "summaryExportedAt": "백업 시각: {exportedAt}"
   },
+  "theme": {
+    "eyebrow": "테마",
+    "title": "테마",
+    "description": "디자인 구조는 유지하고 색상만 바꿉니다.",
+    "currentName": "현재 유지",
+    "selected": "선택됨",
+    "select": "테마 선택"
+  },
   "messages": {
     "preferencesSaved": "설정을 저장했습니다.",
     "preferencesFailed": "설정 저장 실패: {message}",
@@ -158,6 +167,7 @@
     "rhythmPaused": "집중 시간대를 일시정지했습니다.",
     "rhythmStoppedForToday": "오늘의 집중 시간대를 종료했습니다.",
     "languageChanged": "언어 설정을 변경했습니다.",
+    "themeChanged": "테마를 변경했습니다.",
     "invalidTime": "시간은 14:30 또는 1430 형식으로 입력해주세요.",
     "todoActionFailed": "Todo 작업 실패: {message}",
     "soundActionFailed": "알림음 작업 실패: {message}",

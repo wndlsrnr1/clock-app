@@ -1,6 +1,6 @@
 import type { RhythmStatusSnapshot } from "../contexts/rhythm/application/RhythmStatusSnapshot";
 import type { UpdatePreferencesCommand } from "../contexts/preferences/application/UpdatePreferencesUseCase";
-import type { LanguagePreference, UserPreferences } from "../contexts/preferences/domain/UserPreferences";
+import type { LanguagePreference, ThemePreference, UserPreferences } from "../contexts/preferences/domain/UserPreferences";
 import type { PreparedBackupImport } from "../contexts/backup/application/BackupUseCases";
 import type { AddTodoCommand, ReorderTodosCommand, UpdateTodoCommand } from "../contexts/todo/application/TodoUseCases";
 import type { TodoDaySummary } from "../contexts/todo/domain/TodoList";
@@ -40,6 +40,10 @@ export interface NotificationSoundVolumeService {
 
 export interface ChangeLanguageService {
   execute(language: LanguagePreference): Promise<UserPreferences>;
+}
+
+export interface ChangeThemeService {
+  execute(theme: ThemePreference): Promise<UserPreferences>;
 }
 
 export interface AddTodoService {
@@ -90,4 +94,5 @@ export interface RhythmAppServices {
   previewImportBackup: PreviewImportBackupService;
   importBackup: ImportBackupService;
   changeLanguage: ChangeLanguageService;
+  changeTheme: ChangeThemeService;
 }

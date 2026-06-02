@@ -19,6 +19,7 @@ function runningStatus(): RhythmStatusSnapshot {
     autoStartEnabled: false,
     notificationSound: Preferences.default().notificationSound,
     language: "kor",
+    theme: "current",
     initialSetupCompleted: true,
   };
 }
@@ -52,6 +53,7 @@ function createServices(initialTodos: Array<TodoItemSnapshot> = []): RhythmAppSe
     updateNotificationSoundVolume: { execute: vi.fn(() => Promise.resolve(Preferences.default().changeNotificationSoundVolume(0.4))) },
     useDefaultNotificationSound: { execute: vi.fn(() => Promise.resolve(Preferences.default())) },
     changeLanguage: { execute: vi.fn((language: "kor" | "en") => Promise.resolve(Preferences.default().changeLanguage(language))) },
+    changeTheme: { execute: vi.fn((theme: Preferences["theme"]) => Promise.resolve(Preferences.default().changeTheme(theme))) },
     addTodo: {
       execute: vi.fn((command: { title: string; date: string; time?: string | null }) => {
         const todo: TodoItemSnapshot = {
@@ -250,6 +252,25 @@ describe("RhythmApp", () => {
 
     expect(services.changeLanguage.execute).toHaveBeenCalledWith("en");
     expect(await screen.findByRole("heading", { name: "Today" })).toBeInTheDocument();
+  });
+
+  it("renders theme selection as the fourth top-level tab and applies the selected theme to the app shell", async () => {
+    const user = userEvent.setup();
+    const services = createServices();
+
+    render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
+
+    expect(screen.getByRole("button", { name: "테마" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "테마" }));
+
+    expect(screen.getByRole("heading", { name: "테마" })).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /테마 선택$/ })).toHaveLength(11);
+
+    await user.click(screen.getByRole("button", { name: "Tokyo Night 테마 선택" }));
+
+    expect(services.changeTheme.execute).toHaveBeenCalledWith("tokyo-night");
+    expect(document.querySelector(".app-shell")).toHaveAttribute("data-theme", "tokyo-night");
   });
 
   it("uses locale-independent time pickers for rhythm start and end", async () => {
