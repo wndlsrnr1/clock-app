@@ -1,0 +1,32 @@
+node_modules/
+dist/
+bin/
+release/
+.tmp/
+.storage/
+resources.neu
+coverage/
+.vite/
+.worktrees/
+
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+.DS_Store
+Thumbs.db
+
+.env
+.env.*
+!.env.example
+
+.codex
+.agents/
+AGENTS.md
+GEMINI.md
+
+# User-facing Windows executable download is intentionally versioned.
+!download/
+!download/Clock Rhythm.exe
