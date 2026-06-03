@@ -22,4 +22,6 @@ Thumbs.db
 !.env.example
 
 .codex
+.agents/
 AGENTS.md
+GEMINI.md
