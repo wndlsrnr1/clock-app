@@ -16,15 +16,18 @@
 - **다국어 지원**: 한국어(KOR) 및 영어(EN) 언어 설정 지원
 - **시각적 개인화**: 11가지의 다양한 테마 색상 제공
 - **데이터 백업 및 복원**: 설정을 포함한 모든 데이터를 JSON 파일로 간편하게 내보내기/가져오기 지원
-- **단일 실행 파일 패키징**: Windows 사용자를 위한 간편한 무설치 단일 실행 파일(`.exe`) 제공
+- **운영체제별 다운로드 파일 제공**: Windows 실행 파일과 macOS 압축 파일을 각각 제공
 
 ---
 
-## 📥 사용자 실행 방법
+## 📥 사용자 다운로드 및 실행 방법
 
-Windows 사용자는 아래의 링크에서 실행 파일을 내려받아 더블클릭하는 것만으로 즉시 앱을 실행할 수 있습니다. 
+사용자는 아래에서 본인 운영체제에 맞는 파일 하나만 다운로드하면 됩니다. 소스코드를 복제하거나 직접 빌드할 필요가 없습니다.
 
-👉 **[Clock Rhythm.exe 다운로드](download/Clock%20Rhythm.exe)**
+| 운영체제 | 다운로드 파일 | 실행 방법 |
+| :--- | :--- | :--- |
+| Windows | **[Clock Rhythm.exe 다운로드](download/Clock%20Rhythm.exe)** | 다운로드한 `Clock Rhythm.exe`를 더블클릭합니다. |
+| macOS | **[Clock Rhythm macOS.zip 다운로드](download/Clock%20Rhythm%20macOS.zip)** | 압축을 푼 뒤 `Clock Rhythm.app`을 실행합니다. |
 
 > [!NOTE]
 > 일반 사용자분들은 소스코드를 복제(Clone)하거나 직접 빌드할 필요가 없습니다. 다음과 같은 개발 환경 및 도구의 설치도 요구되지 않습니다:
@@ -35,9 +38,14 @@ Windows 사용자는 아래의 링크에서 실행 파일을 내려받아 더블
 > - 기타 개발 도구
 
 ### 배포 형태 안내
-현재 Windows 사용자 배포 기준은 단일 실행 파일입니다. 즉, `Clock Rhythm.exe` 파일 하나만 다운로드하여 실행하는 형태를 지향합니다.
-* 개발 과정에서 일반적인 Neutralino 기본 빌드를 배포할 경우에는 실행 파일 외에 `resources.neu` 파일이 함께 요구될 수 있습니다. 
-* 하지만 본 프로젝트의 Windows 배포 스크립트는 `--embed-resources` 옵션을 사용하여 모든 리소스를 실행 파일 내부에 포함(Embed)하므로, 단 하나의 실행 파일만으로도 정상 동작합니다.
+현재 사용자 배포 기준은 운영체제별 단일 다운로드 파일입니다.
+* Windows 사용자는 `Clock Rhythm.exe` 파일 하나만 다운로드합니다.
+* macOS 사용자는 `Clock Rhythm macOS.zip` 파일 하나만 다운로드합니다. 이 파일은 Apple Silicon과 Intel Mac을 모두 지원하는 universal 실행 파일을 포함합니다.
+* 개발 과정에서 일반적인 Neutralino 기본 빌드를 배포할 경우에는 실행 파일 외에 `resources.neu` 파일이 함께 요구될 수 있습니다.
+* 하지만 본 프로젝트의 배포 스크립트는 `--embed-resources` 옵션을 사용하여 모든 리소스를 실행 파일 내부에 포함(Embed)하므로, 사용자는 위 다운로드 파일만으로 앱을 실행할 수 있습니다.
+
+> [!TIP]
+> macOS에서 처음 실행할 때 보안 확인 메시지가 표시되면 `Clock Rhythm.app`을 우클릭한 뒤 **열기**를 선택해 실행합니다.
 
 ---
 
@@ -87,7 +95,9 @@ npm run build
 
 ---
 
-## 📦 Windows 단일 실행 파일 패키징
+## 📦 배포 파일 패키징
+
+### Windows 단일 실행 파일 패키징
 
 Windows 사용자 배포를 위한 단일 실행 파일은 아래 명령어로 간단하게 빌드할 수 있습니다:
 
@@ -105,6 +115,24 @@ npm run package:win:single
 
 > [!WARNING]
 > 개발용 Neutralino 런타임 파일인 `bin/neutralino-win_x64.exe`는 사용자에게 배포하는 최종 실행 파일이 아닙니다.
+
+### macOS 다운로드 파일 패키징
+
+macOS 사용자 배포를 위한 압축 파일은 macOS 환경에서 아래 명령어로 빌드합니다:
+
+```bash
+npm run package:mac:download
+```
+
+이 스크립트는 **코드 검증 명령어들을 차례로 실행**한 후, 검증이 모두 통과되면 Neutralino 릴리스 빌드를 생성하고 macOS universal 실행 파일을 압축합니다.
+
+### 패키징 결과물 경로
+빌드가 완료되면 다음 위치에 파일이 생성됩니다:
+1. `download/Clock Rhythm macOS.zip` (저장소에서 사용자가 바로 다운로드할 수 있도록 관리하는 배포용 파일)
+2. `release/Clock Rhythm/macOS/Clock Rhythm.app` (로컬 빌드 산출물 폴더로, `.gitignore`에 등록되어 git 버전에 포함되지 않음)
+
+> [!WARNING]
+> 개발용 Neutralino 런타임 파일인 `bin/neutralino-mac_universal`은 사용자에게 배포하는 최종 실행 파일이 아닙니다.
 
 ---
 
@@ -152,7 +180,7 @@ npm run package:win:single
 
 ## ⚠️ 알려진 제약 사항
 
-- **플랫폼 검증 범위**: 현재 Windows 환경에서의 동작과 배포를 최우선으로 검증하고 있습니다. macOS 및 Linux 환경의 빌드 및 패키징은 아직 별도의 검증 단계가 필요합니다.
+- **플랫폼 검증 범위**: 현재 사용자 다운로드 파일은 Windows와 macOS를 대상으로 제공합니다. Linux 배포 파일은 아직 공식 다운로드 대상으로 관리하지 않습니다.
 - **런타임 의존성**: 앱의 실행 및 렌더링은 기기에 설치된 OS WebView 및 Neutralino 런타임 환경에 전적으로 의존합니다.
 - **Google Tasks 연동 제외**: 이전에 검토 및 실험되었던 Google Tasks API와의 연동 및 OAuth 인증 기능은 현재 기능 범위에서 공식적으로 배제되었으며, 로컬 JSON 파일 기반의 백업 및 복원 기능이 이를 완전히 대체합니다.
 - **데이터 교체 동작**: JSON 가져오기 시 병합(Merge)이나 충돌 해결(Conflict Resolution) 메커니즘을 지원하지 않고, 무조건 덮어쓰기 방식으로 작동하므로 데이터 유실에 유의해야 합니다.

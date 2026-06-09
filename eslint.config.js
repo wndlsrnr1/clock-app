@@ -50,4 +50,13 @@ export default tseslint.config(
       "@typescript-eslint/explicit-function-return-type": "off",
     },
   },
+  {
+    files: ["scripts/**/*.{js,mjs,cjs}"],
+    languageOptions: {
+      ecmaVersion: 2023,
+      globals: {
+        ...globals.node,
+      },
+    },
+  },
 );
