@@ -1,19 +1,21 @@
-import { CalendarPage } from "./components/CalendarPage";
-import { ClockPage } from "./components/ClockPage";
-import { DataPage } from "./components/DataPage";
-import { SegmentedControl } from "./components/SegmentedControl";
-import { ThemePage } from "./components/ThemePage";
-import type { AppModules } from "../app/contracts/AppModules";
-import { useLayoutMode } from "./useLayoutMode";
-import { useRhythmApp } from "./useRhythmApp";
-import { useTodoApp } from "./useTodoApp";
+import { CalendarPage } from "../ui/components/CalendarPage";
+import { DataPage } from "../ui/components/DataPage";
+import { SegmentedControl } from "../ui/components/SegmentedControl";
+import { ThemePage } from "../ui/components/ThemePage";
+import { useLayoutMode } from "../ui/useLayoutMode";
+import { useRhythmApp } from "../ui/useRhythmApp";
+import { useTodoApp } from "../ui/useTodoApp";
+import type { AppModules } from "./contracts/AppModules";
+import { useAppNavigation } from "./navigation/useAppNavigation";
+import { ClockPage } from "./pages/ClockPage";
 
-interface RhythmAppProps {
+interface ClockRhythmAppProps {
   modules: AppModules;
   initialNow?: Date;
 }
 
-export function RhythmApp({ modules, initialNow = new Date() }: RhythmAppProps): React.JSX.Element {
+export function ClockRhythmApp({ modules, initialNow = new Date() }: ClockRhythmAppProps): React.JSX.Element {
+  const navigation = useAppNavigation();
   const rhythm = useRhythmApp(modules, initialNow);
   const todo = useTodoApp(modules, rhythm.now, rhythm.text);
   const text = rhythm.text;
@@ -25,31 +27,14 @@ export function RhythmApp({ modules, initialNow = new Date() }: RhythmAppProps):
         <nav className="app-nav" aria-label={text.navigation.aria}>
           <SegmentedControl
             ariaLabel={text.navigation.aria}
-            onChange={(page) => {
-              if (page === "clock") {
-                void todo.showClock();
-                return;
-              }
-
-              if (page === "calendar") {
-                void todo.showCalendar();
-                return;
-              }
-
-              if (page === "data") {
-                void todo.showData();
-                return;
-              }
-
-              void todo.showTheme();
-            }}
+            onChange={navigation.show}
             options={[
               { label: text.navigation.clock, value: "clock" },
               { label: text.navigation.calendar, value: "calendar" },
               { label: text.navigation.data, value: "data" },
               { label: text.navigation.theme, value: "theme" },
             ]}
-            value={todo.page}
+            value={navigation.page}
           />
           <SegmentedControl
             ariaLabel={text.language.label}
@@ -61,11 +46,11 @@ export function RhythmApp({ modules, initialNow = new Date() }: RhythmAppProps):
             value={rhythm.status.language}
           />
         </nav>
-        {todo.page === "clock" ? (
+        {navigation.page === "clock" ? (
           <ClockPage rhythm={rhythm} text={text} todo={todo} />
-        ) : todo.page === "calendar" ? (
+        ) : navigation.page === "calendar" ? (
           <CalendarPage language={rhythm.status.language} todo={todo} text={text} />
-        ) : todo.page === "data" ? (
+        ) : navigation.page === "data" ? (
           <DataPage todo={todo} text={text} />
         ) : (
           <ThemePage rhythm={rhythm} text={text} />

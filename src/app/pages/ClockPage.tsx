@@ -1,14 +1,14 @@
-import { AnalogClock } from "./AnalogClock";
-import { DigitalClock } from "./DigitalClock";
-import { NotificationSoundPanel } from "./NotificationSoundPanel";
-import { RhythmControls } from "./RhythmControls";
-import { RhythmSettingsDisclosure } from "./RhythmSettingsDisclosure";
-import { RhythmSettingsPanel } from "./RhythmSettingsPanel";
-import { TodayTodoPanel } from "./TodayTodoPanel";
-import type { RhythmAppViewModel } from "../useRhythmApp";
-import type { TodoAppViewModel } from "../useTodoApp";
-import { createRhythmSettingsSummary } from "../rhythmSettingsSummary";
-import { formatText, type TextCatalog } from "../textCatalog";
+import { AnalogClock } from "../../ui/components/AnalogClock";
+import { DigitalClock } from "../../ui/components/DigitalClock";
+import { NotificationSoundPanel } from "../../ui/components/NotificationSoundPanel";
+import { RhythmControls } from "../../ui/components/RhythmControls";
+import { RhythmSettingsDisclosure } from "../../ui/components/RhythmSettingsDisclosure";
+import { RhythmSettingsPanel } from "../../ui/components/RhythmSettingsPanel";
+import { TodayTodoPanel } from "../../ui/components/TodayTodoPanel";
+import { createRhythmSettingsSummary } from "../../ui/rhythmSettingsSummary";
+import { formatText, type TextCatalog } from "../../ui/textCatalog";
+import type { RhythmAppViewModel } from "../../ui/useRhythmApp";
+import type { TodoAppViewModel } from "../../ui/useTodoApp";
 
 interface ClockPageProps {
   rhythm: RhythmAppViewModel;

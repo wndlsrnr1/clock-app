@@ -8,8 +8,6 @@ import { validateTodoTitleInput } from "./inputValidation";
 import { formatText, type TextCatalog } from "./textCatalog";
 import { normalizeOptionalTimeText } from "./timeText";
 
-export type AppPage = "clock" | "calendar" | "data" | "theme";
-
 interface TodoFormState {
   title: string;
   timeEnabled: boolean;
@@ -24,7 +22,6 @@ interface TodoEditState {
 }
 
 interface TodoAppState {
-  page: AppPage;
   todayDate: string;
   selectedDate: string;
   calendarMonth: string;
@@ -39,7 +36,6 @@ interface TodoAppState {
 }
 
 type TodoAppAction =
-  | { type: "PAGE_CHANGED"; page: AppPage }
   | { type: "TODAY_CHANGED"; todayDate: string }
   | { type: "TODAY_TODOS_LOADED"; todos: Array<TodoItemSnapshot> }
   | { type: "SELECTED_DATE_TODOS_LOADED"; todos: Array<TodoItemSnapshot> }
@@ -56,7 +52,6 @@ type TodoAppAction =
   | { type: "MESSAGE_CHANGED"; message: string };
 
 export interface TodoAppViewModel {
-  page: AppPage;
   todayDate: string;
   selectedDate: string;
   calendarMonth: string;
@@ -68,10 +63,6 @@ export interface TodoAppViewModel {
   importConfirmationOpen: boolean;
   preparedBackupImport: PreparedBackupImport | null;
   message: string;
-  showClock(): Promise<void>;
-  showCalendar(): Promise<void>;
-  showData(): Promise<void>;
-  showTheme(): Promise<void>;
   changeTitle(title: string): void;
   showTimeInput(): void;
   changeTime(time: string): void;
@@ -231,20 +222,6 @@ export function useTodoApp(modules: TodoAppModules, currentNow: Date, text: Text
         dispatch({ type: "IMPORT_PREPARED", preparedImport });
       }, text, dispatch);
     },
-    showCalendar: async (): Promise<void> => {
-      dispatch({ type: "PAGE_CHANGED", page: "calendar" });
-      await refreshCalendarSummary(modules, state.calendarMonth, dispatch);
-    },
-    showClock: async (): Promise<void> => {
-      dispatch({ type: "PAGE_CHANGED", page: "clock" });
-      await refreshToday(modules, state.todayDate, dispatch);
-    },
-    showData: async (): Promise<void> => {
-      dispatch({ type: "PAGE_CHANGED", page: "data" });
-    },
-    showTheme: async (): Promise<void> => {
-      dispatch({ type: "PAGE_CHANGED", page: "theme" });
-    },
     showTimeInput: (): void => dispatch({ type: "TODO_FORM_CHANGED", field: "timeEnabled", value: true }),
     startEditing: (todo: TodoItemSnapshot): void => dispatch({ type: "EDIT_STARTED", todo }),
     toggleTodo: async (id: string): Promise<void> => {
@@ -267,7 +244,6 @@ function createInitialState(initialNow: Date): TodoAppState {
     importConfirmationOpen: false,
     preparedBackupImport: null,
     message: "",
-    page: "clock",
     selectedDate: todayDate,
     selectedDateTodos: [],
     todayDate,
@@ -276,10 +252,6 @@ function createInitialState(initialNow: Date): TodoAppState {
 }
 
 function reducer(state: TodoAppState, action: TodoAppAction): TodoAppState {
-  if (action.type === "PAGE_CHANGED") {
-    return { ...state, page: action.page };
-  }
-
   if (action.type === "TODAY_CHANGED") {
     const followsToday = state.selectedDate === state.todayDate;
     const nextTodayMonth = action.todayDate.slice(0, 7);

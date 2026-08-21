@@ -6,9 +6,9 @@ import type { PreparedBackupImport } from "../contexts/backup/application/Backup
 import { UserPreferences as Preferences } from "../contexts/preferences/domain/UserPreferences";
 import type { TodoDaySummary } from "../contexts/todo/domain/TodoList";
 import type { TodoItemSnapshot } from "../contexts/todo/domain/TodoItem";
-import { createAppModules } from "../app/composition/createAppModules";
-import { RhythmApp as GroupedRhythmApp } from "./RhythmApp";
-import type { RhythmAppServices } from "./RhythmAppServices";
+import { createAppModules } from "./composition/createAppModules";
+import { ClockRhythmApp as GroupedRhythmApp } from "./ClockRhythmApp";
+import type { RhythmAppServices } from "../ui/RhythmAppServices";
 
 interface LegacyRhythmAppProps {
   services: RhythmAppServices;

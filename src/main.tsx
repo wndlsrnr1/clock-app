@@ -3,7 +3,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { composeApplication } from "./bootstrap/composeApplication";
 import { composeBrowserPreviewApplication } from "./bootstrap/composeBrowserPreviewApplication";
-import { RhythmApp } from "./ui/RhythmApp";
+import { ClockRhythmApp } from "./app/ClockRhythmApp";
 import "./ui/styles.css";
 import { isNeutralinoRuntime } from "./platform/neutralino/NeutralinoRuntimeGlobals";
 import { createAppModules } from "./app/composition/createAppModules";
@@ -22,7 +22,7 @@ async function renderApplication(rootElement: HTMLElement): Promise<void> {
 
   createRoot(rootElement).render(
     <StrictMode>
-      <RhythmApp modules={modules} />
+      <ClockRhythmApp modules={modules} />
     </StrictMode>,
   );
 }
