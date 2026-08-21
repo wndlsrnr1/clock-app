@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { TodoItem } from "../../contexts/todo/domain/TodoItem";
+import { TodoItem } from "../../domain/TodoItem";
 import { NeutralinoTodoRepository } from "./NeutralinoTodoRepository";
 
 class FakeStorage {

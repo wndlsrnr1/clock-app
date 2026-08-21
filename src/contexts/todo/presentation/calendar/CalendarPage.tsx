@@ -1,9 +1,9 @@
-import type { LanguagePreference } from "../../contexts/preferences/domain/UserPreferences";
+import type { LanguagePreference } from "../../../preferences/public";
 import type { TodoAppViewModel } from "../useTodoApp";
-import { calendarDays, type CalendarDayCell } from "../calendarDays";
-import { formatMonthLabel } from "../dateFormat";
-import { formatText, type TextCatalog } from "../textCatalog";
-import { TodoListPanel } from "./TodoListPanel";
+import { formatText, type TextCatalog } from "../../../../ui/textCatalog";
+import { TodoListPanel } from "../TodoListPanel";
+import { calendarDays, type CalendarDayCell } from "./calendarDays";
+import { formatMonthLabel } from "./dateFormat";
 
 interface CalendarPageProps {
   language: LanguagePreference;

@@ -20,13 +20,12 @@ import { StartRhythmUseCase } from "../contexts/rhythm/application/StartRhythmUs
 import { StopRhythmForTodayUseCase } from "../contexts/rhythm/application/StopRhythmForTodayUseCase";
 import type { RhythmEvent } from "../contexts/rhythm/domain/RhythmEvent";
 import { RhythmConfiguration } from "../contexts/rhythm/public-model";
-import { AddTodoUseCase, DeleteTodoUseCase, GetTodoCalendarSummaryUseCase, GetTodosByDateUseCase, ReorderTodosUseCase, ToggleTodoUseCase, UpdateTodoUseCase } from "../contexts/todo/application/TodoUseCases";
-import type { TodoRepository } from "../contexts/todo/application/ports";
-import { TodoItem, type TodoItemSnapshot } from "../contexts/todo/domain/TodoItem";
+import { createTodoModule } from "../contexts/todo/composition";
+import { BrowserTodoIdGenerator } from "../contexts/todo/infrastructure/browser/BrowserTodoIdGenerator";
+import { BrowserTodoRepository } from "../contexts/todo/infrastructure/browser/BrowserTodoRepository";
 import { BrowserBackupFileAdapter } from "../features/data-transfer/infrastructure/browser/BrowserBackupFileAdapter";
 import { BrowserPreviewNotificationSoundFileAdapter } from "../platform/browser/BrowserPreviewNotificationSoundFileAdapter";
 import { DeadlineScheduler } from "../platform/scheduler/DeadlineScheduler";
-import { BrowserTodoIdGenerator } from "../platform/todo/BrowserTodoIdGenerator";
 import type { RhythmAppServices } from "../ui/RhythmAppServices";
 import { RefreshRhythmAfterPreferencesChanged } from "../app/composition/RefreshRhythmAfterPreferencesChanged";
 import { PreferencesRhythmConfigurationReader } from "../app/composition/PreferencesRhythmConfigurationReader";
@@ -43,7 +42,7 @@ export function composeBrowserPreviewApplication(): { initialPreferences: UserPr
     restTerm: currentPreferences.restMinutes,
   }));
 
-  const todoRepository = new BrowserPreviewTodoRepository();
+  const todoRepository = new BrowserTodoRepository();
   const todoIdGenerator = new BrowserTodoIdGenerator();
   const scheduler = new DeadlineScheduler();
   const sound = new BrowserPreviewSoundAdapter(chimeSoundUrl, settingsRepository);
@@ -63,6 +62,7 @@ export function composeBrowserPreviewApplication(): { initialPreferences: UserPr
     replacePreferences: new ReplacePreferencesSnapshotUseCase(settingsRepository, preferencesChanged),
     replaceTodos: new ReplaceTodoSnapshotsUseCase(todoRepository),
   });
+  const todo = createTodoModule(todoRepository, todoIdGenerator, clock);
 
   return {
     initialPreferences: currentPreferences.snapshot(),
@@ -80,13 +80,13 @@ export function composeBrowserPreviewApplication(): { initialPreferences: UserPr
       stopNotificationSoundPreview: new StopNotificationSoundPreviewUseCase(sound),
       updateNotificationSoundVolume: new UpdateNotificationSoundVolumeUseCase(settingsRepository),
       useDefaultNotificationSound: { execute: () => notificationSoundMode.useDefault() },
-      addTodo: new AddTodoUseCase(todoRepository, todoIdGenerator, clock),
-      deleteTodo: new DeleteTodoUseCase(todoRepository),
-      getTodoCalendarSummary: new GetTodoCalendarSummaryUseCase(todoRepository),
-      getTodosByDate: new GetTodosByDateUseCase(todoRepository),
-      reorderTodos: new ReorderTodosUseCase(todoRepository, clock),
-      toggleTodo: new ToggleTodoUseCase(todoRepository, clock),
-      updateTodo: new UpdateTodoUseCase(todoRepository, clock),
+      addTodo: todo.add,
+      deleteTodo: todo.delete,
+      getTodoCalendarSummary: todo.getCalendarSummary,
+      getTodosByDate: todo.getByDate,
+      reorderTodos: todo.reorder,
+      toggleTodo: todo.toggle,
+      updateTodo: todo.update,
       exportBackup: dataTransfer.exportBackup,
       previewImportBackup: dataTransfer.previewImport,
       importBackup: dataTransfer.importBackup,
@@ -235,29 +235,6 @@ class BrowserPreviewTrayAdapter implements TrayPort {
 class BrowserPreviewClock implements SystemClock {
   public now(): Date {
     return new Date();
-  }
-}
-
-class BrowserPreviewTodoRepository implements TodoRepository {
-  private readonly key = "clock-rhythm-preview-todos";
-
-  public async getAll(): Promise<Array<TodoItem>> {
-    const savedText = localStorage.getItem(this.key);
-
-    if (!savedText) {
-      return [];
-    }
-
-    try {
-      return (JSON.parse(savedText) as Array<TodoItemSnapshot>)
-        .map((snapshot: TodoItemSnapshot): TodoItem => TodoItem.restore(snapshot));
-    } catch {
-      return [];
-    }
-  }
-
-  public async saveAll(todos: Array<TodoItem>): Promise<void> {
-    localStorage.setItem(this.key, JSON.stringify(todos.map((todo: TodoItem): TodoItemSnapshot => todo.snapshot())));
   }
 }
 

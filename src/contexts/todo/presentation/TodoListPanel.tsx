@@ -1,10 +1,10 @@
 import { useState } from "react";
-import type { TodoItemSnapshot } from "../../contexts/todo/domain/TodoItem";
-import { formatText, type TextCatalog } from "../textCatalog";
-import { todoTitleMaxLength, validateTodoTitleInput } from "../inputValidation";
-import { IconButton } from "./IconButton";
-import { SvgIcon } from "./SvgIcon";
-import { TimePickerField } from "./TimePickerField";
+import { IconButton } from "../../../ui/components/IconButton";
+import { SvgIcon } from "../../../ui/components/SvgIcon";
+import { TimePickerField } from "../../../ui/components/TimePickerField";
+import { todoTitleMaxLength, validateTodoTitleInput } from "../../../ui/inputValidation";
+import { formatText, type TextCatalog } from "../../../ui/textCatalog";
+import type { TodoItemSnapshot } from "../public";
 
 interface TodoEditState {
   id: string;

@@ -1,4 +1,4 @@
-import { CalendarPage } from "../ui/components/CalendarPage";
+import { CalendarPage } from "../contexts/todo/presentation/calendar/CalendarPage";
 import { DataPage } from "../features/data-transfer/presentation/DataPage";
 import { useDataTransfer } from "../features/data-transfer/presentation/useDataTransfer";
 import { SegmentedControl } from "../ui/components/SegmentedControl";
@@ -7,7 +7,7 @@ import { usePreferencesApp } from "../contexts/preferences/presentation/usePrefe
 import { createTranslator } from "../ui/textCatalog";
 import { useLayoutMode } from "../ui/useLayoutMode";
 import { useRhythmApp } from "../ui/useRhythmApp";
-import { useTodoApp } from "../ui/useTodoApp";
+import { useTodoApp } from "../contexts/todo/presentation/useTodoApp";
 import type { AppModules } from "./contracts/AppModules";
 import type { UserPreferencesSnapshot } from "../contexts/preferences/public";
 import { useAppNavigation } from "./navigation/useAppNavigation";

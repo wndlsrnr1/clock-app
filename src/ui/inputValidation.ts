@@ -1,5 +1,5 @@
 import { UserPreferences } from "../contexts/preferences/domain/UserPreferences";
-import { TodoTitle } from "../contexts/todo/domain/TodoTitle";
+import { TodoTitle } from "../contexts/todo/public";
 import { formatText, type TextCatalog } from "./textCatalog";
 import { normalizeOptionalTimeText } from "../shared/time/normalizeTimeText";
 

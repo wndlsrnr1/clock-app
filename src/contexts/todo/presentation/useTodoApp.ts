@@ -1,11 +1,11 @@
 import { useEffect, useReducer } from "react";
-import type { TodoDaySummary } from "../contexts/todo/domain/TodoList";
-import type { TodoItemSnapshot } from "../contexts/todo/domain/TodoItem";
-import type { AppModules } from "../app/contracts/AppModules";
-import { addMonthsToMonthKey, currentMonthKey, formatDateKey } from "./dateFormat";
-import { validateTodoTitleInput } from "./inputValidation";
-import { formatText, type TextCatalog } from "./textCatalog";
-import { normalizeOptionalTimeText } from "../shared/time/normalizeTimeText";
+import type { AppModules } from "../../../app/contracts/AppModules";
+import { normalizeOptionalTimeText } from "../../../shared/time/normalizeTimeText";
+import { validateTodoTitleInput } from "../../../ui/inputValidation";
+import { formatText, type TextCatalog } from "../../../ui/textCatalog";
+import type { TodoItemSnapshot } from "../domain/TodoItem";
+import type { TodoDaySummary } from "../domain/TodoList";
+import { addMonthsToMonthKey, currentMonthKey, formatDateKey } from "./calendar/dateFormat";
 
 interface TodoFormState {
   title: string;

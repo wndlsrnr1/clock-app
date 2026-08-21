@@ -19,6 +19,7 @@ export {
   type UpdateTodoCommand,
 } from "./application/TodoUseCases";
 export { TodoItem, type TodoItemSnapshot } from "./domain/TodoItem";
+export { TodoTitle } from "./domain/TodoTitle";
 export type { TodoDaySummary } from "./domain/TodoList";
 export { ExportTodoSnapshotsUseCase } from "./application/commands/ExportTodoSnapshotsUseCase";
 export { ReplaceTodoSnapshotsUseCase } from "./application/commands/ReplaceTodoSnapshotsUseCase";

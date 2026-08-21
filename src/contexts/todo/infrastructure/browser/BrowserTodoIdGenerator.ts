@@ -1,4 +1,4 @@
-import type { TodoIdGenerator } from "../../contexts/todo/application/ports";
+import type { TodoIdGenerator } from "../../application/ports";
 
 export class BrowserTodoIdGenerator implements TodoIdGenerator {
   public nextId(): string {

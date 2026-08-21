@@ -5,8 +5,7 @@ import type { RhythmStatusSnapshot } from "../contexts/rhythm/application/Rhythm
 import type { PreparedBackupImport } from "../features/data-transfer/public";
 import { UserPreferences as Preferences } from "../contexts/preferences/domain/UserPreferences";
 import type { UserPreferencesSnapshot } from "../contexts/preferences/domain/UserPreferences";
-import type { TodoDaySummary } from "../contexts/todo/domain/TodoList";
-import type { TodoItemSnapshot } from "../contexts/todo/domain/TodoItem";
+import type { TodoDaySummary, TodoItemSnapshot } from "../contexts/todo/public";
 import { createAppModules } from "./composition/createAppModules";
 import { ClockRhythmApp as GroupedRhythmApp } from "./ClockRhythmApp";
 import type { RhythmAppServices } from "../ui/RhythmAppServices";

@@ -1,7 +1,7 @@
 import { storage } from "@neutralinojs/lib";
-import type { TodoRepository } from "../../contexts/todo/application/ports";
-import { TodoItem, type TodoItemSnapshot } from "../../contexts/todo/domain/TodoItem";
-import type { NeutralinoStoragePort } from "./NeutralinoSettingsRepository";
+import type { TodoRepository } from "../../application/ports";
+import { TodoItem, type TodoItemSnapshot } from "../../domain/TodoItem";
+import type { NeutralinoStoragePort } from "../../../../platform/neutralino/NeutralinoSettingsRepository";
 
 export class NeutralinoTodoRepository implements TodoRepository {
   private readonly key = "todos";

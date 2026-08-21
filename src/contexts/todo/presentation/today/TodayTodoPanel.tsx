@@ -1,10 +1,10 @@
 import { useState } from "react";
-import type { TextCatalog } from "../textCatalog";
+import { IconButton } from "../../../../ui/components/IconButton";
+import { TimePickerField } from "../../../../ui/components/TimePickerField";
+import { todoTitleMaxLength, validateTodoTitleInput } from "../../../../ui/inputValidation";
+import type { TextCatalog } from "../../../../ui/textCatalog";
+import { TodoListPanel } from "../TodoListPanel";
 import type { TodoAppViewModel } from "../useTodoApp";
-import { todoTitleMaxLength, validateTodoTitleInput } from "../inputValidation";
-import { IconButton } from "./IconButton";
-import { TimePickerField } from "./TimePickerField";
-import { TodoListPanel } from "./TodoListPanel";
 
 interface TodayTodoPanelProps {
   todo: TodoAppViewModel;

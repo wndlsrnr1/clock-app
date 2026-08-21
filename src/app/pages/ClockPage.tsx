@@ -4,13 +4,13 @@ import { NotificationSoundPanel } from "../../contexts/preferences/presentation/
 import { RhythmControls } from "../../ui/components/RhythmControls";
 import { RhythmSettingsDisclosure } from "../../contexts/preferences/presentation/settings/RhythmSettingsDisclosure";
 import { RhythmSettingsPanel } from "../../contexts/preferences/presentation/settings/RhythmSettingsPanel";
-import { TodayTodoPanel } from "../../ui/components/TodayTodoPanel";
+import { TodayTodoPanel } from "../../contexts/todo/presentation/today/TodayTodoPanel";
 import { previewRhythmSettings } from "../../contexts/preferences/application/queries/PreviewRhythmSettings";
 import { createRhythmSettingsSummary } from "../../contexts/preferences/presentation/settings/rhythmSettingsSummary";
 import type { PreferencesAppViewModel } from "../../contexts/preferences/presentation/usePreferencesApp";
 import { formatText, type TextCatalog } from "../../ui/textCatalog";
 import type { RhythmAppViewModel } from "../../ui/useRhythmApp";
-import type { TodoAppViewModel } from "../../ui/useTodoApp";
+import type { TodoAppViewModel } from "../../contexts/todo/presentation/useTodoApp";
 
 interface ClockPageProps {
   preferences: PreferencesAppViewModel;

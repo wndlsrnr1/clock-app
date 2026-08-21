@@ -15,7 +15,9 @@ import { RunningRhythmRescheduler } from "../contexts/rhythm/application/Running
 import { RhythmRuntime } from "../contexts/rhythm/application/RhythmRuntime";
 import { StartRhythmUseCase } from "../contexts/rhythm/application/StartRhythmUseCase";
 import { StopRhythmForTodayUseCase } from "../contexts/rhythm/application/StopRhythmForTodayUseCase";
-import { AddTodoUseCase, DeleteTodoUseCase, GetTodoCalendarSummaryUseCase, GetTodosByDateUseCase, ReorderTodosUseCase, ToggleTodoUseCase, UpdateTodoUseCase } from "../contexts/todo/application/TodoUseCases";
+import { createTodoModule } from "../contexts/todo/composition";
+import { NeutralinoTodoRepository } from "../contexts/todo/infrastructure/neutralino/NeutralinoTodoRepository";
+import { BrowserTodoIdGenerator } from "../contexts/todo/infrastructure/browser/BrowserTodoIdGenerator";
 import { createAutoStartAdapter } from "../platform/autostart/createAutoStartAdapter";
 import { PlatformEnvironmentDetector } from "../platform/environment/PlatformEnvironmentDetector";
 import { NeutralinoBackupFileAdapter } from "../features/data-transfer/infrastructure/neutralino/NeutralinoBackupFileAdapter";
@@ -26,11 +28,9 @@ import { currentNeutralinoExecutablePath } from "../platform/neutralino/Neutrali
 import { NeutralinoSettingsRepository } from "../platform/neutralino/NeutralinoSettingsRepository";
 import { NeutralinoSoundAdapter } from "../platform/neutralino/NeutralinoSoundAdapter";
 import { NeutralinoSystemClock } from "../platform/neutralino/NeutralinoSystemClock";
-import { NeutralinoTodoRepository } from "../platform/neutralino/NeutralinoTodoRepository";
 import { NeutralinoTrayAdapter } from "../platform/neutralino/NeutralinoTrayAdapter";
 import { NeutralinoWindowAdapter } from "../platform/neutralino/NeutralinoWindowAdapter";
 import { DeadlineScheduler } from "../platform/scheduler/DeadlineScheduler";
-import { BrowserTodoIdGenerator } from "../platform/todo/BrowserTodoIdGenerator";
 import type { RhythmAppServices } from "../ui/RhythmAppServices";
 import { RefreshRhythmAfterPreferencesChanged } from "../app/composition/RefreshRhythmAfterPreferencesChanged";
 import { PreferencesRhythmConfigurationReader } from "../app/composition/PreferencesRhythmConfigurationReader";
@@ -79,6 +79,7 @@ export async function composeApplication(): Promise<ComposedApplication> {
     replacePreferences: new ReplacePreferencesSnapshotUseCase(settingsRepository, preferencesChanged),
     replaceTodos: new ReplaceTodoSnapshotsUseCase(todoRepository),
   });
+  const todo = createTodoModule(todoRepository, todoIdGenerator, clock);
 
   const services: RhythmAppServices = {
     startRhythm: new StartRhythmUseCase(runtime, configurationReader, scheduler, sound, tray, clock, notification),
@@ -94,13 +95,13 @@ export async function composeApplication(): Promise<ComposedApplication> {
     stopNotificationSoundPreview: new StopNotificationSoundPreviewUseCase(sound),
     updateNotificationSoundVolume: new UpdateNotificationSoundVolumeUseCase(settingsRepository),
     useDefaultNotificationSound: { execute: () => notificationSoundMode.useDefault() },
-    addTodo: new AddTodoUseCase(todoRepository, todoIdGenerator, clock),
-    deleteTodo: new DeleteTodoUseCase(todoRepository),
-    getTodoCalendarSummary: new GetTodoCalendarSummaryUseCase(todoRepository),
-    getTodosByDate: new GetTodosByDateUseCase(todoRepository),
-    reorderTodos: new ReorderTodosUseCase(todoRepository, clock),
-    toggleTodo: new ToggleTodoUseCase(todoRepository, clock),
-    updateTodo: new UpdateTodoUseCase(todoRepository, clock),
+    addTodo: todo.add,
+    deleteTodo: todo.delete,
+    getTodoCalendarSummary: todo.getCalendarSummary,
+    getTodosByDate: todo.getByDate,
+    reorderTodos: todo.reorder,
+    toggleTodo: todo.toggle,
+    updateTodo: todo.update,
     exportBackup: dataTransfer.exportBackup,
     previewImportBackup: dataTransfer.previewImport,
     importBackup: dataTransfer.importBackup,
