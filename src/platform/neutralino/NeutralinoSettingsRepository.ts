@@ -1,5 +1,5 @@
 import { storage } from "@neutralinojs/lib";
-import type { SettingsRepository } from "../../contexts/rhythm/application/ports";
+import type { SettingsRepository } from "../../contexts/preferences/application/ports/SettingsRepository";
 import { UserPreferences, type UserPreferencesSnapshot } from "../../contexts/preferences/domain/UserPreferences";
 
 export interface NeutralinoStoragePort {

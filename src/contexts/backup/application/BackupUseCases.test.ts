@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { SettingsRepository } from "../../rhythm/application/ports";
+import type { SettingsRepository } from "../../preferences/application/ports/SettingsRepository";
 import type { TodoRepository } from "../../todo/application/ports";
 import { TodoItem, type TodoItemSnapshot } from "../../todo/domain/TodoItem";
 import { UserPreferences } from "../../preferences/domain/UserPreferences";

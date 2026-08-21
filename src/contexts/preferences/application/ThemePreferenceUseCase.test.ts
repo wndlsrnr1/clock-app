@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { SettingsRepository } from "../../rhythm/application/ports";
-import { RhythmRuntime } from "../../rhythm/application/RhythmRuntime";
+import type { SettingsRepository } from "./ports/SettingsRepository";
 import { UserPreferences } from "../domain/UserPreferences";
 import { ChangeThemePreferenceUseCase } from "./ThemePreferenceUseCase";
 
@@ -20,15 +19,13 @@ class FakeSettingsRepository implements SettingsRepository {
 }
 
 describe("ChangeThemePreferenceUseCase", () => {
-  it("saves the selected app theme preference and updates the runtime snapshot", async () => {
+  it("saves the selected app theme preference", async () => {
     const repository = new FakeSettingsRepository();
-    const runtime = RhythmRuntime.empty();
-    const useCase = new ChangeThemePreferenceUseCase(repository, runtime);
+    const useCase = new ChangeThemePreferenceUseCase(repository);
 
     const preferences = await useCase.execute("tokyo-night");
 
     expect(repository.saved).toBe(preferences);
     expect(preferences.theme).toBe("tokyo-night");
-    expect(runtime.preferences.theme).toBe("tokyo-night");
   });
 });

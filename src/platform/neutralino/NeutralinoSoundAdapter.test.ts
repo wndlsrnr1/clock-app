@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { SettingsRepository } from "../../contexts/rhythm/application/ports";
+import type { SettingsRepository } from "../../contexts/preferences/application/ports/SettingsRepository";
 import { UserPreferences } from "../../contexts/preferences/domain/UserPreferences";
 import { NeutralinoSoundAdapter, type AudioElementPort } from "./NeutralinoSoundAdapter";
 

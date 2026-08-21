@@ -1,6 +1,7 @@
 import type { RhythmStatusSnapshot } from "./RhythmStatusSnapshot";
 import { RhythmRuntime } from "./RhythmRuntime";
-import type { NotificationPort, SchedulerPort, SettingsRepository, SoundPort, SystemClock, TrayPort } from "./ports";
+import type { SettingsRepository } from "../../preferences/application/ports/SettingsRepository";
+import type { NotificationPort, SchedulerPort, SoundPort, SystemClock, TrayPort } from "./ports";
 import { scheduleNextRhythmEvent } from "./scheduleNextRhythmEvent";
 import { snapshotRhythmStatus } from "./snapshotRhythmStatus";
 

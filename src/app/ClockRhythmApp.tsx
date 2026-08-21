@@ -6,12 +6,14 @@ import { useLayoutMode } from "../ui/useLayoutMode";
 import { useRhythmApp } from "../ui/useRhythmApp";
 import { useTodoApp } from "../ui/useTodoApp";
 import type { AppModules } from "./contracts/AppModules";
+import type { UserPreferencesSnapshot } from "../contexts/preferences/public";
 import { useAppNavigation } from "./navigation/useAppNavigation";
 import { ClockPage } from "./pages/ClockPage";
 
 interface ClockRhythmAppProps {
   modules: AppModules;
   initialNow?: Date;
+  initialPreferences?: UserPreferencesSnapshot;
 }
 
 export function ClockRhythmApp({ modules, initialNow = new Date() }: ClockRhythmAppProps): React.JSX.Element {

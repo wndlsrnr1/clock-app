@@ -1,4 +1,4 @@
-import type { AutoStartPort } from "../../contexts/rhythm/application/ports";
+import type { AutoStartPort } from "../../contexts/preferences/application/ports/AutoStartPort";
 
 export class UnsupportedAutoStartAdapter implements AutoStartPort {
   public async enable(): Promise<void> {

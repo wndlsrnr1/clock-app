@@ -3,7 +3,9 @@ import type {
   LanguagePreference,
   ThemePreference,
   UserPreferences,
+  UserPreferencesSnapshot,
 } from "./domain/UserPreferences";
+export { GetPreferencesUseCase } from "./application/queries/GetPreferencesUseCase";
 
 export { ChangeLanguagePreferenceUseCase } from "./application/LanguagePreferenceUseCase";
 export {
@@ -24,6 +26,7 @@ export {
 } from "./domain/UserPreferences";
 
 export interface PreferencesModule {
+  get: { execute(): Promise<UserPreferencesSnapshot> };
   update: { execute(command: UpdatePreferencesCommand): Promise<UserPreferences> };
   chooseCustomNotificationSound: { execute(): Promise<UserPreferences> };
   muteNotificationSound: { execute(): Promise<UserPreferences> };

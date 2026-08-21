@@ -11,6 +11,7 @@ export function createAppModules(services: RhythmAppServices): AppModules {
       stopForToday: services.stopForToday,
     },
     preferences: {
+      get: services.getPreferences,
       changeLanguage: services.changeLanguage,
       changeTheme: services.changeTheme,
       chooseCustomNotificationSound: services.chooseCustomNotificationSound,

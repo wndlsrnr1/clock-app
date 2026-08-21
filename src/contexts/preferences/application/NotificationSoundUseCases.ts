@@ -1,14 +1,9 @@
-import type { SettingsRepository, SoundPort } from "../../rhythm/application/ports";
 import type { UserPreferences } from "../domain/UserPreferences";
+import type { NotificationSoundFilePort } from "./ports/NotificationSoundFilePort";
+import type { SettingsRepository } from "./ports/SettingsRepository";
+import type { SoundPreviewPort } from "./ports/SoundPreviewPort";
 
-export interface SelectedNotificationSound {
-  fileName: string;
-  source: string;
-}
-
-export interface NotificationSoundFilePort {
-  chooseCustomMp3(): Promise<SelectedNotificationSound | null>;
-}
+export type { NotificationSoundFilePort, SelectedNotificationSound } from "./ports/NotificationSoundFilePort";
 
 export class SetNotificationSoundModeUseCase {
   public constructor(private readonly settingsRepository: SettingsRepository) {}
@@ -50,7 +45,7 @@ export class ChooseCustomNotificationSoundUseCase {
 }
 
 export class PreviewNotificationSoundUseCase {
-  public constructor(private readonly sound: SoundPort) {}
+  public constructor(private readonly sound: SoundPreviewPort) {}
 
   public async execute(): Promise<void> {
     await this.sound.play();
@@ -58,7 +53,7 @@ export class PreviewNotificationSoundUseCase {
 }
 
 export class StopNotificationSoundPreviewUseCase {
-  public constructor(private readonly sound: SoundPort) {}
+  public constructor(private readonly sound: SoundPreviewPort) {}
 
   public async execute(): Promise<void> {
     await this.sound.stop();

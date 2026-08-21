@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { UserPreferences } from "../domain/UserPreferences";
 import { UpdatePreferencesUseCase } from "./UpdatePreferencesUseCase";
-import type { AutoStartPort, SettingsRepository } from "../../rhythm/application/ports";
+import type { AutoStartPort } from "./ports/AutoStartPort";
+import type { PreferencesChangedPort } from "./ports/PreferencesChangedPort";
+import type { SettingsRepository } from "./ports/SettingsRepository";
 
 class FakeSettingsRepository implements SettingsRepository {
   public saved: UserPreferences | null = null;
@@ -31,10 +33,10 @@ class FakeAutoStart implements AutoStartPort {
   }
 }
 
-class FakePreferenceChangeRescheduler {
+class FakePreferencesChanged implements PreferencesChangedPort {
   public called = 0;
 
-  public rescheduleIfRunning(): void {
+  public notify(_preferences: UserPreferences): void {
     this.called += 1;
   }
 }
@@ -62,11 +64,11 @@ describe("UpdatePreferencesUseCase", () => {
     expect(autoStart.enabled).toBe(true);
   });
 
-  it("asks the running rhythm rescheduler to refresh the next scheduled event after saving preferences", async () => {
+  it("publishes the saved preferences after changing rhythm settings", async () => {
     const repository = new FakeSettingsRepository();
     const autoStart = new FakeAutoStart();
-    const rescheduler = new FakePreferenceChangeRescheduler();
-    const useCase = new UpdatePreferencesUseCase(repository, autoStart, null, rescheduler);
+    const preferencesChanged = new FakePreferencesChanged();
+    const useCase = new UpdatePreferencesUseCase(repository, autoStart, preferencesChanged);
 
     await useCase.execute({
       focusMinutes: 45,
@@ -76,6 +78,6 @@ describe("UpdatePreferencesUseCase", () => {
       autoStartEnabled: false,
     });
 
-    expect(rescheduler.called).toBe(1);
+    expect(preferencesChanged.called).toBe(1);
   });
 });

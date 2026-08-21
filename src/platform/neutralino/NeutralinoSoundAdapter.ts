@@ -1,5 +1,5 @@
 import type { SoundPort } from "../../contexts/rhythm/application/ports";
-import type { SettingsRepository } from "../../contexts/rhythm/application/ports";
+import type { SettingsRepository } from "../../contexts/preferences/application/ports/SettingsRepository";
 import type { NotificationSoundPreference } from "../../contexts/preferences/domain/UserPreferences";
 
 export interface AudioElementPort {

@@ -6,7 +6,8 @@ import { ResumeRhythmUseCase } from "./ResumeRhythmUseCase";
 import { RhythmRuntime } from "./RhythmRuntime";
 import { StartRhythmUseCase } from "./StartRhythmUseCase";
 import { StopRhythmForTodayUseCase } from "./StopRhythmForTodayUseCase";
-import type { SchedulerPort, SettingsRepository, SoundPort, SystemClock, TrayPort } from "./ports";
+import type { SettingsRepository } from "../../preferences/application/ports/SettingsRepository";
+import type { SchedulerPort, SoundPort, SystemClock, TrayPort } from "./ports";
 
 class FakeSettingsRepository implements SettingsRepository {
   public constructor(private preferences: UserPreferences = UserPreferences.default()) {}

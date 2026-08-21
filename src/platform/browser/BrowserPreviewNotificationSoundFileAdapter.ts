@@ -1,4 +1,4 @@
-import type { NotificationSoundFilePort, SelectedNotificationSound } from "../../contexts/preferences/application/NotificationSoundUseCases";
+import type { NotificationSoundFilePort, SelectedNotificationSound } from "../../contexts/preferences/application/ports/NotificationSoundFilePort";
 
 interface BrowserFilePicker {
   chooseMp3(): Promise<File | null>;

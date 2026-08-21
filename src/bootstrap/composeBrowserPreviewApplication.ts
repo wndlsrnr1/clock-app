@@ -4,10 +4,13 @@ import { ChangeLanguagePreferenceUseCase } from "../contexts/preferences/applica
 import { ChooseCustomNotificationSoundUseCase, PreviewNotificationSoundUseCase, SetNotificationSoundModeUseCase, StopNotificationSoundPreviewUseCase, UpdateNotificationSoundVolumeUseCase } from "../contexts/preferences/application/NotificationSoundUseCases";
 import { ChangeThemePreferenceUseCase } from "../contexts/preferences/application/ThemePreferenceUseCase";
 import { UpdatePreferencesUseCase } from "../contexts/preferences/application/UpdatePreferencesUseCase";
+import { GetPreferencesUseCase } from "../contexts/preferences/application/queries/GetPreferencesUseCase";
+import type { AutoStartPort } from "../contexts/preferences/application/ports/AutoStartPort";
+import type { SettingsRepository } from "../contexts/preferences/application/ports/SettingsRepository";
 import { UserPreferences } from "../contexts/preferences/domain/UserPreferences";
 import { GetRhythmStatusUseCase } from "../contexts/rhythm/application/GetRhythmStatusUseCase";
 import { PauseRhythmUseCase } from "../contexts/rhythm/application/PauseRhythmUseCase";
-import type { AutoStartPort, NotificationPort, SettingsRepository, SoundPort, SystemClock, TrayPort } from "../contexts/rhythm/application/ports";
+import type { NotificationPort, SoundPort, SystemClock, TrayPort } from "../contexts/rhythm/application/ports";
 import { ResumeRhythmUseCase } from "../contexts/rhythm/application/ResumeRhythmUseCase";
 import { RunningRhythmRescheduler } from "../contexts/rhythm/application/RunningRhythmRescheduler";
 import { RhythmRuntime } from "../contexts/rhythm/application/RhythmRuntime";
@@ -22,8 +25,10 @@ import { BrowserPreviewNotificationSoundFileAdapter } from "../platform/browser/
 import { DeadlineScheduler } from "../platform/scheduler/DeadlineScheduler";
 import { BrowserTodoIdGenerator } from "../platform/todo/BrowserTodoIdGenerator";
 import type { RhythmAppServices } from "../ui/RhythmAppServices";
+import { RefreshRhythmAfterPreferencesChanged } from "../app/composition/RefreshRhythmAfterPreferencesChanged";
+import type { UserPreferencesSnapshot } from "../contexts/preferences/domain/UserPreferences";
 
-export function composeBrowserPreviewApplication(): { services: RhythmAppServices } {
+export function composeBrowserPreviewApplication(): { initialPreferences: UserPreferencesSnapshot; services: RhythmAppServices } {
   const runtime = RhythmRuntime.empty();
   const settingsRepository = new BrowserPreviewSettingsRepository();
   runtime.replacePreferences(settingsRepository.current());
@@ -36,18 +41,21 @@ export function composeBrowserPreviewApplication(): { services: RhythmAppService
   const clock = new BrowserPreviewClock();
   const notification = new BrowserPreviewNotificationAdapter();
   const rhythmRescheduler = new RunningRhythmRescheduler(runtime, scheduler, notification, sound, clock);
+  const preferencesChanged = new RefreshRhythmAfterPreferencesChanged(runtime, rhythmRescheduler);
   const autoStart = new BrowserPreviewAutoStartAdapter();
   const notificationSoundMode = new SetNotificationSoundModeUseCase(settingsRepository);
   const backupFile = new BrowserPreviewBackupFileAdapter();
 
   return {
+    initialPreferences: settingsRepository.current().snapshot(),
     services: {
       startRhythm: new StartRhythmUseCase(runtime, settingsRepository, scheduler, sound, tray, clock, notification),
       pauseRhythm: new PauseRhythmUseCase(runtime, scheduler, tray),
       resumeRhythm: new ResumeRhythmUseCase(runtime, scheduler, tray, clock, notification, sound),
       stopForToday: new StopRhythmForTodayUseCase(runtime, scheduler, tray, clock),
       getStatus: new GetRhythmStatusUseCase(runtime),
-      updatePreferences: new UpdatePreferencesUseCase(settingsRepository, autoStart, runtime, rhythmRescheduler),
+      updatePreferences: new UpdatePreferencesUseCase(settingsRepository, autoStart, preferencesChanged),
+      getPreferences: new GetPreferencesUseCase(settingsRepository),
       chooseCustomNotificationSound: new ChooseCustomNotificationSoundUseCase(settingsRepository, new BrowserPreviewNotificationSoundFilePort()),
       muteNotificationSound: { execute: () => notificationSoundMode.toggleMute() },
       previewNotificationSound: new PreviewNotificationSoundUseCase(sound),
@@ -64,8 +72,8 @@ export function composeBrowserPreviewApplication(): { services: RhythmAppService
       exportBackup: new ExportBackupUseCase(settingsRepository, todoRepository, backupFile, clock),
       previewImportBackup: new PreviewBackupImportUseCase(backupFile),
       importBackup: new ImportBackupUseCase(settingsRepository, todoRepository),
-      changeLanguage: new ChangeLanguagePreferenceUseCase(settingsRepository, runtime),
-      changeTheme: new ChangeThemePreferenceUseCase(settingsRepository, runtime),
+      changeLanguage: new ChangeLanguagePreferenceUseCase(settingsRepository),
+      changeTheme: new ChangeThemePreferenceUseCase(settingsRepository),
     },
   };
 }

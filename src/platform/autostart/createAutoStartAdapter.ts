@@ -1,4 +1,4 @@
-import type { AutoStartPort } from "../../contexts/rhythm/application/ports";
+import type { AutoStartPort } from "../../contexts/preferences/application/ports/AutoStartPort";
 import type { AutoStartConfiguration } from "./AutoStartConfiguration";
 import type { CommandExecutor } from "./CommandExecutor";
 import { LinuxAutoStartAdapter } from "./LinuxAutoStartAdapter";

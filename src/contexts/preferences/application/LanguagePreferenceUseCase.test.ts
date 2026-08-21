@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { SettingsRepository } from "../../rhythm/application/ports";
+import type { SettingsRepository } from "./ports/SettingsRepository";
 import { UserPreferences } from "../domain/UserPreferences";
 import { ChangeLanguagePreferenceUseCase } from "./LanguagePreferenceUseCase";
 

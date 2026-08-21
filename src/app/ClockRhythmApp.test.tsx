@@ -55,6 +55,7 @@ function createServices(initialTodos: Array<TodoItemSnapshot> = []): RhythmAppSe
     resumeRhythm: { execute: vi.fn(() => Promise.resolve(runningStatus())) },
     stopForToday: { execute: vi.fn(() => Promise.resolve(stoppedForTodayStatus())) },
     getStatus: { execute: vi.fn(() => idleStatus()) },
+    getPreferences: { execute: vi.fn(() => Promise.resolve(Preferences.default().snapshot())) },
     updatePreferences: { execute: vi.fn(() => Promise.resolve(Preferences.default())) },
     chooseCustomNotificationSound: { execute: vi.fn(() => Promise.resolve(Preferences.default())) },
     muteNotificationSound: { execute: vi.fn(() => Promise.resolve(Preferences.default().toggleNotificationSoundMute())) },

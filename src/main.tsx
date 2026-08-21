@@ -22,7 +22,7 @@ async function renderApplication(rootElement: HTMLElement): Promise<void> {
 
   createRoot(rootElement).render(
     <StrictMode>
-      <ClockRhythmApp modules={modules} />
+      <ClockRhythmApp initialPreferences={application.initialPreferences} modules={modules} />
     </StrictMode>,
   );
 }
