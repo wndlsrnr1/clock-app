@@ -3,19 +3,19 @@ import { ClockPage } from "./components/ClockPage";
 import { DataPage } from "./components/DataPage";
 import { SegmentedControl } from "./components/SegmentedControl";
 import { ThemePage } from "./components/ThemePage";
-import type { RhythmAppServices } from "./RhythmAppServices";
+import type { AppModules } from "../app/contracts/AppModules";
 import { useLayoutMode } from "./useLayoutMode";
 import { useRhythmApp } from "./useRhythmApp";
 import { useTodoApp } from "./useTodoApp";
 
 interface RhythmAppProps {
-  services: RhythmAppServices;
+  modules: AppModules;
   initialNow?: Date;
 }
 
-export function RhythmApp({ services, initialNow = new Date() }: RhythmAppProps): React.JSX.Element {
-  const rhythm = useRhythmApp(services, initialNow);
-  const todo = useTodoApp(services, rhythm.now, rhythm.text);
+export function RhythmApp({ modules, initialNow = new Date() }: RhythmAppProps): React.JSX.Element {
+  const rhythm = useRhythmApp(modules, initialNow);
+  const todo = useTodoApp(modules, rhythm.now, rhythm.text);
   const text = rhythm.text;
   const { containerRef, layoutMode } = useLayoutMode();
 

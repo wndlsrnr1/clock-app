@@ -2,7 +2,7 @@ import { useEffect, useReducer } from "react";
 import type { TodoDaySummary } from "../contexts/todo/domain/TodoList";
 import type { TodoItemSnapshot } from "../contexts/todo/domain/TodoItem";
 import type { PreparedBackupImport } from "../contexts/backup/application/BackupUseCases";
-import type { RhythmAppServices } from "./RhythmAppServices";
+import type { AppModules } from "../app/contracts/AppModules";
 import { addMonthsToMonthKey, currentMonthKey, formatDateKey } from "./dateFormat";
 import { validateTodoTitleInput } from "./inputValidation";
 import { formatText, type TextCatalog } from "./textCatalog";
@@ -95,15 +95,17 @@ export interface TodoAppViewModel {
   confirmImportBackup(): Promise<void>;
 }
 
-export function useTodoApp(services: RhythmAppServices, currentNow: Date, text: TextCatalog): TodoAppViewModel {
+type TodoAppModules = Pick<AppModules, "todo" | "dataTransfer">;
+
+export function useTodoApp(modules: TodoAppModules, currentNow: Date, text: TextCatalog): TodoAppViewModel {
   const [state, dispatch] = useReducer(reducer, createInitialState(currentNow));
   const currentTodayDate = formatDateKey(currentNow);
 
   useEffect((): void => {
-    void refreshToday(services, state.todayDate, dispatch);
-    void refreshSelectedDate(services, state.selectedDate, dispatch);
-    void refreshCalendarSummary(services, state.calendarMonth, dispatch);
-  }, [services, state.todayDate, state.selectedDate, state.calendarMonth]);
+    void refreshToday(modules, state.todayDate, dispatch);
+    void refreshSelectedDate(modules, state.selectedDate, dispatch);
+    void refreshCalendarSummary(modules, state.calendarMonth, dispatch);
+  }, [modules, state.todayDate, state.selectedDate, state.calendarMonth]);
 
   useEffect((): void => {
     if (state.todayDate !== currentTodayDate) {
@@ -113,7 +115,7 @@ export function useTodoApp(services: RhythmAppServices, currentNow: Date, text: 
 
   const changeCalendarMonth = async (month: string): Promise<void> => {
     dispatch({ type: "CALENDAR_MONTH_CHANGED", month });
-    await refreshCalendarSummary(services, month, dispatch);
+    await refreshCalendarSummary(modules, month, dispatch);
   };
 
   return {
@@ -131,9 +133,9 @@ export function useTodoApp(services: RhythmAppServices, currentNow: Date, text: 
       }
 
       await runTodoAction(async (): Promise<void> => {
-        await services.addTodo.execute({ date: state.todayDate, time: time.value, title: state.form.title });
+        await modules.todo.add.execute({ date: state.todayDate, time: time.value, title: state.form.title });
         dispatch({ type: "TODO_FORM_CLEARED" });
-        await refreshTodoViews(services, state, dispatch);
+        await refreshTodoViews(modules, state, dispatch);
       }, text, dispatch, "todo");
     },
     cancelEditing: (): void => dispatch({ type: "EDIT_CLEARED" }),
@@ -152,28 +154,28 @@ export function useTodoApp(services: RhythmAppServices, currentNow: Date, text: 
       const preparedImport = state.preparedBackupImport;
 
       await runTodoAction(async (): Promise<void> => {
-        await services.importBackup.execute(preparedImport);
+        await modules.dataTransfer.importBackup.execute(preparedImport);
         dispatch({ type: "IMPORT_CONFIRMATION_CLEARED" });
         dispatch({ type: "MESSAGE_CHANGED", message: text.messages.backupImported });
-        await refreshTodoViews(services, state, dispatch);
+        await refreshTodoViews(modules, state, dispatch);
       }, text, dispatch);
     },
     deleteTodo: async (id: string): Promise<void> => {
       await runTodoAction(async (): Promise<void> => {
-        await services.deleteTodo.execute(id);
-        await refreshTodoViews(services, state, dispatch);
+        await modules.todo.delete.execute(id);
+        await refreshTodoViews(modules, state, dispatch);
       }, text, dispatch, "todo");
     },
     exportBackup: async (): Promise<void> => {
       await runTodoAction(async (): Promise<void> => {
-        await services.exportBackup.execute();
+        await modules.dataTransfer.exportBackup.execute();
         dispatch({ type: "MESSAGE_CHANGED", message: text.messages.backupExported });
       }, text, dispatch);
     },
     goToTodayMonth: async (): Promise<void> => {
       const todayMonth = state.todayDate.slice(0, 7);
       dispatch({ type: "SELECTED_DATE_CHANGED", date: state.todayDate });
-      await refreshSelectedDate(services, state.todayDate, dispatch);
+      await refreshSelectedDate(modules, state.todayDate, dispatch);
       await changeCalendarMonth(todayMonth);
     },
     moveCalendarMonth: async (offset: -1 | 1): Promise<void> => {
@@ -181,8 +183,8 @@ export function useTodoApp(services: RhythmAppServices, currentNow: Date, text: 
     },
     reorderTodos: async (date: string, orderedIds: Array<string>): Promise<void> => {
       await runTodoAction(async (): Promise<void> => {
-        await services.reorderTodos.execute({ date, orderedIds });
-        await refreshTodoViews(services, state, dispatch);
+        await modules.todo.reorder.execute({ date, orderedIds });
+        await refreshTodoViews(modules, state, dispatch);
       }, text, dispatch, "todo");
     },
     saveEdit: async (): Promise<void> => {
@@ -204,23 +206,23 @@ export function useTodoApp(services: RhythmAppServices, currentNow: Date, text: 
       }
 
       await runTodoAction(async (): Promise<void> => {
-        await services.updateTodo.execute({
+        await modules.todo.update.execute({
           date: edit.date,
           id: edit.id,
           time: time.value,
           title: edit.title,
         });
         dispatch({ type: "EDIT_CLEARED" });
-        await refreshTodoViews(services, state, dispatch);
+        await refreshTodoViews(modules, state, dispatch);
       }, text, dispatch, "todo");
     },
     selectDate: async (date: string): Promise<void> => {
       dispatch({ type: "SELECTED_DATE_CHANGED", date });
-      await refreshSelectedDate(services, date, dispatch);
+      await refreshSelectedDate(modules, date, dispatch);
     },
     requestImportBackup: (): void => {
       void runTodoAction(async (): Promise<void> => {
-        const preparedImport = await services.previewImportBackup.execute();
+        const preparedImport = await modules.dataTransfer.previewImport.execute();
 
         if (!preparedImport) {
           return;
@@ -231,11 +233,11 @@ export function useTodoApp(services: RhythmAppServices, currentNow: Date, text: 
     },
     showCalendar: async (): Promise<void> => {
       dispatch({ type: "PAGE_CHANGED", page: "calendar" });
-      await refreshCalendarSummary(services, state.calendarMonth, dispatch);
+      await refreshCalendarSummary(modules, state.calendarMonth, dispatch);
     },
     showClock: async (): Promise<void> => {
       dispatch({ type: "PAGE_CHANGED", page: "clock" });
-      await refreshToday(services, state.todayDate, dispatch);
+      await refreshToday(modules, state.todayDate, dispatch);
     },
     showData: async (): Promise<void> => {
       dispatch({ type: "PAGE_CHANGED", page: "data" });
@@ -247,8 +249,8 @@ export function useTodoApp(services: RhythmAppServices, currentNow: Date, text: 
     startEditing: (todo: TodoItemSnapshot): void => dispatch({ type: "EDIT_STARTED", todo }),
     toggleTodo: async (id: string): Promise<void> => {
       await runTodoAction(async (): Promise<void> => {
-        await services.toggleTodo.execute(id);
-        await refreshTodoViews(services, state, dispatch);
+        await modules.todo.toggle.execute(id);
+        await refreshTodoViews(modules, state, dispatch);
       }, text, dispatch, "todo");
     },
   };
@@ -354,37 +356,37 @@ function reducer(state: TodoAppState, action: TodoAppAction): TodoAppState {
 }
 
 async function refreshToday(
-  services: RhythmAppServices,
+  modules: TodoAppModules,
   todayDate: string,
   dispatch: React.Dispatch<TodoAppAction>,
 ): Promise<void> {
-  dispatch({ type: "TODAY_TODOS_LOADED", todos: await services.getTodosByDate.execute(todayDate) });
+  dispatch({ type: "TODAY_TODOS_LOADED", todos: await modules.todo.getByDate.execute(todayDate) });
 }
 
 async function refreshSelectedDate(
-  services: RhythmAppServices,
+  modules: TodoAppModules,
   selectedDate: string,
   dispatch: React.Dispatch<TodoAppAction>,
 ): Promise<void> {
-  dispatch({ type: "SELECTED_DATE_TODOS_LOADED", todos: await services.getTodosByDate.execute(selectedDate) });
+  dispatch({ type: "SELECTED_DATE_TODOS_LOADED", todos: await modules.todo.getByDate.execute(selectedDate) });
 }
 
 async function refreshCalendarSummary(
-  services: RhythmAppServices,
+  modules: TodoAppModules,
   calendarMonth: string,
   dispatch: React.Dispatch<TodoAppAction>,
 ): Promise<void> {
-  dispatch({ type: "CALENDAR_SUMMARY_LOADED", summary: await services.getTodoCalendarSummary.execute(calendarMonth) });
+  dispatch({ type: "CALENDAR_SUMMARY_LOADED", summary: await modules.todo.getCalendarSummary.execute(calendarMonth) });
 }
 
 async function refreshTodoViews(
-  services: RhythmAppServices,
+  modules: TodoAppModules,
   state: TodoAppState,
   dispatch: React.Dispatch<TodoAppAction>,
 ): Promise<void> {
-  await refreshToday(services, state.todayDate, dispatch);
-  await refreshSelectedDate(services, state.selectedDate, dispatch);
-  await refreshCalendarSummary(services, state.calendarMonth, dispatch);
+  await refreshToday(modules, state.todayDate, dispatch);
+  await refreshSelectedDate(modules, state.selectedDate, dispatch);
+  await refreshCalendarSummary(modules, state.calendarMonth, dispatch);
 }
 
 function normalizedTodoTime(

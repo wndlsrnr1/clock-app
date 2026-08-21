@@ -6,8 +6,18 @@ import type { PreparedBackupImport } from "../contexts/backup/application/Backup
 import { UserPreferences as Preferences } from "../contexts/preferences/domain/UserPreferences";
 import type { TodoDaySummary } from "../contexts/todo/domain/TodoList";
 import type { TodoItemSnapshot } from "../contexts/todo/domain/TodoItem";
-import { RhythmApp } from "./RhythmApp";
+import { createAppModules } from "../app/composition/createAppModules";
+import { RhythmApp as GroupedRhythmApp } from "./RhythmApp";
 import type { RhythmAppServices } from "./RhythmAppServices";
+
+interface LegacyRhythmAppProps {
+  services: RhythmAppServices;
+  initialNow?: Date;
+}
+
+function RhythmApp({ services, initialNow }: LegacyRhythmAppProps): React.JSX.Element {
+  return <GroupedRhythmApp initialNow={initialNow} modules={createAppModules(services)} />;
+}
 
 function runningStatus(): RhythmStatusSnapshot {
   return {

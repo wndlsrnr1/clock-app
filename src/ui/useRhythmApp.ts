@@ -2,7 +2,7 @@ import { useEffect, useReducer, type Dispatch } from "react";
 import type { LanguagePreference, ThemePreference } from "../contexts/preferences/domain/UserPreferences";
 import type { RhythmStatusSnapshot } from "../contexts/rhythm/application/RhythmStatusSnapshot";
 import type { UpdatePreferencesCommand } from "../contexts/preferences/application/UpdatePreferencesUseCase";
-import type { RhythmAppServices } from "./RhythmAppServices";
+import type { AppModules } from "../app/contracts/AppModules";
 import { previewRhythmSettings, type RhythmSettingsPreview } from "./rhythmPreview";
 import { createTranslator, formatText, type TextCatalog } from "./textCatalog";
 import { normalizeOptionalTimeText } from "./timeText";
@@ -51,8 +51,11 @@ export interface RhythmAppViewModel {
   useDefaultNotificationSound(): Promise<void>;
 }
 
-export function useRhythmApp(services: RhythmAppServices, initialNow: Date): RhythmAppViewModel {
-  const [state, dispatch] = useReducer(reducer, createInitialState(services.getStatus.execute(), initialNow));
+export function useRhythmApp(
+  modules: Pick<AppModules, "rhythm" | "preferences">,
+  initialNow: Date,
+): RhythmAppViewModel {
+  const [state, dispatch] = useReducer(reducer, createInitialState(modules.rhythm.getStatus.execute(), initialNow));
   const text = createTranslator(state.status.language);
 
   useEffect((): (() => void) => {
@@ -72,10 +75,10 @@ export function useRhythmApp(services: RhythmAppServices, initialNow: Date): Rhy
     changeDailyStart: (value: string): void => dispatch({ type: "FORM_CHANGED", field: "dailyStart", value }),
     changeDailyEnd: (value: string): void => dispatch({ type: "FORM_CHANGED", field: "dailyEnd", value }),
     changeAutoStart: (enabled: boolean): void => dispatch({ type: "FORM_CHANGED", field: "autoStartEnabled", value: enabled }),
-    start: async (): Promise<void> => applyStatus(await services.startRhythm.execute(), dispatch),
-    pause: async (): Promise<void> => applyStatus(await services.pauseRhythm.execute(), dispatch),
-    resume: async (): Promise<void> => applyStatus(await services.resumeRhythm.execute(), dispatch),
-    stopForToday: async (): Promise<void> => applyStatus(await services.stopForToday.execute(), dispatch),
+    start: async (): Promise<void> => applyStatus(await modules.rhythm.start.execute(), dispatch),
+    pause: async (): Promise<void> => applyStatus(await modules.rhythm.pause.execute(), dispatch),
+    resume: async (): Promise<void> => applyStatus(await modules.rhythm.resume.execute(), dispatch),
+    stopForToday: async (): Promise<void> => applyStatus(await modules.rhythm.stopForToday.execute(), dispatch),
     savePreferences: async (): Promise<void> => {
       const normalizedForm = normalizedRhythmForm(state.form, text, dispatch);
 
@@ -84,7 +87,7 @@ export function useRhythmApp(services: RhythmAppServices, initialNow: Date): Rhy
       }
 
       await runRhythmAction(async (): Promise<void> => {
-        const preferences = await services.updatePreferences.execute(normalizedForm);
+        const preferences = await modules.preferences.update.execute(normalizedForm);
         dispatch({
           type: "STATUS_CHANGED",
           status: {
@@ -105,8 +108,8 @@ export function useRhythmApp(services: RhythmAppServices, initialNow: Date): Rhy
     },
     chooseCustomNotificationSound: async (): Promise<void> => {
       await runSoundAction(async (): Promise<void> => {
-        await services.stopNotificationSoundPreview.execute();
-        const preferences = await services.chooseCustomNotificationSound.execute();
+        await modules.preferences.stopNotificationSoundPreview.execute();
+        const preferences = await modules.preferences.chooseCustomNotificationSound.execute();
         dispatch({ type: "STATUS_CHANGED", status: { ...state.status, notificationSound: preferences.notificationSound } });
         dispatch({ type: "PREVIEW_CHANGED", isPreviewing: false });
         dispatch({ type: "MESSAGE_CHANGED", message: text.messages.customSoundChanged });
@@ -114,26 +117,26 @@ export function useRhythmApp(services: RhythmAppServices, initialNow: Date): Rhy
     },
     changeNotificationSoundVolume: async (volume: number): Promise<void> => {
       await runSoundAction(async (): Promise<void> => {
-        const preferences = await services.updateNotificationSoundVolume.execute(volume);
+        const preferences = await modules.preferences.updateNotificationSoundVolume.execute(volume);
         dispatch({ type: "STATUS_CHANGED", status: { ...state.status, notificationSound: preferences.notificationSound } });
         dispatch({ type: "MESSAGE_CHANGED", message: formatText(text.messages.volumeChanged, { volume: Math.round(preferences.notificationSound.volume * 100) }) });
       }, text, dispatch);
     },
     changeLanguage: async (language: LanguagePreference): Promise<void> => {
-      const preferences = await services.changeLanguage.execute(language);
+      const preferences = await modules.preferences.changeLanguage.execute(language);
       const nextText = createTranslator(preferences.language);
       dispatch({ type: "STATUS_CHANGED", status: { ...state.status, language: preferences.language, notificationSound: preferences.notificationSound } });
       dispatch({ type: "MESSAGE_CHANGED", message: nextText.messages.languageChanged });
     },
     changeTheme: async (theme: ThemePreference): Promise<void> => {
-      const preferences = await services.changeTheme.execute(theme);
+      const preferences = await modules.preferences.changeTheme.execute(theme);
       dispatch({ type: "STATUS_CHANGED", status: { ...state.status, theme: preferences.theme } });
       dispatch({ type: "MESSAGE_CHANGED", message: text.messages.themeChanged });
     },
     muteNotificationSound: async (): Promise<void> => {
       await runSoundAction(async (): Promise<void> => {
-        await services.stopNotificationSoundPreview.execute();
-        const preferences = await services.muteNotificationSound.execute();
+        await modules.preferences.stopNotificationSoundPreview.execute();
+        const preferences = await modules.preferences.muteNotificationSound.execute();
         dispatch({ type: "STATUS_CHANGED", status: { ...state.status, notificationSound: preferences.notificationSound } });
         dispatch({ type: "PREVIEW_CHANGED", isPreviewing: false });
         dispatch({ type: "MESSAGE_CHANGED", message: preferences.notificationSound.mode === "muted" ? text.messages.soundMuted : text.messages.soundUnmuted });
@@ -142,7 +145,7 @@ export function useRhythmApp(services: RhythmAppServices, initialNow: Date): Rhy
     toggleNotificationSoundPreview: async (): Promise<void> => {
       if (state.isPreviewing) {
         await runSoundAction(async (): Promise<void> => {
-          await services.stopNotificationSoundPreview.execute();
+          await modules.preferences.stopNotificationSoundPreview.execute();
           dispatch({ type: "PREVIEW_CHANGED", isPreviewing: false });
           dispatch({ type: "MESSAGE_CHANGED", message: text.messages.soundPreviewStopped });
         }, text, dispatch);
@@ -150,15 +153,15 @@ export function useRhythmApp(services: RhythmAppServices, initialNow: Date): Rhy
       }
 
       await runSoundAction(async (): Promise<void> => {
-        await services.previewNotificationSound.execute();
+        await modules.preferences.previewNotificationSound.execute();
         dispatch({ type: "PREVIEW_CHANGED", isPreviewing: true });
         dispatch({ type: "MESSAGE_CHANGED", message: text.messages.soundPreviewStarted });
       }, text, dispatch);
     },
     useDefaultNotificationSound: async (): Promise<void> => {
       await runSoundAction(async (): Promise<void> => {
-        await services.stopNotificationSoundPreview.execute();
-        const preferences = await services.useDefaultNotificationSound.execute();
+        await modules.preferences.stopNotificationSoundPreview.execute();
+        const preferences = await modules.preferences.useDefaultNotificationSound.execute();
         dispatch({ type: "STATUS_CHANGED", status: { ...state.status, notificationSound: preferences.notificationSound } });
         dispatch({ type: "PREVIEW_CHANGED", isPreviewing: false });
         dispatch({ type: "MESSAGE_CHANGED", message: text.messages.defaultSoundRestored });
