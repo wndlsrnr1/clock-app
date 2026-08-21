@@ -1,6 +1,6 @@
 import { Icon, os } from "@neutralinojs/lib";
-import type { NotificationPort } from "../../contexts/rhythm/application/ports";
-import type { RhythmEvent } from "../../contexts/rhythm/domain/RhythmEvent";
+import type { NotificationPort } from "../../application/ports";
+import type { RhythmEvent } from "../../domain/RhythmEvent";
 
 export class NeutralinoNotificationAdapter implements NotificationPort {
   public async notify(event: RhythmEvent): Promise<void> {

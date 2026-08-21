@@ -1,6 +1,5 @@
-import type { SoundPort } from "../../contexts/rhythm/application/ports";
-import type { SettingsRepository } from "../../contexts/preferences/application/ports/SettingsRepository";
-import type { NotificationSoundPreference } from "../../contexts/preferences/domain/UserPreferences";
+import type { SoundPort } from "../../application/ports";
+import type { SoundSettingsReader, SoundSettingsSnapshot } from "../SoundSettingsReader";
 
 export interface AudioElementPort {
   currentTime: number;
@@ -18,7 +17,7 @@ export class NeutralinoSoundAdapter implements SoundPort {
 
   public constructor(
     private readonly defaultSource: string,
-    private readonly settingsRepository: SettingsRepository,
+    private readonly settings: SoundSettingsReader,
     private readonly createAudio: AudioFactory = (source: string): AudioElementPort => new Audio(source),
   ) {}
 
@@ -48,7 +47,7 @@ export class NeutralinoSoundAdapter implements SoundPort {
       return;
     }
 
-    audio.volume = (await this.settingsRepository.get()).notificationSound.volume;
+    audio.volume = (await this.settings.get()).volume;
     audio.currentTime = 0;
     await audio.play();
   }
@@ -63,8 +62,8 @@ export class NeutralinoSoundAdapter implements SoundPort {
   }
 
   private async currentAudio(): Promise<AudioElementPort | null> {
-    const notificationSound = (await this.settingsRepository.get()).notificationSound;
-    const source = this.resolveSource(notificationSound);
+    const settings = await this.settings.get();
+    const source = this.resolveSource(settings);
 
     if (!source) {
       return null;
@@ -81,7 +80,7 @@ export class NeutralinoSoundAdapter implements SoundPort {
     return this.audio;
   }
 
-  private resolveSource(sound: NotificationSoundPreference): string | null {
+  private resolveSource(sound: SoundSettingsSnapshot): string | null {
     if (sound.mode === "muted") {
       return null;
     }

@@ -1,4 +1,4 @@
-import type { SchedulerPort } from "../../contexts/rhythm/application/ports";
+import type { SchedulerPort } from "../../application/ports";
 
 export class DeadlineScheduler implements SchedulerPort {
   private nextId = 1;

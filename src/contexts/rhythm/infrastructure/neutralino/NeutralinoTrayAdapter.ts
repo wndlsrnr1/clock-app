@@ -1,5 +1,5 @@
 import { events, os } from "@neutralinojs/lib";
-import type { TrayPort } from "../../contexts/rhythm/application/ports";
+import type { TrayPort } from "../../application/ports";
 
 export interface TrayActions {
   open(): Promise<void>;

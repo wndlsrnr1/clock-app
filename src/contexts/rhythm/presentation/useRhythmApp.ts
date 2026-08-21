@@ -1,6 +1,5 @@
 import { useEffect, useReducer, type Dispatch } from "react";
-import type { AppModules } from "../app/contracts/AppModules";
-import type { RhythmStatusSnapshot } from "../contexts/rhythm/public";
+import type { RhythmModule, RhythmStatusSnapshot } from "../public";
 
 interface RhythmAppState {
   now: Date;
@@ -24,13 +23,13 @@ export interface RhythmAppViewModel {
 }
 
 export function useRhythmApp(
-  modules: Pick<AppModules, "rhythm">,
+  rhythm: RhythmModule,
   initialNow: Date,
 ): RhythmAppViewModel {
   const [state, dispatch] = useReducer(reducer, {
     message: "",
     now: initialNow,
-    status: modules.rhythm.getStatus.execute(),
+    status: rhythm.getStatus.execute(),
   });
 
   useEffect((): (() => void) => {
@@ -43,10 +42,10 @@ export function useRhythmApp(
 
   return {
     ...state,
-    pause: async (): Promise<void> => runStatusAction(() => modules.rhythm.pause.execute(), dispatch),
-    resume: async (): Promise<void> => runStatusAction(() => modules.rhythm.resume.execute(), dispatch),
-    start: async (): Promise<void> => runStatusAction(() => modules.rhythm.start.execute(), dispatch),
-    stopForToday: async (): Promise<void> => runStatusAction(() => modules.rhythm.stopForToday.execute(), dispatch),
+    pause: async (): Promise<void> => runStatusAction(() => rhythm.pause.execute(), dispatch),
+    resume: async (): Promise<void> => runStatusAction(() => rhythm.resume.execute(), dispatch),
+    start: async (): Promise<void> => runStatusAction(() => rhythm.start.execute(), dispatch),
+    stopForToday: async (): Promise<void> => runStatusAction(() => rhythm.stopForToday.execute(), dispatch),
   };
 }
 

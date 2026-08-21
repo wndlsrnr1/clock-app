@@ -1,6 +1,6 @@
-import type { RhythmSessionStatus } from "../../contexts/rhythm/domain/RhythmSession";
-import type { TextCatalog } from "../textCatalog";
-import { IconButton } from "./IconButton";
+import type { RhythmSessionStatus } from "../domain/RhythmSession";
+import type { TextCatalog } from "../../../ui/textCatalog";
+import { IconButton } from "../../../ui/components/IconButton";
 
 interface RhythmControlsProps {
   status: RhythmSessionStatus;

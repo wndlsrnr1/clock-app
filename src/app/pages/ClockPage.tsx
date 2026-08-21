@@ -1,7 +1,7 @@
-import { AnalogClock } from "../../ui/components/AnalogClock";
-import { DigitalClock } from "../../ui/components/DigitalClock";
+import { AnalogClock } from "../../contexts/rhythm/presentation/AnalogClock";
+import { DigitalClock } from "../../contexts/rhythm/presentation/DigitalClock";
 import { NotificationSoundPanel } from "../../contexts/preferences/presentation/sound/NotificationSoundPanel";
-import { RhythmControls } from "../../ui/components/RhythmControls";
+import { RhythmControls } from "../../contexts/rhythm/presentation/RhythmControls";
 import { RhythmSettingsDisclosure } from "../../contexts/preferences/presentation/settings/RhythmSettingsDisclosure";
 import { RhythmSettingsPanel } from "../../contexts/preferences/presentation/settings/RhythmSettingsPanel";
 import { TodayTodoPanel } from "../../contexts/todo/presentation/today/TodayTodoPanel";
@@ -9,7 +9,7 @@ import { previewRhythmSettings } from "../../contexts/preferences/application/qu
 import { createRhythmSettingsSummary } from "../../contexts/preferences/presentation/settings/rhythmSettingsSummary";
 import type { PreferencesAppViewModel } from "../../contexts/preferences/presentation/usePreferencesApp";
 import { formatText, type TextCatalog } from "../../ui/textCatalog";
-import type { RhythmAppViewModel } from "../../ui/useRhythmApp";
+import type { RhythmAppViewModel } from "../../contexts/rhythm/presentation/useRhythmApp";
 import type { TodoAppViewModel } from "../../contexts/todo/presentation/useTodoApp";
 
 interface ClockPageProps {

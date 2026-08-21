@@ -6,7 +6,7 @@ import { ThemePage } from "../contexts/preferences/presentation/theme/ThemePage"
 import { usePreferencesApp } from "../contexts/preferences/presentation/usePreferencesApp";
 import { createTranslator } from "../ui/textCatalog";
 import { useLayoutMode } from "../ui/useLayoutMode";
-import { useRhythmApp } from "../ui/useRhythmApp";
+import { useRhythmApp } from "../contexts/rhythm/presentation/useRhythmApp";
 import { useTodoApp } from "../contexts/todo/presentation/useTodoApp";
 import type { AppModules } from "./contracts/AppModules";
 import type { UserPreferencesSnapshot } from "../contexts/preferences/public";
@@ -21,7 +21,7 @@ interface ClockRhythmAppProps {
 
 export function ClockRhythmApp({ modules, initialNow = new Date(), initialPreferences }: ClockRhythmAppProps): React.JSX.Element {
   const navigation = useAppNavigation();
-  const rhythm = useRhythmApp(modules, initialNow);
+  const rhythm = useRhythmApp(modules.rhythm, initialNow);
   const preferences = usePreferencesApp(
     modules.preferences,
     initialPreferences,

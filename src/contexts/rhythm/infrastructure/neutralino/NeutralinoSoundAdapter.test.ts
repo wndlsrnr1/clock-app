@@ -1,16 +1,13 @@
 import { describe, expect, it } from "vitest";
-import type { SettingsRepository } from "../../contexts/preferences/application/ports/SettingsRepository";
-import { UserPreferences } from "../../contexts/preferences/domain/UserPreferences";
+import type { SoundSettingsReader, SoundSettingsSnapshot } from "../SoundSettingsReader";
 import { NeutralinoSoundAdapter, type AudioElementPort } from "./NeutralinoSoundAdapter";
 
-class FakeSettingsRepository implements SettingsRepository {
-  public constructor(private readonly preferences: UserPreferences) {}
+class FakeSoundSettingsReader implements SoundSettingsReader {
+  public constructor(private readonly settings: SoundSettingsSnapshot) {}
 
-  public async get(): Promise<UserPreferences> {
-    return this.preferences;
+  public async get(): Promise<SoundSettingsSnapshot> {
+    return this.settings;
   }
-
-  public async save(): Promise<void> {}
 }
 
 class FakeAudio implements AudioElementPort {
@@ -36,7 +33,7 @@ describe("NeutralinoSoundAdapter", () => {
     const createdAudios: Array<FakeAudio> = [];
     const adapter = new NeutralinoSoundAdapter(
       "/assets/default.mp3",
-      new FakeSettingsRepository(UserPreferences.default().toggleNotificationSoundMute()),
+      new FakeSoundSettingsReader({ customSource: null, mode: "muted", volume: 1 }),
       (source: string): AudioElementPort => {
         const audio = new FakeAudio(source);
         createdAudios.push(audio);
@@ -51,13 +48,9 @@ describe("NeutralinoSoundAdapter", () => {
 
   it("plays the copied custom mp3 source when a custom sound is selected", async () => {
     const createdAudios: Array<FakeAudio> = [];
-    const preferences = UserPreferences.default().useCustomNotificationSound({
-      fileName: "bell.mp3",
-      source: "/user-sounds/notification.mp3",
-    });
     const adapter = new NeutralinoSoundAdapter(
       "/assets/default.mp3",
-      new FakeSettingsRepository(preferences),
+      new FakeSoundSettingsReader({ customSource: "/user-sounds/notification.mp3", mode: "custom", volume: 1 }),
       (source: string): AudioElementPort => {
         const audio = new FakeAudio(source);
         createdAudios.push(audio);
@@ -75,7 +68,7 @@ describe("NeutralinoSoundAdapter", () => {
     const createdAudios: Array<FakeAudio> = [];
     const adapter = new NeutralinoSoundAdapter(
       "/assets/default.mp3",
-      new FakeSettingsRepository(UserPreferences.default().changeNotificationSoundVolume(0.35)),
+      new FakeSoundSettingsReader({ customSource: null, mode: "default", volume: 0.35 }),
       (source: string): AudioElementPort => {
         const audio = new FakeAudio(source);
         createdAudios.push(audio);
@@ -92,7 +85,7 @@ describe("NeutralinoSoundAdapter", () => {
     const createdAudios: Array<FakeAudio> = [];
     const adapter = new NeutralinoSoundAdapter(
       "/assets/default.mp3",
-      new FakeSettingsRepository(UserPreferences.default()),
+      new FakeSoundSettingsReader({ customSource: null, mode: "default", volume: 1 }),
       (source: string): AudioElementPort => {
         const audio = new FakeAudio(source);
         createdAudios.push(audio);
