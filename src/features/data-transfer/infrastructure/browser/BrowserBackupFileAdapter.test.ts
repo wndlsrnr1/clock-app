@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { BrowserPreviewBackupFileAdapter } from "./BrowserPreviewBackupFileAdapter";
+import { BrowserBackupFileAdapter } from "./BrowserBackupFileAdapter";
 
 class FakeJsonFilePicker {
   public file: File | null = null;
@@ -9,13 +9,13 @@ class FakeJsonFilePicker {
   }
 }
 
-describe("BrowserPreviewBackupFileAdapter", () => {
+describe("BrowserBackupFileAdapter", () => {
   it("downloads exported backup JSON through a blob URL", async () => {
     const picker = new FakeJsonFilePicker();
     const clicked = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation((): void => {});
     const revokedUrls: Array<string> = [];
     const blobs: Array<Blob> = [];
-    const adapter = new BrowserPreviewBackupFileAdapter(
+    const adapter = new BrowserBackupFileAdapter(
       picker,
       (blob: Blob): string => {
         blobs.push(blob);
@@ -39,13 +39,13 @@ describe("BrowserPreviewBackupFileAdapter", () => {
   it("reads selected JSON backup file text", async () => {
     const picker = new FakeJsonFilePicker();
     picker.file = new File(["{\"schemaVersion\":1}"], "backup.json", { type: "application/json" });
-    const adapter = new BrowserPreviewBackupFileAdapter(picker);
+    const adapter = new BrowserBackupFileAdapter(picker);
 
     await expect(adapter.readBackup()).resolves.toBe("{\"schemaVersion\":1}");
   });
 
   it("returns null when the import file picker is cancelled", async () => {
-    const adapter = new BrowserPreviewBackupFileAdapter(new FakeJsonFilePicker());
+    const adapter = new BrowserBackupFileAdapter(new FakeJsonFilePicker());
 
     await expect(adapter.readBackup()).resolves.toBeNull();
   });

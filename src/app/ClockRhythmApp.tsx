@@ -1,5 +1,6 @@
 import { CalendarPage } from "../ui/components/CalendarPage";
-import { DataPage } from "../ui/components/DataPage";
+import { DataPage } from "../features/data-transfer/presentation/DataPage";
+import { useDataTransfer } from "../features/data-transfer/presentation/useDataTransfer";
 import { SegmentedControl } from "../ui/components/SegmentedControl";
 import { ThemePage } from "../contexts/preferences/presentation/theme/ThemePage";
 import { usePreferencesApp } from "../contexts/preferences/presentation/usePreferencesApp";
@@ -27,6 +28,10 @@ export function ClockRhythmApp({ modules, initialNow = new Date(), initialPrefer
   );
   const text = createTranslator(preferences.preferences.language);
   const todo = useTodoApp(modules, rhythm.now, text);
+  const dataTransfer = useDataTransfer(modules.dataTransfer, text, async (): Promise<void> => {
+    await preferences.refresh();
+    await todo.refresh();
+  });
   const { containerRef, layoutMode } = useLayoutMode();
 
   return (
@@ -59,7 +64,7 @@ export function ClockRhythmApp({ modules, initialNow = new Date(), initialPrefer
         ) : navigation.page === "calendar" ? (
           <CalendarPage language={preferences.preferences.language} todo={todo} text={text} />
         ) : navigation.page === "data" ? (
-          <DataPage todo={todo} text={text} />
+          <DataPage dataTransfer={dataTransfer} text={text} />
         ) : (
           <ThemePage preferences={preferences} text={text} />
         )}

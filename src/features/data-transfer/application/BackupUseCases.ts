@@ -1,8 +1,6 @@
-import type { SettingsRepository } from "../../preferences/application/ports/SettingsRepository";
-import type { TodoRepository } from "../../todo/application/ports";
-import { TodoItem, type TodoItemSnapshot } from "../../todo/domain/TodoItem";
-import { UserPreferences, type UserPreferencesSnapshot } from "../../preferences/domain/UserPreferences";
-import type { BackupClock, BackupFilePort } from "./ports";
+import type { TodoItemSnapshot } from "../../../contexts/todo/public";
+import type { UserPreferencesSnapshot } from "../../../contexts/preferences/public";
+import type { BackupClock, BackupFilePort, PreferencesBackupPort, TodoBackupPort } from "./ports";
 
 const BACKUP_APP_NAME = "Clock Rhythm";
 const BACKUP_SCHEMA_VERSION = 1;
@@ -30,8 +28,8 @@ export interface PreparedBackupImport {
 
 export class ExportBackupUseCase {
   public constructor(
-    private readonly settingsRepository: SettingsRepository,
-    private readonly todoRepository: TodoRepository,
+    private readonly preferences: PreferencesBackupPort,
+    private readonly todos: TodoBackupPort,
     private readonly backupFile: BackupFilePort,
     private readonly clock: BackupClock,
   ) {}
@@ -40,9 +38,9 @@ export class ExportBackupUseCase {
     const backup: ClockRhythmBackup = {
       appName: BACKUP_APP_NAME,
       exportedAt: this.clock.now().toISOString(),
-      preferences: (await this.settingsRepository.get()).snapshot(),
+      preferences: await this.preferences.exportSnapshot(),
       schemaVersion: BACKUP_SCHEMA_VERSION,
-      todos: (await this.todoRepository.getAll()).map((todo: TodoItem): TodoItemSnapshot => todo.snapshot()),
+      todos: await this.todos.exportSnapshots(),
     };
 
     await this.backupFile.saveBackup(JSON.stringify(backup, null, 2));
@@ -51,24 +49,19 @@ export class ExportBackupUseCase {
 
 export class ImportBackupUseCase {
   public constructor(
-    private readonly settingsRepository: SettingsRepository,
-    private readonly todoRepository: TodoRepository,
+    private readonly preferences: PreferencesBackupPort,
+    private readonly todos: TodoBackupPort,
   ) {}
 
   public async execute(preparedImport: PreparedBackupImport): Promise<void> {
     const backup = parseBackup(preparedImport.backupText);
-    const preferences = UserPreferences.restore(sanitizePreferencesForImport(backup.preferences));
-    const todos = backup.todos.map((todo: TodoItemSnapshot): TodoItem => TodoItem.restore(todo));
-
-    await this.settingsRepository.save(preferences);
-    await this.todoRepository.saveAll(todos);
+    await this.todos.replaceSnapshots(backup.todos);
+    await this.preferences.replaceSnapshot(sanitizePreferencesForImport(backup.preferences));
   }
 }
 
 export class PreviewBackupImportUseCase {
-  public constructor(
-    private readonly backupFile: BackupFilePort,
-  ) {}
+  public constructor(private readonly backupFile: BackupFilePort) {}
 
   public async execute(): Promise<PreparedBackupImport | null> {
     const backupText = await this.backupFile.readBackup();

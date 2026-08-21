@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type { RhythmStatusSnapshot } from "../contexts/rhythm/application/RhythmStatusSnapshot";
-import type { PreparedBackupImport } from "../contexts/backup/application/BackupUseCases";
+import type { PreparedBackupImport } from "../features/data-transfer/public";
 import { UserPreferences as Preferences } from "../contexts/preferences/domain/UserPreferences";
 import type { UserPreferencesSnapshot } from "../contexts/preferences/domain/UserPreferences";
 import type { TodoDaySummary } from "../contexts/todo/domain/TodoList";

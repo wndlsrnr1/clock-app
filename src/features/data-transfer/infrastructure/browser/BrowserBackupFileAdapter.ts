@@ -1,4 +1,4 @@
-import type { BackupFilePort } from "../../contexts/backup/application/ports";
+import type { BackupFilePort } from "../../application/ports";
 
 interface BrowserBackupFilePicker {
   chooseJson(): Promise<File | null>;
@@ -6,7 +6,7 @@ interface BrowserBackupFilePicker {
 
 type ObjectUrlFactory = (blob: Blob) => string;
 
-export class BrowserPreviewBackupFileAdapter implements BackupFilePort {
+export class BrowserBackupFileAdapter implements BackupFilePort {
   public constructor(
     private readonly filePicker: BrowserBackupFilePicker = new HiddenInputJsonFilePicker(),
     private readonly createObjectUrl: ObjectUrlFactory = (blob: Blob): string => URL.createObjectURL(blob),

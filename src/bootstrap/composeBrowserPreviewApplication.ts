@@ -1,5 +1,7 @@
 import chimeSoundUrl from "../assets/CHIME14.mp3";
-import { ExportBackupUseCase, ImportBackupUseCase, PreviewBackupImportUseCase } from "../contexts/backup/application/BackupUseCases";
+import { ExportPreferencesSnapshotUseCase, ReplacePreferencesSnapshotUseCase } from "../contexts/preferences/public";
+import { ExportTodoSnapshotsUseCase, ReplaceTodoSnapshotsUseCase } from "../contexts/todo/public";
+import { createDataTransferModule } from "../features/data-transfer/composition";
 import { ChangeLanguagePreferenceUseCase } from "../contexts/preferences/application/LanguagePreferenceUseCase";
 import { ChooseCustomNotificationSoundUseCase, PreviewNotificationSoundUseCase, SetNotificationSoundModeUseCase, StopNotificationSoundPreviewUseCase, UpdateNotificationSoundVolumeUseCase } from "../contexts/preferences/application/NotificationSoundUseCases";
 import { ChangeThemePreferenceUseCase } from "../contexts/preferences/application/ThemePreferenceUseCase";
@@ -21,7 +23,7 @@ import { RhythmConfiguration } from "../contexts/rhythm/public-model";
 import { AddTodoUseCase, DeleteTodoUseCase, GetTodoCalendarSummaryUseCase, GetTodosByDateUseCase, ReorderTodosUseCase, ToggleTodoUseCase, UpdateTodoUseCase } from "../contexts/todo/application/TodoUseCases";
 import type { TodoRepository } from "../contexts/todo/application/ports";
 import { TodoItem, type TodoItemSnapshot } from "../contexts/todo/domain/TodoItem";
-import { BrowserPreviewBackupFileAdapter } from "../platform/browser/BrowserPreviewBackupFileAdapter";
+import { BrowserBackupFileAdapter } from "../features/data-transfer/infrastructure/browser/BrowserBackupFileAdapter";
 import { BrowserPreviewNotificationSoundFileAdapter } from "../platform/browser/BrowserPreviewNotificationSoundFileAdapter";
 import { DeadlineScheduler } from "../platform/scheduler/DeadlineScheduler";
 import { BrowserTodoIdGenerator } from "../platform/todo/BrowserTodoIdGenerator";
@@ -52,7 +54,15 @@ export function composeBrowserPreviewApplication(): { initialPreferences: UserPr
   const preferencesChanged = new RefreshRhythmAfterPreferencesChanged(runtime, rhythmRescheduler);
   const autoStart = new BrowserPreviewAutoStartAdapter();
   const notificationSoundMode = new SetNotificationSoundModeUseCase(settingsRepository);
-  const backupFile = new BrowserPreviewBackupFileAdapter();
+  const backupFile = new BrowserBackupFileAdapter();
+  const dataTransfer = createDataTransferModule({
+    backupFile,
+    clock,
+    exportPreferences: new ExportPreferencesSnapshotUseCase(settingsRepository),
+    exportTodos: new ExportTodoSnapshotsUseCase(todoRepository),
+    replacePreferences: new ReplacePreferencesSnapshotUseCase(settingsRepository, preferencesChanged),
+    replaceTodos: new ReplaceTodoSnapshotsUseCase(todoRepository),
+  });
 
   return {
     initialPreferences: currentPreferences.snapshot(),
@@ -77,9 +87,9 @@ export function composeBrowserPreviewApplication(): { initialPreferences: UserPr
       reorderTodos: new ReorderTodosUseCase(todoRepository, clock),
       toggleTodo: new ToggleTodoUseCase(todoRepository, clock),
       updateTodo: new UpdateTodoUseCase(todoRepository, clock),
-      exportBackup: new ExportBackupUseCase(settingsRepository, todoRepository, backupFile, clock),
-      previewImportBackup: new PreviewBackupImportUseCase(backupFile),
-      importBackup: new ImportBackupUseCase(settingsRepository, todoRepository),
+      exportBackup: dataTransfer.exportBackup,
+      previewImportBackup: dataTransfer.previewImport,
+      importBackup: dataTransfer.importBackup,
       changeLanguage: new ChangeLanguagePreferenceUseCase(settingsRepository),
       changeTheme: new ChangeThemePreferenceUseCase(settingsRepository),
     },

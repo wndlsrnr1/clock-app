@@ -1,5 +1,7 @@
 import chimeSoundUrl from "../assets/CHIME14.mp3";
-import { ExportBackupUseCase, ImportBackupUseCase, PreviewBackupImportUseCase } from "../contexts/backup/application/BackupUseCases";
+import { ExportPreferencesSnapshotUseCase, ReplacePreferencesSnapshotUseCase } from "../contexts/preferences/public";
+import { ExportTodoSnapshotsUseCase, ReplaceTodoSnapshotsUseCase } from "../contexts/todo/public";
+import { createDataTransferModule } from "../features/data-transfer/composition";
 import { ChangeLanguagePreferenceUseCase } from "../contexts/preferences/application/LanguagePreferenceUseCase";
 import { ChooseCustomNotificationSoundUseCase, PreviewNotificationSoundUseCase, SetNotificationSoundModeUseCase, StopNotificationSoundPreviewUseCase, UpdateNotificationSoundVolumeUseCase } from "../contexts/preferences/application/NotificationSoundUseCases";
 import { ChangeThemePreferenceUseCase } from "../contexts/preferences/application/ThemePreferenceUseCase";
@@ -16,7 +18,7 @@ import { StopRhythmForTodayUseCase } from "../contexts/rhythm/application/StopRh
 import { AddTodoUseCase, DeleteTodoUseCase, GetTodoCalendarSummaryUseCase, GetTodosByDateUseCase, ReorderTodosUseCase, ToggleTodoUseCase, UpdateTodoUseCase } from "../contexts/todo/application/TodoUseCases";
 import { createAutoStartAdapter } from "../platform/autostart/createAutoStartAdapter";
 import { PlatformEnvironmentDetector } from "../platform/environment/PlatformEnvironmentDetector";
-import { NeutralinoBackupFileAdapter } from "../platform/neutralino/NeutralinoBackupFileAdapter";
+import { NeutralinoBackupFileAdapter } from "../features/data-transfer/infrastructure/neutralino/NeutralinoBackupFileAdapter";
 import { NeutralinoCommandExecutor } from "../platform/neutralino/NeutralinoCommandExecutor";
 import { NeutralinoNotificationSoundFileAdapter } from "../platform/neutralino/NeutralinoNotificationSoundFileAdapter";
 import { NeutralinoNotificationAdapter } from "../platform/neutralino/NeutralinoNotificationAdapter";
@@ -69,6 +71,14 @@ export async function composeApplication(): Promise<ComposedApplication> {
       executablePath: currentNeutralinoExecutablePath(),
     },
   );
+  const dataTransfer = createDataTransferModule({
+    backupFile,
+    clock,
+    exportPreferences: new ExportPreferencesSnapshotUseCase(settingsRepository),
+    exportTodos: new ExportTodoSnapshotsUseCase(todoRepository),
+    replacePreferences: new ReplacePreferencesSnapshotUseCase(settingsRepository, preferencesChanged),
+    replaceTodos: new ReplaceTodoSnapshotsUseCase(todoRepository),
+  });
 
   const services: RhythmAppServices = {
     startRhythm: new StartRhythmUseCase(runtime, configurationReader, scheduler, sound, tray, clock, notification),
@@ -91,9 +101,9 @@ export async function composeApplication(): Promise<ComposedApplication> {
     reorderTodos: new ReorderTodosUseCase(todoRepository, clock),
     toggleTodo: new ToggleTodoUseCase(todoRepository, clock),
     updateTodo: new UpdateTodoUseCase(todoRepository, clock),
-    exportBackup: new ExportBackupUseCase(settingsRepository, todoRepository, backupFile, clock),
-    previewImportBackup: new PreviewBackupImportUseCase(backupFile),
-    importBackup: new ImportBackupUseCase(settingsRepository, todoRepository),
+    exportBackup: dataTransfer.exportBackup,
+    previewImportBackup: dataTransfer.previewImport,
+    importBackup: dataTransfer.importBackup,
     changeLanguage: new ChangeLanguagePreferenceUseCase(settingsRepository),
     changeTheme: new ChangeThemePreferenceUseCase(settingsRepository),
   };

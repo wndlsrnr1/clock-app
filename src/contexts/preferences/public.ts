@@ -6,6 +6,8 @@ import type {
   UserPreferencesSnapshot,
 } from "./domain/UserPreferences";
 export { GetPreferencesUseCase } from "./application/queries/GetPreferencesUseCase";
+export { ExportPreferencesSnapshotUseCase } from "./application/commands/ExportPreferencesSnapshotUseCase";
+export { ReplacePreferencesSnapshotUseCase } from "./application/commands/ReplacePreferencesSnapshotUseCase";
 
 export { ChangeLanguagePreferenceUseCase } from "./application/LanguagePreferenceUseCase";
 export {

@@ -1,5 +1,5 @@
 import { filesystem, os } from "@neutralinojs/lib";
-import type { BackupFilePort } from "../../contexts/backup/application/ports";
+import type { BackupFilePort } from "../../application/ports";
 
 interface NeutralinoBackupOsPort {
   showSaveDialog(title?: string, options?: {

@@ -1,11 +1,11 @@
-import type { PreparedBackupImport } from "../../contexts/backup/application/BackupUseCases";
+import type { PreparedBackupImport } from "./application/BackupUseCases";
 
 export {
   ExportBackupUseCase,
   ImportBackupUseCase,
   PreviewBackupImportUseCase,
   type PreparedBackupImport,
-} from "../../contexts/backup/application/BackupUseCases";
+} from "./application/BackupUseCases";
 
 export interface DataTransferModule {
   exportBackup: { execute(): Promise<void> };

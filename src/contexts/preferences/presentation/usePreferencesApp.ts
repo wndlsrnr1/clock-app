@@ -19,6 +19,7 @@ interface PreferencesAppState {
 
 type PreferencesAppAction =
   | { type: "PREFERENCES_CHANGED"; preferences: UserPreferencesSnapshot }
+  | { type: "PREFERENCES_RELOADED"; preferences: UserPreferencesSnapshot }
   | { type: "FORM_CHANGED"; field: keyof UpdatePreferencesCommand; value: string | number | boolean }
   | { type: "PREVIEW_CHANGED"; isPreviewingSound: boolean }
   | { type: "MESSAGE_CHANGED"; message: string };
@@ -38,6 +39,7 @@ export interface PreferencesAppViewModel {
   changeTheme(theme: ThemePreference): Promise<void>;
   chooseCustomNotificationSound(): Promise<void>;
   muteNotificationSound(): Promise<void>;
+  refresh(): Promise<void>;
   save(): Promise<void>;
   toggleNotificationSoundPreview(): Promise<void>;
   useDefaultNotificationSound(): Promise<void>;
@@ -98,6 +100,9 @@ export function usePreferencesApp(
         });
       }, text, dispatch);
     },
+    refresh: async (): Promise<void> => {
+      dispatch({ type: "PREFERENCES_RELOADED", preferences: await preferencesModule.get.execute() });
+    },
     save: async (): Promise<void> => {
       const normalizedForm = normalizeForm(state.form, text, dispatch);
 
@@ -137,13 +142,7 @@ export function usePreferencesApp(
 
 function createInitialState(preferences: UserPreferencesSnapshot): PreferencesAppState {
   return {
-    form: {
-      autoStartEnabled: preferences.autoStartEnabled,
-      dailyEnd: preferences.dailyEnd,
-      dailyStart: preferences.dailyStart,
-      focusMinutes: preferences.focusMinutes,
-      restMinutes: preferences.restMinutes,
-    },
+    form: createForm(preferences),
     isPreviewingSound: false,
     message: "",
     preferences,
@@ -155,6 +154,10 @@ function reducer(state: PreferencesAppState, action: PreferencesAppAction): Pref
     return { ...state, preferences: action.preferences };
   }
 
+  if (action.type === "PREFERENCES_RELOADED") {
+    return { ...state, form: createForm(action.preferences), preferences: action.preferences };
+  }
+
   if (action.type === "PREVIEW_CHANGED") {
     return { ...state, isPreviewingSound: action.isPreviewingSound };
   }
@@ -164,6 +167,16 @@ function reducer(state: PreferencesAppState, action: PreferencesAppAction): Pref
   }
 
   return { ...state, form: { ...state.form, [action.field]: action.value } };
+}
+
+function createForm(preferences: UserPreferencesSnapshot): UpdatePreferencesCommand {
+  return {
+    autoStartEnabled: preferences.autoStartEnabled,
+    dailyEnd: preferences.dailyEnd,
+    dailyStart: preferences.dailyStart,
+    focusMinutes: preferences.focusMinutes,
+    restMinutes: preferences.restMinutes,
+  };
 }
 
 function applyPreferences(preferences: UserPreferences, dispatch: Dispatch<PreferencesAppAction>): void {

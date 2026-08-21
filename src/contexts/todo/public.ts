@@ -20,6 +20,8 @@ export {
 } from "./application/TodoUseCases";
 export { TodoItem, type TodoItemSnapshot } from "./domain/TodoItem";
 export type { TodoDaySummary } from "./domain/TodoList";
+export { ExportTodoSnapshotsUseCase } from "./application/commands/ExportTodoSnapshotsUseCase";
+export { ReplaceTodoSnapshotsUseCase } from "./application/commands/ReplaceTodoSnapshotsUseCase";
 
 export interface TodoModule {
   add: { execute(command: AddTodoCommand): Promise<TodoItemSnapshot> };

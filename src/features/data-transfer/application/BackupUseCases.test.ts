@@ -1,12 +1,10 @@
 import { describe, expect, it } from "vitest";
-import type { SettingsRepository } from "../../preferences/application/ports/SettingsRepository";
-import type { TodoRepository } from "../../todo/application/ports";
-import { TodoItem, type TodoItemSnapshot } from "../../todo/domain/TodoItem";
-import { UserPreferences } from "../../preferences/domain/UserPreferences";
+import { UserPreferences, type UserPreferencesSnapshot } from "../../../contexts/preferences/public";
+import { TodoItem, type TodoItemSnapshot } from "../../../contexts/todo/public";
 import { ExportBackupUseCase, ImportBackupUseCase, PreviewBackupImportUseCase, type PreparedBackupImport } from "./BackupUseCases";
-import type { BackupFilePort } from "./ports";
+import type { BackupFilePort, PreferencesBackupPort, TodoBackupPort } from "./ports";
 
-class InMemorySettingsRepository implements SettingsRepository {
+class InMemorySettingsRepository implements PreferencesBackupPort {
   public constructor(private preferences: UserPreferences = UserPreferences.default()) {}
 
   public async get(): Promise<UserPreferences> {
@@ -16,9 +14,17 @@ class InMemorySettingsRepository implements SettingsRepository {
   public async save(preferences: UserPreferences): Promise<void> {
     this.preferences = preferences;
   }
+
+  public async exportSnapshot(): Promise<UserPreferencesSnapshot> {
+    return this.preferences.snapshot();
+  }
+
+  public async replaceSnapshot(snapshot: UserPreferencesSnapshot): Promise<void> {
+    this.preferences = UserPreferences.restore(snapshot);
+  }
 }
 
-class InMemoryTodoRepository implements TodoRepository {
+class InMemoryTodoRepository implements TodoBackupPort {
   public constructor(private todos: Array<TodoItem> = []) {}
 
   public async getAll(): Promise<Array<TodoItem>> {
@@ -27,6 +33,14 @@ class InMemoryTodoRepository implements TodoRepository {
 
   public async saveAll(todos: Array<TodoItem>): Promise<void> {
     this.todos = todos;
+  }
+
+  public async exportSnapshots(): Promise<Array<TodoItemSnapshot>> {
+    return this.todos.map((todo): TodoItemSnapshot => todo.snapshot());
+  }
+
+  public async replaceSnapshots(snapshots: Array<TodoItemSnapshot>): Promise<void> {
+    this.todos = snapshots.map((snapshot): TodoItem => TodoItem.restore(snapshot));
   }
 }
 
