@@ -1,12 +1,16 @@
 import { storage } from "@neutralinojs/lib";
 import type { TodoRepository } from "../../application/ports";
 import { TodoItem, type TodoItemSnapshot } from "../../domain/TodoItem";
-import type { NeutralinoStoragePort } from "../../../../platform/neutralino/NeutralinoSettingsRepository";
+
+interface NeutralinoTodoStoragePort {
+  getData(key: string): Promise<string>;
+  setData(key: string, value: string): Promise<void>;
+}
 
 export class NeutralinoTodoRepository implements TodoRepository {
   private readonly key = "todos";
 
-  public constructor(private readonly neutralinoStorage: NeutralinoStoragePort = storage) {}
+  public constructor(private readonly neutralinoStorage: NeutralinoTodoStoragePort = storage) {}
 
   public async getAll(): Promise<Array<TodoItem>> {
     try {

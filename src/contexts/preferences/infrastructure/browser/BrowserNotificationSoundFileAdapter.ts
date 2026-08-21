@@ -1,4 +1,4 @@
-import type { NotificationSoundFilePort, SelectedNotificationSound } from "../../contexts/preferences/application/ports/NotificationSoundFilePort";
+import type { NotificationSoundFilePort, SelectedNotificationSound } from "../../application/ports/NotificationSoundFilePort";
 
 interface BrowserFilePicker {
   chooseMp3(): Promise<File | null>;
@@ -6,7 +6,7 @@ interface BrowserFilePicker {
 
 type ObjectUrlFactory = (file: File) => string;
 
-export class BrowserPreviewNotificationSoundFileAdapter implements NotificationSoundFilePort {
+export class BrowserNotificationSoundFileAdapter implements NotificationSoundFilePort {
   private readonly maxMp3Bytes = 20 * 1024 * 1024;
 
   public constructor(

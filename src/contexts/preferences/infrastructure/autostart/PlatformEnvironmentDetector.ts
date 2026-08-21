@@ -1,6 +1,6 @@
 import { os } from "@neutralinojs/lib";
-import type { PlatformName } from "../autostart/createAutoStartAdapter";
-import { currentNeutralinoOperatingSystem } from "../neutralino/NeutralinoRuntimeGlobals";
+import { currentNeutralinoOperatingSystem } from "../../../../platform/neutralino/NeutralinoRuntimeGlobals";
+import type { PlatformName } from "./createAutoStartAdapter";
 
 export class PlatformEnvironmentDetector {
   public async detect(): Promise<PlatformName> {

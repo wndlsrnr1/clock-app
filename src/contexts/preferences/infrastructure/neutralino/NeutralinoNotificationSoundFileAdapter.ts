@@ -1,5 +1,5 @@
 import { filesystem, os, server } from "@neutralinojs/lib";
-import type { NotificationSoundFilePort, SelectedNotificationSound } from "../../contexts/preferences/application/ports/NotificationSoundFilePort";
+import type { NotificationSoundFilePort, SelectedNotificationSound } from "../../application/ports/NotificationSoundFilePort";
 
 interface OpenDialogPort {
   showOpenDialog(title: string, options: { filters: Array<{ name: string; extensions: Array<string> }>; multiSelections: boolean }): Promise<Array<string>>;

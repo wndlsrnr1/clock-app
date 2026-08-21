@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BrowserPreviewNotificationSoundFileAdapter } from "./BrowserPreviewNotificationSoundFileAdapter";
+import { BrowserNotificationSoundFileAdapter } from "./BrowserNotificationSoundFileAdapter";
 
 class FakeBrowserFilePicker {
   public constructor(private readonly file: File | null) {}
@@ -9,15 +9,15 @@ class FakeBrowserFilePicker {
   }
 }
 
-describe("BrowserPreviewNotificationSoundFileAdapter", () => {
+describe("BrowserNotificationSoundFileAdapter", () => {
   it("returns null when the user cancels file selection", async () => {
-    const adapter = new BrowserPreviewNotificationSoundFileAdapter(new FakeBrowserFilePicker(null));
+    const adapter = new BrowserNotificationSoundFileAdapter(new FakeBrowserFilePicker(null));
 
     await expect(adapter.chooseCustomMp3()).resolves.toBeNull();
   });
 
   it("returns a browser object URL for a selected mp3 file", async () => {
-    const adapter = new BrowserPreviewNotificationSoundFileAdapter(
+    const adapter = new BrowserNotificationSoundFileAdapter(
       new FakeBrowserFilePicker(new File(["sound"], "bell.mp3", { type: "audio/mpeg" })),
       (file: File): string => `blob:preview/${file.name}`,
     );
@@ -29,7 +29,7 @@ describe("BrowserPreviewNotificationSoundFileAdapter", () => {
   });
 
   it("rejects files that are not mp3 files", async () => {
-    const adapter = new BrowserPreviewNotificationSoundFileAdapter(
+    const adapter = new BrowserNotificationSoundFileAdapter(
       new FakeBrowserFilePicker(new File(["sound"], "bell.wav", { type: "audio/wav" })),
     );
 
