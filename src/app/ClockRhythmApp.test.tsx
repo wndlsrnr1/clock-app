@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { RhythmStatusSnapshot } from "../contexts/rhythm/application/RhythmStatusSnapshot";
 import type { PreparedBackupImport } from "../contexts/backup/application/BackupUseCases";
 import { UserPreferences as Preferences } from "../contexts/preferences/domain/UserPreferences";
+import type { UserPreferencesSnapshot } from "../contexts/preferences/domain/UserPreferences";
 import type { TodoDaySummary } from "../contexts/todo/domain/TodoList";
 import type { TodoItemSnapshot } from "../contexts/todo/domain/TodoItem";
 import { createAppModules } from "./composition/createAppModules";
@@ -11,12 +12,12 @@ import { ClockRhythmApp as GroupedRhythmApp } from "./ClockRhythmApp";
 import type { RhythmAppServices } from "../ui/RhythmAppServices";
 
 interface LegacyRhythmAppProps {
-  services: RhythmAppServices;
+  services: TestRhythmAppServices;
   initialNow?: Date;
 }
 
 function RhythmApp({ services, initialNow }: LegacyRhythmAppProps): React.JSX.Element {
-  return <GroupedRhythmApp initialNow={initialNow} modules={createAppModules(services)} />;
+  return <GroupedRhythmApp initialNow={initialNow} initialPreferences={services.initialPreferences} modules={createAppModules(services)} />;
 }
 
 function runningStatus(): RhythmStatusSnapshot {
@@ -26,11 +27,6 @@ function runningStatus(): RhythmStatusSnapshot {
     restMinutes: 10,
     dailyStart: "05:00",
     dailyEnd: "18:00",
-    autoStartEnabled: false,
-    notificationSound: Preferences.default().notificationSound,
-    language: "kor",
-    theme: "current",
-    initialSetupCompleted: true,
   };
 }
 
@@ -46,10 +42,15 @@ function stoppedForTodayStatus(): RhythmStatusSnapshot {
   return { ...runningStatus(), sessionStatus: "stoppedForToday" };
 }
 
-function createServices(initialTodos: Array<TodoItemSnapshot> = []): RhythmAppServices {
+interface TestRhythmAppServices extends RhythmAppServices {
+  initialPreferences: UserPreferencesSnapshot;
+}
+
+function createServices(initialTodos: Array<TodoItemSnapshot> = []): TestRhythmAppServices {
   const todos: Array<TodoItemSnapshot> = [...initialTodos];
 
   return {
+    initialPreferences: Preferences.default().completeInitialSetup().snapshot(),
     startRhythm: { execute: vi.fn(() => Promise.resolve(runningStatus())) },
     pauseRhythm: { execute: vi.fn(() => Promise.resolve(pausedStatus())) },
     resumeRhythm: { execute: vi.fn(() => Promise.resolve(runningStatus())) },
@@ -220,7 +221,7 @@ describe("RhythmApp", () => {
 
   it("opens rhythm settings on the first launch until setup is saved once", () => {
     const services = createServices();
-    services.getStatus = { execute: vi.fn(() => ({ ...idleStatus(), initialSetupCompleted: false })) };
+    services.initialPreferences = Preferences.default().snapshot();
 
     render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
 
@@ -407,12 +408,10 @@ describe("RhythmApp", () => {
 
   it("warns when audible notification volume is zero", () => {
     const services = createServices();
-    services.getStatus = {
-      execute: vi.fn(() => ({
-        ...idleStatus(),
-        notificationSound: Preferences.default().changeNotificationSoundVolume(0).notificationSound,
-      })),
-    };
+    services.initialPreferences = Preferences.default()
+      .completeInitialSetup()
+      .changeNotificationSoundVolume(0)
+      .snapshot();
 
     render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
 
@@ -436,7 +435,7 @@ describe("RhythmApp", () => {
     const user = userEvent.setup();
     const services = createServices();
     const muted = Preferences.default().toggleNotificationSoundMute();
-    services.getStatus = { execute: vi.fn(() => ({ ...idleStatus(), notificationSound: muted.notificationSound })) };
+    services.initialPreferences = muted.completeInitialSetup().snapshot();
     services.muteNotificationSound = { execute: vi.fn(() => Promise.resolve(Preferences.default())) };
 
     render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);

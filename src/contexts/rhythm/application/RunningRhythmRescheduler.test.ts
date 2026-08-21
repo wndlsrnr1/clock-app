@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { UserPreferences } from "../../preferences/domain/UserPreferences";
+import { DailyRhythm } from "../domain/DailyRhythm";
+import { DurationMinutes } from "../domain/DurationMinutes";
+import { RhythmConfiguration } from "../domain/RhythmConfiguration";
 import { RunningRhythmRescheduler } from "./RunningRhythmRescheduler";
 import { RhythmRuntime } from "./RhythmRuntime";
 import type { NotificationPort, SchedulerPort, SoundPort, SystemClock } from "./ports";
@@ -61,9 +63,9 @@ function createRescheduler(): {
 describe("RunningRhythmRescheduler", () => {
   it("cancels the current task and schedules the next event with the latest running preferences", () => {
     const { rescheduler, runtime, scheduler } = createRescheduler();
-    runtime.start(UserPreferences.default());
+    runtime.start(configuration(50, 10));
     runtime.rememberTask("task-1");
-    runtime.replacePreferences(UserPreferences.default().changeTerms(20, 5));
+    runtime.replaceConfiguration(configuration(20, 5));
 
     rescheduler.rescheduleIfRunning();
 
@@ -75,10 +77,10 @@ describe("RunningRhythmRescheduler", () => {
 
   it("does not reschedule when the rhythm is not running", () => {
     const { rescheduler, runtime, scheduler } = createRescheduler();
-    runtime.start(UserPreferences.default());
+    runtime.start(configuration(50, 10));
     runtime.rememberTask("task-1");
     runtime.session.pause();
-    runtime.replacePreferences(UserPreferences.default().changeTerms(20, 5));
+    runtime.replaceConfiguration(configuration(20, 5));
 
     rescheduler.rescheduleIfRunning();
 
@@ -86,3 +88,11 @@ describe("RunningRhythmRescheduler", () => {
     expect(scheduler.scheduledAt).toEqual([]);
   });
 });
+
+function configuration(focusMinutes: number, restMinutes: number): RhythmConfiguration {
+  return RhythmConfiguration.create({
+    dailyRhythm: DailyRhythm.default(),
+    focusTerm: DurationMinutes.create(focusMinutes),
+    restTerm: DurationMinutes.create(restMinutes),
+  });
+}

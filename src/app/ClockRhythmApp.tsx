@@ -3,7 +3,6 @@ import { DataPage } from "../ui/components/DataPage";
 import { SegmentedControl } from "../ui/components/SegmentedControl";
 import { ThemePage } from "../contexts/preferences/presentation/theme/ThemePage";
 import { usePreferencesApp } from "../contexts/preferences/presentation/usePreferencesApp";
-import type { RhythmStatusSnapshot } from "../contexts/rhythm/public";
 import { createTranslator } from "../ui/textCatalog";
 import { useLayoutMode } from "../ui/useLayoutMode";
 import { useRhythmApp } from "../ui/useRhythmApp";
@@ -16,7 +15,7 @@ import { ClockPage } from "./pages/ClockPage";
 interface ClockRhythmAppProps {
   modules: AppModules;
   initialNow?: Date;
-  initialPreferences?: UserPreferencesSnapshot;
+  initialPreferences: UserPreferencesSnapshot;
 }
 
 export function ClockRhythmApp({ modules, initialNow = new Date(), initialPreferences }: ClockRhythmAppProps): React.JSX.Element {
@@ -24,7 +23,7 @@ export function ClockRhythmApp({ modules, initialNow = new Date(), initialPrefer
   const rhythm = useRhythmApp(modules, initialNow);
   const preferences = usePreferencesApp(
     modules.preferences,
-    initialPreferences ?? preferencesSnapshotFromStatus(rhythm.status),
+    initialPreferences,
   );
   const text = createTranslator(preferences.preferences.language);
   const todo = useTodoApp(modules, rhythm.now, text);
@@ -67,18 +66,4 @@ export function ClockRhythmApp({ modules, initialNow = new Date(), initialPrefer
       </section>
     </main>
   );
-}
-
-function preferencesSnapshotFromStatus(status: RhythmStatusSnapshot): UserPreferencesSnapshot {
-  return {
-    autoStartEnabled: status.autoStartEnabled,
-    dailyEnd: status.dailyEnd,
-    dailyStart: status.dailyStart,
-    focusMinutes: status.focusMinutes,
-    initialSetupCompleted: status.initialSetupCompleted,
-    language: status.language,
-    notificationSound: status.notificationSound,
-    restMinutes: status.restMinutes,
-    theme: status.theme,
-  };
 }

@@ -2,6 +2,7 @@ import type { PreferencesChangedPort } from "../../contexts/preferences/applicat
 import type { UserPreferences } from "../../contexts/preferences/domain/UserPreferences";
 import type { RhythmRuntime } from "../../contexts/rhythm/application/RhythmRuntime";
 import type { RunningRhythmRescheduler } from "../../contexts/rhythm/application/RunningRhythmRescheduler";
+import { RhythmConfiguration } from "../../contexts/rhythm/public-model";
 
 export class RefreshRhythmAfterPreferencesChanged implements PreferencesChangedPort {
   public constructor(
@@ -10,7 +11,11 @@ export class RefreshRhythmAfterPreferencesChanged implements PreferencesChangedP
   ) {}
 
   public notify(preferences: UserPreferences): void {
-    this.runtime.replacePreferences(preferences);
+    this.runtime.replaceConfiguration(RhythmConfiguration.create({
+      dailyRhythm: preferences.dailyRhythm,
+      focusTerm: preferences.focusMinutes,
+      restTerm: preferences.restMinutes,
+    }));
     this.rescheduler.rescheduleIfRunning();
   }
 }

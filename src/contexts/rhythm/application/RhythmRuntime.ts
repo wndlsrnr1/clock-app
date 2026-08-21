@@ -1,5 +1,7 @@
-import { UserPreferences } from "../../preferences/domain/UserPreferences";
-import { RhythmSchedule } from "../domain/RhythmSchedule";
+import { DailyRhythm } from "../domain/DailyRhythm";
+import { DurationMinutes } from "../domain/DurationMinutes";
+import { RhythmConfiguration } from "../domain/RhythmConfiguration";
+import type { RhythmSchedule } from "../domain/RhythmSchedule";
 import { RhythmSession } from "../domain/RhythmSession";
 
 export class RhythmRuntime {
@@ -7,34 +9,41 @@ export class RhythmRuntime {
 
   private constructor(
     private currentSession: RhythmSession,
-    public preferences: UserPreferences,
+    private configuration: RhythmConfiguration,
   ) {}
 
   public static empty(): RhythmRuntime {
-    return new RhythmRuntime(RhythmSession.idle(), UserPreferences.default());
+    return new RhythmRuntime(
+      RhythmSession.idle(),
+      RhythmConfiguration.create({
+        dailyRhythm: DailyRhythm.default(),
+        focusTerm: DurationMinutes.create(50),
+        restTerm: DurationMinutes.create(10),
+      }),
+    );
   }
 
   public get session(): RhythmSession {
     return this.currentSession;
   }
 
-  public replacePreferences(preferences: UserPreferences): void {
-    this.preferences = preferences;
+  public replaceConfiguration(configuration: RhythmConfiguration): void {
+    this.configuration = configuration;
   }
 
-  public start(preferences: UserPreferences): RhythmSchedule {
-    this.preferences = preferences;
+  public start(configuration: RhythmConfiguration): RhythmSchedule {
+    this.configuration = configuration;
     this.currentSession = RhythmSession.start();
 
     return this.currentSchedule();
   }
 
   public currentSchedule(): RhythmSchedule {
-    return RhythmSchedule.create({
-      dailyRhythm: this.preferences.dailyRhythm,
-      focusTerm: this.preferences.focusMinutes,
-      restTerm: this.preferences.restMinutes,
-    });
+    return this.configuration.schedule();
+  }
+
+  public configurationSnapshot(): RhythmConfiguration {
+    return this.configuration;
   }
 
   public rememberTask(taskId: string): void {

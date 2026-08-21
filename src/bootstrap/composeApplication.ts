@@ -31,6 +31,7 @@ import { DeadlineScheduler } from "../platform/scheduler/DeadlineScheduler";
 import { BrowserTodoIdGenerator } from "../platform/todo/BrowserTodoIdGenerator";
 import type { RhythmAppServices } from "../ui/RhythmAppServices";
 import { RefreshRhythmAfterPreferencesChanged } from "../app/composition/RefreshRhythmAfterPreferencesChanged";
+import { PreferencesRhythmConfigurationReader } from "../app/composition/PreferencesRhythmConfigurationReader";
 
 export interface ComposedApplication {
   services: RhythmAppServices;
@@ -41,7 +42,8 @@ export async function composeApplication(): Promise<ComposedApplication> {
   const runtime = RhythmRuntime.empty();
   const settingsRepository = new NeutralinoSettingsRepository();
   const savedPreferences = await settingsRepository.get();
-  runtime.replacePreferences(savedPreferences);
+  const configurationReader = new PreferencesRhythmConfigurationReader(settingsRepository);
+  runtime.replaceConfiguration(await configurationReader.get());
 
   const todoRepository = new NeutralinoTodoRepository();
   const todoIdGenerator = new BrowserTodoIdGenerator();
@@ -69,7 +71,7 @@ export async function composeApplication(): Promise<ComposedApplication> {
   );
 
   const services: RhythmAppServices = {
-    startRhythm: new StartRhythmUseCase(runtime, settingsRepository, scheduler, sound, tray, clock, notification),
+    startRhythm: new StartRhythmUseCase(runtime, configurationReader, scheduler, sound, tray, clock, notification),
     pauseRhythm: new PauseRhythmUseCase(runtime, scheduler, tray),
     resumeRhythm: new ResumeRhythmUseCase(runtime, scheduler, tray, clock, notification, sound),
     stopForToday: new StopRhythmForTodayUseCase(runtime, scheduler, tray, clock),

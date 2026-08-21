@@ -1,5 +1,4 @@
 import type { RhythmSessionStatus } from "../domain/RhythmSession";
-import type { LanguagePreference, NotificationSoundPreference, ThemePreference } from "../../preferences/domain/UserPreferences";
 
 export interface RhythmStatusSnapshot {
   sessionStatus: RhythmSessionStatus;
@@ -7,9 +6,4 @@ export interface RhythmStatusSnapshot {
   restMinutes: number;
   dailyStart: string;
   dailyEnd: string;
-  autoStartEnabled: boolean;
-  notificationSound: NotificationSoundPreference;
-  language: LanguagePreference;
-  theme: ThemePreference;
-  initialSetupCompleted: boolean;
 }

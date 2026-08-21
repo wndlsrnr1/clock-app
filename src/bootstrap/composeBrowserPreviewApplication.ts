@@ -17,6 +17,7 @@ import { RhythmRuntime } from "../contexts/rhythm/application/RhythmRuntime";
 import { StartRhythmUseCase } from "../contexts/rhythm/application/StartRhythmUseCase";
 import { StopRhythmForTodayUseCase } from "../contexts/rhythm/application/StopRhythmForTodayUseCase";
 import type { RhythmEvent } from "../contexts/rhythm/domain/RhythmEvent";
+import { RhythmConfiguration } from "../contexts/rhythm/public-model";
 import { AddTodoUseCase, DeleteTodoUseCase, GetTodoCalendarSummaryUseCase, GetTodosByDateUseCase, ReorderTodosUseCase, ToggleTodoUseCase, UpdateTodoUseCase } from "../contexts/todo/application/TodoUseCases";
 import type { TodoRepository } from "../contexts/todo/application/ports";
 import { TodoItem, type TodoItemSnapshot } from "../contexts/todo/domain/TodoItem";
@@ -26,12 +27,19 @@ import { DeadlineScheduler } from "../platform/scheduler/DeadlineScheduler";
 import { BrowserTodoIdGenerator } from "../platform/todo/BrowserTodoIdGenerator";
 import type { RhythmAppServices } from "../ui/RhythmAppServices";
 import { RefreshRhythmAfterPreferencesChanged } from "../app/composition/RefreshRhythmAfterPreferencesChanged";
+import { PreferencesRhythmConfigurationReader } from "../app/composition/PreferencesRhythmConfigurationReader";
 import type { UserPreferencesSnapshot } from "../contexts/preferences/domain/UserPreferences";
 
 export function composeBrowserPreviewApplication(): { initialPreferences: UserPreferencesSnapshot; services: RhythmAppServices } {
   const runtime = RhythmRuntime.empty();
   const settingsRepository = new BrowserPreviewSettingsRepository();
-  runtime.replacePreferences(settingsRepository.current());
+  const currentPreferences = settingsRepository.current();
+  const configurationReader = new PreferencesRhythmConfigurationReader(settingsRepository);
+  runtime.replaceConfiguration(RhythmConfiguration.create({
+    dailyRhythm: currentPreferences.dailyRhythm,
+    focusTerm: currentPreferences.focusMinutes,
+    restTerm: currentPreferences.restMinutes,
+  }));
 
   const todoRepository = new BrowserPreviewTodoRepository();
   const todoIdGenerator = new BrowserTodoIdGenerator();
@@ -47,9 +55,9 @@ export function composeBrowserPreviewApplication(): { initialPreferences: UserPr
   const backupFile = new BrowserPreviewBackupFileAdapter();
 
   return {
-    initialPreferences: settingsRepository.current().snapshot(),
+    initialPreferences: currentPreferences.snapshot(),
     services: {
-      startRhythm: new StartRhythmUseCase(runtime, settingsRepository, scheduler, sound, tray, clock, notification),
+      startRhythm: new StartRhythmUseCase(runtime, configurationReader, scheduler, sound, tray, clock, notification),
       pauseRhythm: new PauseRhythmUseCase(runtime, scheduler, tray),
       resumeRhythm: new ResumeRhythmUseCase(runtime, scheduler, tray, clock, notification, sound),
       stopForToday: new StopRhythmForTodayUseCase(runtime, scheduler, tray, clock),
