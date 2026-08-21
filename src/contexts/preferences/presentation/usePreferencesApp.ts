@@ -1,6 +1,7 @@
 import { useReducer, type Dispatch } from "react";
 import { normalizeOptionalTimeText } from "../../../shared/time/normalizeTimeText";
-import { createTranslator, formatText, type TextCatalog } from "../../../ui/textCatalog";
+import { createTranslator, type TextCatalog } from "../../../shared/i18n/catalog";
+import { formatText } from "../../../shared/i18n/formatText";
 import type {
   LanguagePreference,
   PreferencesModule,

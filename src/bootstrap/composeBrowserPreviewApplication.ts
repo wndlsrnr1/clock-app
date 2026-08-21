@@ -6,7 +6,6 @@ import { createPreferencesModule } from "../contexts/preferences/composition";
 import { BrowserAutoStartAdapter } from "../contexts/preferences/infrastructure/browser/BrowserAutoStartAdapter";
 import { BrowserNotificationSoundFileAdapter } from "../contexts/preferences/infrastructure/browser/BrowserNotificationSoundFileAdapter";
 import { BrowserPreferencesRepository } from "../contexts/preferences/infrastructure/browser/BrowserPreferencesRepository";
-import type { SystemClock } from "../contexts/rhythm/application/ports";
 import { RunningRhythmRescheduler } from "../contexts/rhythm/application/RunningRhythmRescheduler";
 import { RhythmRuntime } from "../contexts/rhythm/application/RhythmRuntime";
 import { createRhythmModule } from "../contexts/rhythm/composition";
@@ -24,6 +23,7 @@ import { RefreshRhythmAfterPreferencesChanged } from "../app/composition/Refresh
 import { PreferencesRhythmConfigurationReader } from "../app/composition/PreferencesRhythmConfigurationReader";
 import { PreferencesSoundSettingsReader } from "../app/composition/PreferencesSoundSettingsReader";
 import type { UserPreferencesSnapshot } from "../contexts/preferences/domain/UserPreferences";
+import { JavaScriptClock } from "../shared/time/JavaScriptClock";
 
 export function composeBrowserPreviewApplication(): { initialPreferences: UserPreferencesSnapshot; services: RhythmAppServices } {
   const runtime = RhythmRuntime.empty();
@@ -41,7 +41,7 @@ export function composeBrowserPreviewApplication(): { initialPreferences: UserPr
   const scheduler = new DeadlineScheduler();
   const sound = new BrowserSoundAdapter(chimeSoundUrl, new PreferencesSoundSettingsReader(settingsRepository));
   const tray = new BrowserTrayAdapter();
-  const clock = new BrowserPreviewClock();
+  const clock = new JavaScriptClock();
   const notification = new BrowserNotificationAdapter();
   const rhythmRescheduler = new RunningRhythmRescheduler(runtime, scheduler, notification, sound, clock);
   const preferencesChanged = new RefreshRhythmAfterPreferencesChanged(runtime, rhythmRescheduler);
@@ -95,11 +95,5 @@ export function composeBrowserPreviewApplication(): { initialPreferences: UserPr
       changeTheme: preferences.changeTheme,
     },
   };
-}
-
-class BrowserPreviewClock implements SystemClock {
-  public now(): Date {
-    return new Date();
-  }
 }
 

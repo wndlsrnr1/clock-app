@@ -1,5 +1,6 @@
 import { useReducer } from "react";
-import { formatText, type TextCatalog } from "../../../ui/textCatalog";
+import type { TextCatalog } from "../../../shared/i18n/catalog";
+import { formatText } from "../../../shared/i18n/formatText";
 import type { DataTransferModule, PreparedBackupImport } from "../public";
 
 interface DataTransferState {

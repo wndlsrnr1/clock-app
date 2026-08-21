@@ -1,12 +1,13 @@
 import type { RhythmRuntime } from "./RhythmRuntime";
-import type { NotificationPort, SchedulerPort, SoundPort, SystemClock } from "./ports";
+import type { Clock } from "../../../shared/time/Clock";
+import type { NotificationPort, SchedulerPort, SoundPort } from "./ports";
 
 export function scheduleNextRhythmEvent(
   runtime: RhythmRuntime,
   scheduler: SchedulerPort,
   notification: NotificationPort | null,
   sound: SoundPort | null,
-  clock: SystemClock,
+  clock: Clock,
 ): void {
   const event = runtime.currentSchedule().nextEventAfter(clock.now());
   const taskId = scheduler.schedule(event.occursAt, () => {

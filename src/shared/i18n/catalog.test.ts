@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createTranslator, textCatalogs } from "./textCatalog";
+import { createTranslator, textCatalogs } from "./catalog";
 
 describe("text catalog", () => {
   it("keeps Korean and English catalog keys aligned", () => {

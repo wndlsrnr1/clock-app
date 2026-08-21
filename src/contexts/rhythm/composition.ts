@@ -4,7 +4,8 @@ import { ResumeRhythmUseCase } from "./application/ResumeRhythmUseCase";
 import type { RhythmRuntime } from "./application/RhythmRuntime";
 import { StartRhythmUseCase } from "./application/StartRhythmUseCase";
 import { StopRhythmForTodayUseCase } from "./application/StopRhythmForTodayUseCase";
-import type { NotificationPort, SchedulerPort, SoundPort, SystemClock, TrayPort } from "./application/ports";
+import type { Clock } from "../../shared/time/Clock";
+import type { NotificationPort, SchedulerPort, SoundPort, TrayPort } from "./application/ports";
 import type { RhythmConfigurationReader } from "./application/ports/RhythmConfigurationReader";
 import type { RhythmModule } from "./public";
 
@@ -14,7 +15,7 @@ export function createRhythmModule(
   scheduler: SchedulerPort,
   sound: SoundPort,
   tray: TrayPort,
-  clock: SystemClock,
+  clock: Clock,
   notification: NotificationPort,
 ): RhythmModule {
   return {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createTranslator } from "../../../../ui/textCatalog";
+import { createTranslator } from "../../../../shared/i18n/catalog";
 import { UserPreferences, type UserPreferencesSnapshot } from "../../public";
 import { createRhythmSettingsSummary } from "./rhythmSettingsSummary";
 

@@ -9,7 +9,8 @@ import {
   ToggleTodoUseCase,
   UpdateTodoUseCase,
 } from "./TodoUseCases";
-import type { TodoClock, TodoIdGenerator, TodoRepository } from "./ports";
+import type { Clock } from "../../../shared/time/Clock";
+import type { TodoIdGenerator, TodoRepository } from "./ports";
 
 class InMemoryTodoRepository implements TodoRepository {
   public constructor(private todos: Array<TodoItem> = []) {}
@@ -29,7 +30,7 @@ class FixedIdGenerator implements TodoIdGenerator {
   }
 }
 
-class FixedTodoClock implements TodoClock {
+class FixedTodoClock implements Clock {
   public now(): Date {
     return new Date("2026-06-02T09:00:00");
   }

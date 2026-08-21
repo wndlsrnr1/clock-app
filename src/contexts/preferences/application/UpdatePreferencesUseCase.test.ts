@@ -36,7 +36,7 @@ class FakeAutoStart implements AutoStartPort {
 class FakePreferencesChanged implements PreferencesChangedPort {
   public called = 0;
 
-  public notify(_preferences: UserPreferences): void {
+  public notify(): void {
     this.called += 1;
   }
 }

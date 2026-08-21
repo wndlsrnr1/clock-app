@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { IconButton } from "../../../../ui/components/IconButton";
-import type { TextCatalog } from "../../../../ui/textCatalog";
+import { IconButton } from "../../../../shared/ui/components/IconButton";
+import type { TextCatalog } from "../../../../shared/i18n/catalog";
 import type { PreferencesAppViewModel } from "../usePreferencesApp";
 
 interface NotificationSoundPanelProps {

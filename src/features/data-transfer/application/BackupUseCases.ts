@@ -1,6 +1,7 @@
 import type { TodoItemSnapshot } from "../../../contexts/todo/public";
 import type { UserPreferencesSnapshot } from "../../../contexts/preferences/public";
-import type { BackupClock, BackupFilePort, PreferencesBackupPort, TodoBackupPort } from "./ports";
+import type { Clock } from "../../../shared/time/Clock";
+import type { BackupFilePort, PreferencesBackupPort, TodoBackupPort } from "./ports";
 
 const BACKUP_APP_NAME = "Clock Rhythm";
 const BACKUP_SCHEMA_VERSION = 1;
@@ -31,7 +32,7 @@ export class ExportBackupUseCase {
     private readonly preferences: PreferencesBackupPort,
     private readonly todos: TodoBackupPort,
     private readonly backupFile: BackupFilePort,
-    private readonly clock: BackupClock,
+    private readonly clock: Clock,
   ) {}
 
   public async execute(): Promise<void> {

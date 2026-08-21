@@ -5,7 +5,8 @@ import {
   ImportBackupUseCase,
   PreviewBackupImportUseCase,
 } from "./application/BackupUseCases";
-import type { BackupClock, BackupFilePort, PreferencesBackupPort, TodoBackupPort } from "./application/ports";
+import type { Clock } from "../../shared/time/Clock";
+import type { BackupFilePort, PreferencesBackupPort, TodoBackupPort } from "./application/ports";
 import type { DataTransferModule } from "./public";
 
 export interface DataTransferModuleDependencies {
@@ -14,7 +15,7 @@ export interface DataTransferModuleDependencies {
   exportTodos: { execute(): Promise<Array<TodoItemSnapshot>> };
   replaceTodos: { execute(snapshots: Array<TodoItemSnapshot>): Promise<void> };
   backupFile: BackupFilePort;
-  clock: BackupClock;
+  clock: Clock;
 }
 
 export function createDataTransferModule(dependencies: DataTransferModuleDependencies): DataTransferModule {

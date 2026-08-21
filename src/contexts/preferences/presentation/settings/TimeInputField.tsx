@@ -1,5 +1,5 @@
-import { TimePickerField } from "../../../../ui/components/TimePickerField";
-import type { TextCatalog } from "../../../../ui/textCatalog";
+import { TimePickerField } from "../../../../shared/ui/components/TimePickerField";
+import type { TextCatalog } from "../../../../shared/i18n/catalog";
 
 interface TimeInputFieldProps {
   label: string;

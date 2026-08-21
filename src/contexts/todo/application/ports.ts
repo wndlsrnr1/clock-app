@@ -8,7 +8,3 @@ export interface TodoRepository {
 export interface TodoIdGenerator {
   nextId(): string;
 }
-
-export interface TodoClock {
-  now(): Date;
-}

@@ -1,8 +1,9 @@
 import { useEffect, useReducer } from "react";
 import type { AppModules } from "../../../app/contracts/AppModules";
 import { normalizeOptionalTimeText } from "../../../shared/time/normalizeTimeText";
-import { validateTodoTitleInput } from "../../../ui/inputValidation";
-import { formatText, type TextCatalog } from "../../../ui/textCatalog";
+import { validateTodoTitleInput } from "./validation/todoTitleValidation";
+import type { TextCatalog } from "../../../shared/i18n/catalog";
+import { formatText } from "../../../shared/i18n/formatText";
 import type { TodoItemSnapshot } from "../domain/TodoItem";
 import type { TodoDaySummary } from "../domain/TodoList";
 import { addMonthsToMonthKey, currentMonthKey, formatDateKey } from "./calendar/dateFormat";

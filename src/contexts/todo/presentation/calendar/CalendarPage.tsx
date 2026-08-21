@@ -1,6 +1,7 @@
-import type { LanguagePreference } from "../../../preferences/public";
+import type { LanguagePreference } from "../../../../shared/i18n/LanguagePreference";
 import type { TodoAppViewModel } from "../useTodoApp";
-import { formatText, type TextCatalog } from "../../../../ui/textCatalog";
+import type { TextCatalog } from "../../../../shared/i18n/catalog";
+import { formatText } from "../../../../shared/i18n/formatText";
 import { TodoListPanel } from "../TodoListPanel";
 import { calendarDays, type CalendarDayCell } from "./calendarDays";
 import { formatMonthLabel } from "./dateFormat";

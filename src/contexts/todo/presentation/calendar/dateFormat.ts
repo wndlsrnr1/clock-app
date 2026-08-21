@@ -27,4 +27,4 @@ export function formatMonthLabel(month: string, language: LanguagePreference = "
 
   return `${yearText}년 ${monthText}월`;
 }
-import type { LanguagePreference } from "../../../preferences/public";
+import type { LanguagePreference } from "../../../../shared/i18n/LanguagePreference";

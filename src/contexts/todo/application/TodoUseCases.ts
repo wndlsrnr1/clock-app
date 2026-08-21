@@ -1,6 +1,7 @@
 import { TodoItem, type TodoItemSnapshot } from "../domain/TodoItem";
 import { TodoList, type TodoDaySummary } from "../domain/TodoList";
-import type { TodoClock, TodoIdGenerator, TodoRepository } from "./ports";
+import type { Clock } from "../../../shared/time/Clock";
+import type { TodoIdGenerator, TodoRepository } from "./ports";
 
 export interface AddTodoCommand {
   title: string;
@@ -24,7 +25,7 @@ export class AddTodoUseCase {
   public constructor(
     private readonly todoRepository: TodoRepository,
     private readonly idGenerator: TodoIdGenerator,
-    private readonly clock: TodoClock,
+    private readonly clock: Clock,
   ) {}
 
   public async execute(command: AddTodoCommand): Promise<TodoItemSnapshot> {
@@ -55,7 +56,7 @@ export class GetTodosByDateUseCase {
 export class ToggleTodoUseCase {
   public constructor(
     private readonly todoRepository: TodoRepository,
-    private readonly clock: TodoClock,
+    private readonly clock: Clock,
   ) {}
 
   public async execute(id: string): Promise<TodoItemSnapshot> {
@@ -76,7 +77,7 @@ export class ToggleTodoUseCase {
 export class UpdateTodoUseCase {
   public constructor(
     private readonly todoRepository: TodoRepository,
-    private readonly clock: TodoClock,
+    private readonly clock: Clock,
   ) {}
 
   public async execute(command: UpdateTodoCommand): Promise<TodoItemSnapshot> {
@@ -102,7 +103,7 @@ export class UpdateTodoUseCase {
 export class ReorderTodosUseCase {
   public constructor(
     private readonly todoRepository: TodoRepository,
-    private readonly clock: TodoClock,
+    private readonly clock: Clock,
   ) {}
 
   public async execute(command: ReorderTodosCommand): Promise<Array<TodoItemSnapshot>> {

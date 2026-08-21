@@ -21,7 +21,7 @@ import { NeutralinoNotificationSoundFileAdapter } from "../contexts/preferences/
 import { NeutralinoSettingsRepository } from "../contexts/preferences/infrastructure/neutralino/NeutralinoSettingsRepository";
 import { NeutralinoBackupFileAdapter } from "../features/data-transfer/infrastructure/neutralino/NeutralinoBackupFileAdapter";
 import { currentNeutralinoExecutablePath } from "../platform/neutralino/NeutralinoRuntimeGlobals";
-import { NeutralinoSystemClock } from "../platform/neutralino/NeutralinoSystemClock";
+import { JavaScriptClock } from "../shared/time/JavaScriptClock";
 import { NeutralinoWindowAdapter } from "../platform/neutralino/NeutralinoWindowAdapter";
 import type { RhythmAppServices } from "../ui/RhythmAppServices";
 import { RefreshRhythmAfterPreferencesChanged } from "../app/composition/RefreshRhythmAfterPreferencesChanged";
@@ -45,7 +45,7 @@ export async function composeApplication(): Promise<ComposedApplication> {
   const scheduler = new DeadlineScheduler();
   const sound = new NeutralinoSoundAdapter(chimeSoundUrl, new PreferencesSoundSettingsReader(settingsRepository));
   const tray = new NeutralinoTrayAdapter("/dist/icon.png");
-  const clock = new NeutralinoSystemClock();
+  const clock = new JavaScriptClock();
   const notification = new NeutralinoNotificationAdapter();
   const rhythmRescheduler = new RunningRhythmRescheduler(runtime, scheduler, notification, sound, clock);
   const preferencesChanged = new RefreshRhythmAfterPreferencesChanged(runtime, rhythmRescheduler);

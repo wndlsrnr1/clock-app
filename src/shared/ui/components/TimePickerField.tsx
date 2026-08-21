@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
-import { isOptionalTimeInputValid } from "../inputValidation";
-import { formatText, type TextCatalog } from "../textCatalog";
+import type { TextCatalog } from "../../i18n/catalog";
+import { formatText } from "../../i18n/formatText";
+import { normalizeOptionalTimeText } from "../../time/normalizeTimeText";
 import { SvgIcon } from "./SvgIcon";
 
 interface TimePickerFieldProps {
@@ -203,6 +204,15 @@ function parsedTimeParts(value: string): TimeParts | null {
 
 function twoDigit(value: number): string {
   return String(value).padStart(2, "0");
+}
+
+function isOptionalTimeInputValid(value: string): boolean {
+  try {
+    normalizeOptionalTimeText(value);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function sanitizeTimeDigits(value: string): string {

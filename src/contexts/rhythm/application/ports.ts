@@ -15,10 +15,6 @@ export interface SchedulerPort {
   cancel(taskId: string): void;
 }
 
-export interface SystemClock {
-  now(): Date;
-}
-
 export interface TrayPort {
   updateStatus(status: string): Promise<void>;
 }

@@ -1,5 +1,5 @@
-import { rhythmMinuteRanges } from "../../../../ui/inputValidation";
-import type { TextCatalog } from "../../../../ui/textCatalog";
+import { rhythmMinuteRanges } from "./validation/minuteInputValidation";
+import type { TextCatalog } from "../../../../shared/i18n/catalog";
 import type { UpdatePreferencesCommand } from "../../application/UpdatePreferencesUseCase";
 import { NumberStepperField } from "./NumberStepperField";
 import { TimeInputField } from "./TimeInputField";

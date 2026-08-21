@@ -1,6 +1,7 @@
 import type { RhythmStatusSnapshot } from "../contexts/rhythm/application/RhythmStatusSnapshot";
 import type { UpdatePreferencesCommand } from "../contexts/preferences/application/UpdatePreferencesUseCase";
-import type { LanguagePreference, ThemePreference, UserPreferences, UserPreferencesSnapshot } from "../contexts/preferences/domain/UserPreferences";
+import type { ThemePreference, UserPreferences, UserPreferencesSnapshot } from "../contexts/preferences/domain/UserPreferences";
+import type { LanguagePreference } from "../shared/i18n/LanguagePreference";
 import type { PreparedBackupImport } from "../features/data-transfer/public";
 import type { AddTodoCommand, ReorderTodosCommand, TodoDaySummary, TodoItemSnapshot, UpdateTodoCommand } from "../contexts/todo/public";
 

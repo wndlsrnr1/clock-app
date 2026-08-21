@@ -1,6 +1,7 @@
 import { scheduleNextRhythmEvent } from "./scheduleNextRhythmEvent";
 import type { RhythmRuntime } from "./RhythmRuntime";
-import type { NotificationPort, SchedulerPort, SoundPort, SystemClock } from "./ports";
+import type { Clock } from "../../../shared/time/Clock";
+import type { NotificationPort, SchedulerPort, SoundPort } from "./ports";
 
 export class RunningRhythmRescheduler {
   public constructor(
@@ -8,7 +9,7 @@ export class RunningRhythmRescheduler {
     private readonly scheduler: SchedulerPort,
     private readonly notification: NotificationPort | null,
     private readonly sound: SoundPort | null,
-    private readonly clock: SystemClock,
+    private readonly clock: Clock,
   ) {}
 
   public rescheduleIfRunning(): void {

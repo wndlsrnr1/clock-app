@@ -4,7 +4,8 @@ import { DurationMinutes } from "../domain/DurationMinutes";
 import { RhythmConfiguration } from "../domain/RhythmConfiguration";
 import { RunningRhythmRescheduler } from "./RunningRhythmRescheduler";
 import { RhythmRuntime } from "./RhythmRuntime";
-import type { NotificationPort, SchedulerPort, SoundPort, SystemClock } from "./ports";
+import type { Clock } from "../../../shared/time/Clock";
+import type { NotificationPort, SchedulerPort, SoundPort } from "./ports";
 
 class FakeScheduler implements SchedulerPort {
   public cancelledTaskIds: string[] = [];
@@ -24,7 +25,7 @@ class FakeScheduler implements SchedulerPort {
   }
 }
 
-class FixedClock implements SystemClock {
+class FixedClock implements Clock {
   public constructor(private readonly fixedNow: Date) {}
 
   public now(): Date {

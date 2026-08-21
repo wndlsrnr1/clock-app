@@ -10,7 +10,8 @@ import { ResumeRhythmUseCase } from "./ResumeRhythmUseCase";
 import { RhythmRuntime } from "./RhythmRuntime";
 import { StartRhythmUseCase } from "./StartRhythmUseCase";
 import { StopRhythmForTodayUseCase } from "./StopRhythmForTodayUseCase";
-import type { SchedulerPort, SoundPort, SystemClock, TrayPort } from "./ports";
+import type { Clock } from "../../../shared/time/Clock";
+import type { SchedulerPort, SoundPort, TrayPort } from "./ports";
 
 class FakeRhythmConfigurationReader implements RhythmConfigurationReader {
   public constructor(private readonly configuration: RhythmConfiguration = defaultConfiguration()) {}
@@ -51,7 +52,7 @@ class FakeTray implements TrayPort {
   }
 }
 
-class FixedClock implements SystemClock {
+class FixedClock implements Clock {
   public constructor(private readonly fixedNow: Date) {}
 
   public now(): Date {

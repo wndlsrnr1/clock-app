@@ -1,4 +1,5 @@
-import type { LanguagePreference, UserPreferences } from "../domain/UserPreferences";
+import type { LanguagePreference } from "../../../shared/i18n/LanguagePreference";
+import type { UserPreferences } from "../domain/UserPreferences";
 import type { SettingsRepository } from "./ports/SettingsRepository";
 
 export class ChangeLanguagePreferenceUseCase {

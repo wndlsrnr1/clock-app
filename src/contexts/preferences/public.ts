@@ -1,10 +1,10 @@
 import type { UpdatePreferencesCommand } from "./application/UpdatePreferencesUseCase";
 import type {
-  LanguagePreference,
   ThemePreference,
   UserPreferences,
   UserPreferencesSnapshot,
 } from "./domain/UserPreferences";
+import type { LanguagePreference } from "../../shared/i18n/LanguagePreference";
 export { GetPreferencesUseCase } from "./application/queries/GetPreferencesUseCase";
 export { ExportPreferencesSnapshotUseCase } from "./application/commands/ExportPreferencesSnapshotUseCase";
 export { ReplacePreferencesSnapshotUseCase } from "./application/commands/ReplacePreferencesSnapshotUseCase";
@@ -21,11 +21,11 @@ export { ChangeThemePreferenceUseCase } from "./application/ThemePreferenceUseCa
 export { UpdatePreferencesUseCase, type UpdatePreferencesCommand } from "./application/UpdatePreferencesUseCase";
 export {
   UserPreferences,
-  type LanguagePreference,
   type NotificationSoundPreference,
   type ThemePreference,
   type UserPreferencesSnapshot,
 } from "./domain/UserPreferences";
+export type { LanguagePreference } from "../../shared/i18n/LanguagePreference";
 
 export interface PreferencesModule {
   get: { execute(): Promise<UserPreferencesSnapshot> };

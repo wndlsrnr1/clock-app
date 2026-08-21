@@ -7,13 +7,14 @@ import {
   ToggleTodoUseCase,
   UpdateTodoUseCase,
 } from "./application/TodoUseCases";
-import type { TodoClock, TodoIdGenerator, TodoRepository } from "./application/ports";
+import type { Clock } from "../../shared/time/Clock";
+import type { TodoIdGenerator, TodoRepository } from "./application/ports";
 import type { TodoModule } from "./public";
 
 export function createTodoModule(
   repository: TodoRepository,
   idGenerator: TodoIdGenerator,
-  clock: TodoClock,
+  clock: Clock,
 ): TodoModule {
   return {
     add: new AddTodoUseCase(repository, idGenerator, clock),

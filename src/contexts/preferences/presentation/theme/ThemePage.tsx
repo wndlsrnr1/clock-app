@@ -1,4 +1,4 @@
-import type { TextCatalog } from "../../../../ui/textCatalog";
+import type { TextCatalog } from "../../../../shared/i18n/catalog";
 import type { PreferencesAppViewModel } from "../usePreferencesApp";
 import { themeOptions, type ThemeOption } from "./themeCatalog";
 

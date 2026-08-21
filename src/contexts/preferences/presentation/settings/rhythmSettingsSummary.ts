@@ -1,5 +1,5 @@
-import type { TextCatalog } from "../../../../ui/textCatalog";
-import { formatText } from "../../../../ui/textCatalog";
+import type { TextCatalog } from "../../../../shared/i18n/catalog";
+import { formatText } from "../../../../shared/i18n/formatText";
 import type { RhythmSettingsPreview } from "../../application/queries/PreviewRhythmSettings";
 import type { UpdatePreferencesCommand } from "../../application/UpdatePreferencesUseCase";
 import type { UserPreferencesSnapshot } from "../../domain/UserPreferences";

@@ -1,11 +1,11 @@
 import { CalendarPage } from "../contexts/todo/presentation/calendar/CalendarPage";
 import { DataPage } from "../features/data-transfer/presentation/DataPage";
 import { useDataTransfer } from "../features/data-transfer/presentation/useDataTransfer";
-import { SegmentedControl } from "../ui/components/SegmentedControl";
+import { SegmentedControl } from "../shared/ui/components/SegmentedControl";
 import { ThemePage } from "../contexts/preferences/presentation/theme/ThemePage";
 import { usePreferencesApp } from "../contexts/preferences/presentation/usePreferencesApp";
-import { createTranslator } from "../ui/textCatalog";
-import { useLayoutMode } from "../ui/useLayoutMode";
+import { createTranslator } from "../shared/i18n/catalog";
+import { useLayoutMode } from "../shared/ui/layout/useLayoutMode";
 import { useRhythmApp } from "../contexts/rhythm/presentation/useRhythmApp";
 import { useTodoApp } from "../contexts/todo/presentation/useTodoApp";
 import type { AppModules } from "./contracts/AppModules";

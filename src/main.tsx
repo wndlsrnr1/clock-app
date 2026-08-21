@@ -4,7 +4,7 @@ import { createRoot } from "react-dom/client";
 import { composeApplication } from "./bootstrap/composeApplication";
 import { composeBrowserPreviewApplication } from "./bootstrap/composeBrowserPreviewApplication";
 import { ClockRhythmApp } from "./app/ClockRhythmApp";
-import "./ui/styles.css";
+import "./app/styles/index.css";
 import { isNeutralinoRuntime } from "./platform/neutralino/NeutralinoRuntimeGlobals";
 import { createAppModules } from "./app/composition/createAppModules";
 

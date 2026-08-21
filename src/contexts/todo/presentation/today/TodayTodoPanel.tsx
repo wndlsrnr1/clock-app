@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { IconButton } from "../../../../ui/components/IconButton";
-import { TimePickerField } from "../../../../ui/components/TimePickerField";
-import { todoTitleMaxLength, validateTodoTitleInput } from "../../../../ui/inputValidation";
-import type { TextCatalog } from "../../../../ui/textCatalog";
+import { IconButton } from "../../../../shared/ui/components/IconButton";
+import { TimePickerField } from "../../../../shared/ui/components/TimePickerField";
+import { todoTitleMaxLength, validateTodoTitleInput } from "../validation/todoTitleValidation";
+import type { TextCatalog } from "../../../../shared/i18n/catalog";
 import { TodoListPanel } from "../TodoListPanel";
 import type { TodoAppViewModel } from "../useTodoApp";
 

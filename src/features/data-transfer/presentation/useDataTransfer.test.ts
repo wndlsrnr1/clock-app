@@ -1,7 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { DataTransferModule } from "../public";
-import { createTranslator } from "../../../ui/textCatalog";
+import { createTranslator } from "../../../shared/i18n/catalog";
 import { useDataTransfer } from "./useDataTransfer";
 
 describe("useDataTransfer", (): void => {

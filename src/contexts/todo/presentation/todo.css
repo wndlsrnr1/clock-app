@@ -1,0 +1,280 @@
+.todo-form input,
+.todo-edit input {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 0.5rem;
+  outline: none;
+  background: var(--surface-soft);
+  color: var(--text-main);
+  box-shadow: 0 0 0.75rem color-mix(in srgb, var(--glow-a), transparent 70%) inset;
+}
+
+.todo-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: start;
+  gap: 0.625rem;
+  margin-bottom: 0.35rem;
+}
+
+.todo-title-field {
+  display: grid;
+  align-content: start;
+  min-width: 0;
+}
+
+.todo-list {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.todo-row {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  gap: 0.625rem;
+  align-items: center;
+  min-height: 3rem;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  background: var(--surface-faint);
+}
+
+.todo-row.dragging {
+  border: 1px solid color-mix(in srgb, var(--accent-b), transparent 52%);
+  box-shadow: 0 0 1rem color-mix(in srgb, var(--glow-b), transparent 50%);
+}
+
+.todo-row input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  accent-color: #0ff;
+}
+
+.todo-drag-handle {
+  width: 2.25rem;
+  min-width: 2.25rem;
+  height: 2.25rem;
+  cursor: grab;
+}
+
+.todo-drag-handle:active {
+  cursor: grabbing;
+}
+
+.todo-copy {
+  display: grid;
+  min-width: 0;
+}
+
+.todo-title {
+  overflow-wrap: anywhere;
+  color: #f3fffc;
+  font-size: 0.95rem;
+}
+
+.todo-title.done {
+  color: rgba(243, 255, 252, 0.55);
+  text-decoration: line-through;
+}
+
+.todo-meta,
+.empty-text {
+  color: #a9c7c3;
+  font-size: 0.78rem;
+}
+
+.todo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.todo-actions .icon-action,
+.inline-icon-action {
+  width: 2.25rem;
+  min-width: 2.25rem;
+  height: 2.25rem;
+}
+
+.mini-button,
+.link-button {
+  cursor: pointer;
+  border: 1px solid rgba(0, 255, 255, 0.18);
+  border-radius: 0.4rem;
+  padding: 0.4rem 0.55rem;
+  background: rgba(255, 255, 255, 0.06);
+  color: #dff;
+  font-size: 0.78rem;
+}
+
+.mini-button.danger {
+  border-color: rgba(255, 96, 160, 0.28);
+  color: #ffb5d7;
+}
+
+.mini-button.subtle,
+.link-button {
+  color: #c9a5ff;
+}
+
+.todo-edit {
+  display: grid;
+  grid-column: 3 / 5;
+  gap: 0.5rem;
+}
+
+.todo-edit-actions {
+  display: flex;
+  gap: 0.4rem;
+  justify-self: end;
+}
+
+.calendar-layout {
+  display: grid;
+  grid-template-columns: minmax(18rem, 1.2fr) minmax(17rem, 0.8fr);
+  gap: 1rem;
+}
+
+.box--verticalCompact .calendar-layout {
+  grid-template-columns: 1fr;
+}
+
+.calendar-board {
+  min-width: 0;
+}
+
+.calendar-toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.calendar-toolbar h3 {
+  margin: 0;
+  color: #f3fffc;
+  font-size: 1.05rem;
+}
+
+.calendar-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.icon-button {
+  display: inline-grid;
+  place-items: center;
+  width: 2.35rem;
+  height: 2.35rem;
+  cursor: pointer;
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  border-radius: 0.45rem;
+  background: rgba(255, 255, 255, 0.06);
+  color: #dff;
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.35rem;
+  margin-bottom: 0.35rem;
+}
+
+.calendar-weekdays span {
+  color: #93bbb7;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+
+.calendar-day {
+  position: relative;
+  min-height: clamp(3.45rem, 8vw, 4.75rem);
+  cursor: pointer;
+  border: 1px solid rgba(0, 255, 255, 0.16);
+  border-radius: 0.5rem;
+  padding: 0.45rem;
+  background: rgba(255, 255, 255, 0.045);
+  color: #f3fffc;
+  text-align: left;
+  transition: border-color 0.12s ease, background 0.12s ease, box-shadow 0.12s ease;
+}
+
+.calendar-day:hover {
+  border-color: rgba(124, 253, 240, 0.44);
+  background: rgba(124, 253, 240, 0.08);
+}
+
+.calendar-day-empty {
+  cursor: default;
+  border-color: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+  box-shadow: none;
+}
+
+.calendar-day-empty:hover {
+  border-color: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.calendar-day.selected {
+  border-color: rgba(255, 0, 230, 0.7);
+  box-shadow: 0 0 1rem rgba(255, 0, 230, 0.18);
+}
+
+.calendar-day.today {
+  border-color: rgba(124, 253, 240, 0.62);
+}
+
+.calendar-day.today::after {
+  position: absolute;
+  top: 0.45rem;
+  right: 0.45rem;
+  width: 0.38rem;
+  height: 0.38rem;
+  border-radius: 999px;
+  background: #7cfdf0;
+  box-shadow: 0 0 0.65rem rgba(124, 253, 240, 0.85);
+  content: "";
+}
+
+.calendar-day.has-todo {
+  background: linear-gradient(160deg, rgba(0, 255, 255, 0.09), rgba(255, 0, 230, 0.06));
+}
+
+.calendar-day-number {
+  position: absolute;
+  top: 0.45rem;
+  left: 0.5rem;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.calendar-todo-badge {
+  position: absolute;
+  bottom: 0.45rem;
+  left: 0.5rem;
+  border: 1px solid rgba(0, 255, 255, 0.18);
+  border-radius: 999px;
+  padding: 0.12rem 0.38rem;
+  color: #bffff8;
+  background: rgba(0, 0, 0, 0.24);
+  font-size: 0.65rem;
+  font-weight: 800;
+}

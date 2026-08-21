@@ -1,5 +1,5 @@
 import { useId, useState } from "react";
-import type { TextCatalog } from "../../../../ui/textCatalog";
+import type { TextCatalog } from "../../../../shared/i18n/catalog";
 import type { RhythmSettingsSummary } from "./rhythmSettingsSummary";
 
 interface RhythmSettingsDisclosureProps {

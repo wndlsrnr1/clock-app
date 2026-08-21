@@ -1,7 +1,8 @@
 import { useId, useState } from "react";
-import { IconButton } from "../../../../ui/components/IconButton";
-import { validateMinuteInput } from "../../../../ui/inputValidation";
-import { formatText, type TextCatalog } from "../../../../ui/textCatalog";
+import { IconButton } from "../../../../shared/ui/components/IconButton";
+import { validateMinuteInput } from "./validation/minuteInputValidation";
+import type { TextCatalog } from "../../../../shared/i18n/catalog";
+import { formatText } from "../../../../shared/i18n/formatText";
 
 interface NumberStepperFieldProps {
   label: string;

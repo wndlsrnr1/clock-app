@@ -8,7 +8,8 @@ import { TodayTodoPanel } from "../../contexts/todo/presentation/today/TodayTodo
 import { previewRhythmSettings } from "../../contexts/preferences/application/queries/PreviewRhythmSettings";
 import { createRhythmSettingsSummary } from "../../contexts/preferences/presentation/settings/rhythmSettingsSummary";
 import type { PreferencesAppViewModel } from "../../contexts/preferences/presentation/usePreferencesApp";
-import { formatText, type TextCatalog } from "../../ui/textCatalog";
+import type { TextCatalog } from "../../shared/i18n/catalog";
+import { formatText } from "../../shared/i18n/formatText";
 import type { RhythmAppViewModel } from "../../contexts/rhythm/presentation/useRhythmApp";
 import type { TodoAppViewModel } from "../../contexts/todo/presentation/useTodoApp";
 
