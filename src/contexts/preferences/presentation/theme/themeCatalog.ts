@@ -1,4 +1,4 @@
-import type { ThemePreference } from "../contexts/preferences/domain/UserPreferences";
+import type { ThemePreference } from "../../public";
 
 export interface ThemeOption {
   id: ThemePreference;

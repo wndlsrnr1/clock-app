@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizeOptionalTimeText } from "./timeText";
+import { normalizeOptionalTimeText } from "./normalizeTimeText";
 
 describe("normalizeOptionalTimeText", () => {
   it("stores empty time text as null", () => {

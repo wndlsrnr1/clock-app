@@ -6,7 +6,7 @@ import type { AppModules } from "../app/contracts/AppModules";
 import { addMonthsToMonthKey, currentMonthKey, formatDateKey } from "./dateFormat";
 import { validateTodoTitleInput } from "./inputValidation";
 import { formatText, type TextCatalog } from "./textCatalog";
-import { normalizeOptionalTimeText } from "./timeText";
+import { normalizeOptionalTimeText } from "../shared/time/normalizeTimeText";
 
 interface TodoFormState {
   title: string;

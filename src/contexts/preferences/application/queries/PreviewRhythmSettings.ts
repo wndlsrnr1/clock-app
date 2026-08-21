@@ -1,10 +1,7 @@
-import type { UpdatePreferencesCommand } from "../contexts/preferences/application/UpdatePreferencesUseCase";
-import { UserPreferences } from "../contexts/preferences/domain/UserPreferences";
-import { ClockTime } from "../contexts/rhythm/domain/ClockTime";
-import { DailyRhythm } from "../contexts/rhythm/domain/DailyRhythm";
-import { DurationMinutes } from "../contexts/rhythm/domain/DurationMinutes";
-import { RhythmSchedule } from "../contexts/rhythm/domain/RhythmSchedule";
-import { normalizeOptionalTimeText } from "./timeText";
+import { normalizeOptionalTimeText } from "../../../../shared/time/normalizeTimeText";
+import { ClockTime, DailyRhythm, DurationMinutes, RhythmConfiguration } from "../../../rhythm/public-model";
+import { UserPreferences } from "../../domain/UserPreferences";
+import type { UpdatePreferencesCommand } from "../UpdatePreferencesUseCase";
 
 export type RhythmSettingsPreview =
   | { status: "invalid" }
@@ -20,11 +17,11 @@ export function previewRhythmSettings(form: UpdatePreferencesCommand, now: Date)
       end: ClockTime.fromText(dailyEnd),
       start: ClockTime.fromText(dailyStart),
     });
-    const schedule = RhythmSchedule.create({
+    const schedule = RhythmConfiguration.create({
       dailyRhythm,
       focusTerm: DurationMinutes.create(form.focusMinutes),
       restTerm: DurationMinutes.create(form.restMinutes),
-    });
+    }).schedule();
     const nextEvent = schedule.nextEventAfter(now);
 
     return {

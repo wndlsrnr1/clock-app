@@ -1,6 +1,6 @@
-import type { UpdatePreferencesCommand } from "../../contexts/preferences/application/UpdatePreferencesUseCase";
-import { rhythmMinuteRanges } from "../inputValidation";
-import type { TextCatalog } from "../textCatalog";
+import { rhythmMinuteRanges } from "../../../../ui/inputValidation";
+import type { TextCatalog } from "../../../../ui/textCatalog";
+import type { UpdatePreferencesCommand } from "../../application/UpdatePreferencesUseCase";
 import { NumberStepperField } from "./NumberStepperField";
 import { TimeInputField } from "./TimeInputField";
 

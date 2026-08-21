@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { previewRhythmSettings } from "./rhythmPreview";
+import { previewRhythmSettings } from "./PreviewRhythmSettings";
 
 describe("previewRhythmSettings", () => {
   it("previews the next alarm from the current draft settings", () => {

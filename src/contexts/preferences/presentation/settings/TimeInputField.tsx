@@ -1,5 +1,5 @@
-import type { TextCatalog } from "../textCatalog";
-import { TimePickerField } from "./TimePickerField";
+import { TimePickerField } from "../../../../ui/components/TimePickerField";
+import type { TextCatalog } from "../../../../ui/textCatalog";
 
 interface TimeInputFieldProps {
   label: string;

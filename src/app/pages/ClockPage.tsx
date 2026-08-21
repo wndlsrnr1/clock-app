@@ -1,23 +1,32 @@
 import { AnalogClock } from "../../ui/components/AnalogClock";
 import { DigitalClock } from "../../ui/components/DigitalClock";
-import { NotificationSoundPanel } from "../../ui/components/NotificationSoundPanel";
+import { NotificationSoundPanel } from "../../contexts/preferences/presentation/sound/NotificationSoundPanel";
 import { RhythmControls } from "../../ui/components/RhythmControls";
-import { RhythmSettingsDisclosure } from "../../ui/components/RhythmSettingsDisclosure";
-import { RhythmSettingsPanel } from "../../ui/components/RhythmSettingsPanel";
+import { RhythmSettingsDisclosure } from "../../contexts/preferences/presentation/settings/RhythmSettingsDisclosure";
+import { RhythmSettingsPanel } from "../../contexts/preferences/presentation/settings/RhythmSettingsPanel";
 import { TodayTodoPanel } from "../../ui/components/TodayTodoPanel";
-import { createRhythmSettingsSummary } from "../../ui/rhythmSettingsSummary";
+import { previewRhythmSettings } from "../../contexts/preferences/application/queries/PreviewRhythmSettings";
+import { createRhythmSettingsSummary } from "../../contexts/preferences/presentation/settings/rhythmSettingsSummary";
+import type { PreferencesAppViewModel } from "../../contexts/preferences/presentation/usePreferencesApp";
 import { formatText, type TextCatalog } from "../../ui/textCatalog";
 import type { RhythmAppViewModel } from "../../ui/useRhythmApp";
 import type { TodoAppViewModel } from "../../ui/useTodoApp";
 
 interface ClockPageProps {
+  preferences: PreferencesAppViewModel;
   rhythm: RhythmAppViewModel;
   text: TextCatalog;
   todo: TodoAppViewModel;
 }
 
-export function ClockPage({ rhythm, text, todo }: ClockPageProps): React.JSX.Element {
-  const settingsSummary = createRhythmSettingsSummary(rhythm.form, rhythm.status, rhythm.settingsPreview, text);
+export function ClockPage({ preferences, rhythm, text, todo }: ClockPageProps): React.JSX.Element {
+  const settingsPreview = previewRhythmSettings(preferences.form, rhythm.now);
+  const settingsSummary = createRhythmSettingsSummary(
+    preferences.form,
+    preferences.preferences,
+    settingsPreview,
+    text,
+  );
 
   return (
     <>
@@ -31,10 +40,10 @@ export function ClockPage({ rhythm, text, todo }: ClockPageProps): React.JSX.Ele
               <strong>{text.status.values[rhythm.status.sessionStatus]}</strong>
             </div>
             <div className="settings-preview clock-next-alarm">
-              {rhythm.settingsPreview.status === "ready" ? (
+              {settingsPreview.status === "ready" ? (
                 <>
-                  <p>{formatText(text.rhythm.settings.nextAlarm, { time: rhythm.settingsPreview.nextAlarmTime })}</p>
-                  {rhythm.settingsPreview.isOutsideDailyRhythm ? <p className="warning-text">{text.rhythm.settings.outsideDailyRhythm}</p> : null}
+                  <p>{formatText(text.rhythm.settings.nextAlarm, { time: settingsPreview.nextAlarmTime })}</p>
+                  {settingsPreview.isOutsideDailyRhythm ? <p className="warning-text">{text.rhythm.settings.outsideDailyRhythm}</p> : null}
                 </>
               ) : (
                 <p className="warning-text">{text.rhythm.settings.nextAlarmUnavailable}</p>
@@ -54,17 +63,17 @@ export function ClockPage({ rhythm, text, todo }: ClockPageProps): React.JSX.Ele
       <TodayTodoPanel todo={todo} text={text} />
       <RhythmSettingsDisclosure summary={settingsSummary} text={text}>
         <RhythmSettingsPanel
-          form={rhythm.form}
-          message={rhythm.message}
-          onAutoStartChange={rhythm.changeAutoStart}
-          onDailyEndChange={rhythm.changeDailyEnd}
-          onDailyStartChange={rhythm.changeDailyStart}
-          onFocusMinutesChange={rhythm.changeFocusMinutes}
-          onRestMinutesChange={rhythm.changeRestMinutes}
-          onSave={rhythm.savePreferences}
+          form={preferences.form}
+          message={preferences.message}
+          onAutoStartChange={preferences.changeAutoStart}
+          onDailyEndChange={preferences.changeDailyEnd}
+          onDailyStartChange={preferences.changeDailyStart}
+          onFocusMinutesChange={preferences.changeFocusMinutes}
+          onRestMinutesChange={preferences.changeRestMinutes}
+          onSave={preferences.save}
           text={text}
         />
-        <NotificationSoundPanel rhythm={rhythm} text={text} />
+        <NotificationSoundPanel preferences={preferences} text={text} />
       </RhythmSettingsDisclosure>
     </>
   );

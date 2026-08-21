@@ -1,16 +1,16 @@
 import { useState } from "react";
-import type { TextCatalog } from "../textCatalog";
-import type { RhythmAppViewModel } from "../useRhythmApp";
-import { IconButton } from "./IconButton";
+import { IconButton } from "../../../../ui/components/IconButton";
+import type { TextCatalog } from "../../../../ui/textCatalog";
+import type { PreferencesAppViewModel } from "../usePreferencesApp";
 
 interface NotificationSoundPanelProps {
-  rhythm: RhythmAppViewModel;
+  preferences: PreferencesAppViewModel;
   text: TextCatalog;
 }
 
-export function NotificationSoundPanel({ rhythm, text }: NotificationSoundPanelProps): React.JSX.Element {
+export function NotificationSoundPanel({ preferences, text }: NotificationSoundPanelProps): React.JSX.Element {
   const [isVolumeOpen, setIsVolumeOpen] = useState(false);
-  const sound = rhythm.status.notificationSound;
+  const sound = preferences.preferences.notificationSound;
   const label = sound.mode === "custom"
     ? sound.customFileName ?? text.sound.customFallback
     : sound.mode === "muted"
@@ -31,15 +31,15 @@ export function NotificationSoundPanel({ rhythm, text }: NotificationSoundPanelP
       </div>
       <div className="sound-actions">
         <div className="icon-toolbar slim-buttons">
-          <IconButton icon="music" label={text.sound.actions.chooseMp3} onClick={() => void rhythm.chooseCustomNotificationSound()} />
-          <IconButton icon="bell" label={text.sound.actions.useDefault} onClick={() => void rhythm.useDefaultNotificationSound()}>{text.sound.actions.useDefault}</IconButton>
-          <IconButton active={sound.mode === "muted"} icon={muteActionIcon} label={muteActionLabel} onClick={() => void rhythm.muteNotificationSound()} />
+          <IconButton icon="music" label={text.sound.actions.chooseMp3} onClick={() => void preferences.chooseCustomNotificationSound()} />
+          <IconButton icon="bell" label={text.sound.actions.useDefault} onClick={() => void preferences.useDefaultNotificationSound()}>{text.sound.actions.useDefault}</IconButton>
+          <IconButton active={sound.mode === "muted"} icon={muteActionIcon} label={muteActionLabel} onClick={() => void preferences.muteNotificationSound()} />
           <IconButton
-            active={rhythm.isPreviewing}
+            active={preferences.isPreviewingSound}
             disabled={sound.mode === "muted"}
-            icon={rhythm.isPreviewing ? "stop" : "play"}
-            label={rhythm.isPreviewing ? text.sound.actions.stopPreview : text.sound.actions.preview}
-            onClick={() => void rhythm.toggleNotificationSoundPreview()}
+            icon={preferences.isPreviewingSound ? "stop" : "play"}
+            label={preferences.isPreviewingSound ? text.sound.actions.stopPreview : text.sound.actions.preview}
+            onClick={() => void preferences.toggleNotificationSoundPreview()}
             variant="primary"
           />
         </div>
@@ -58,7 +58,7 @@ export function NotificationSoundPanel({ rhythm, text }: NotificationSoundPanelP
                 aria-label={text.sound.actions.volume}
                 max={100}
                 min={0}
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) => void rhythm.changeNotificationSoundVolume(Number(event.target.value) / 100)}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) => void preferences.changeNotificationSoundVolume(Number(event.target.value) / 100)}
                 type="range"
                 value={volumePercent}
               />

@@ -1,6 +1,6 @@
 import { useId, useState } from "react";
-import type { RhythmSettingsSummary } from "../rhythmSettingsSummary";
-import type { TextCatalog } from "../textCatalog";
+import type { TextCatalog } from "../../../../ui/textCatalog";
+import type { RhythmSettingsSummary } from "./rhythmSettingsSummary";
 
 interface RhythmSettingsDisclosureProps {
   children: React.ReactNode;

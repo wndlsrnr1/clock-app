@@ -1,13 +1,13 @@
-import type { RhythmAppViewModel } from "../useRhythmApp";
-import type { TextCatalog } from "../textCatalog";
-import { themeOptions, type ThemeOption } from "../themeCatalog";
+import type { TextCatalog } from "../../../../ui/textCatalog";
+import type { PreferencesAppViewModel } from "../usePreferencesApp";
+import { themeOptions, type ThemeOption } from "./themeCatalog";
 
 interface ThemePageProps {
-  rhythm: RhythmAppViewModel;
+  preferences: PreferencesAppViewModel;
   text: TextCatalog;
 }
 
-export function ThemePage({ rhythm, text }: ThemePageProps): React.JSX.Element {
+export function ThemePage({ preferences, text }: ThemePageProps): React.JSX.Element {
   return (
     <section className="theme-page" aria-labelledby="theme-page-title">
       <div className="panel-header compact-header">
@@ -19,7 +19,7 @@ export function ThemePage({ rhythm, text }: ThemePageProps): React.JSX.Element {
       <p className="panel-copy">{text.theme.description}</p>
       <div className="theme-grid">
         {themeOptions.map((theme: ThemeOption): React.JSX.Element => {
-          const selected = rhythm.status.theme === theme.id;
+          const selected = preferences.preferences.theme === theme.id;
 
           return (
             <button
@@ -27,7 +27,7 @@ export function ThemePage({ rhythm, text }: ThemePageProps): React.JSX.Element {
               aria-pressed={selected}
               className={selected ? "theme-card selected" : "theme-card"}
               key={theme.id}
-              onClick={() => void rhythm.changeTheme(theme.id)}
+              onClick={() => void preferences.changeTheme(theme.id)}
               type="button"
             >
               <span className="theme-card__header">
@@ -43,7 +43,7 @@ export function ThemePage({ rhythm, text }: ThemePageProps): React.JSX.Element {
           );
         })}
       </div>
-      {rhythm.message ? <p className="status-message">{rhythm.message}</p> : null}
+      {preferences.message ? <p className="status-message">{preferences.message}</p> : null}
     </section>
   );
 }

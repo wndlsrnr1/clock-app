@@ -1,7 +1,7 @@
 import { UserPreferences } from "../contexts/preferences/domain/UserPreferences";
 import { TodoTitle } from "../contexts/todo/domain/TodoTitle";
 import { formatText, type TextCatalog } from "./textCatalog";
-import { normalizeOptionalTimeText } from "./timeText";
+import { normalizeOptionalTimeText } from "../shared/time/normalizeTimeText";
 
 export interface TextInputValidation {
   error: string | null;

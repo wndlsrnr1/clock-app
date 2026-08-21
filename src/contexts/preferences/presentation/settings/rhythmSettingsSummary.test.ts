@@ -1,10 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { UserPreferences } from "../contexts/preferences/domain/UserPreferences";
-import type { RhythmStatusSnapshot } from "../contexts/rhythm/application/RhythmStatusSnapshot";
+import { createTranslator } from "../../../../ui/textCatalog";
+import { UserPreferences, type UserPreferencesSnapshot } from "../../public";
 import { createRhythmSettingsSummary } from "./rhythmSettingsSummary";
-import { createTranslator } from "./textCatalog";
 
-function status(overrides: Partial<RhythmStatusSnapshot> = {}): RhythmStatusSnapshot {
+function preferences(overrides: Partial<UserPreferencesSnapshot> = {}): UserPreferencesSnapshot {
   return {
     autoStartEnabled: false,
     dailyEnd: "18:00",
@@ -14,7 +13,6 @@ function status(overrides: Partial<RhythmStatusSnapshot> = {}): RhythmStatusSnap
     language: "kor",
     notificationSound: UserPreferences.default().notificationSound,
     restMinutes: 10,
-    sessionStatus: "idle",
     theme: "current",
     ...overrides,
   };
@@ -29,7 +27,7 @@ describe("createRhythmSettingsSummary", () => {
       dailyStart: "05:00",
       focusMinutes: 50,
       restMinutes: 10,
-    }, status(), { isOutsideDailyRhythm: false, nextAlarmTime: "05:50", status: "ready" }, text);
+    }, preferences(), { isOutsideDailyRhythm: false, nextAlarmTime: "05:50", status: "ready" }, text);
 
     expect(summary.text).toBe("50분 집중 · 10분 휴식 · 05:00-18:00 · 기본");
     expect(summary.chips).toEqual([]);
@@ -45,7 +43,7 @@ describe("createRhythmSettingsSummary", () => {
       dailyStart: "",
       focusMinutes: 45,
       restMinutes: 10,
-    }, status(), { status: "invalid" }, text);
+    }, preferences(), { status: "invalid" }, text);
 
     expect(summary.chips).toContain("저장 필요");
     expect(summary.chips).toContain("시간 설정 오류");
@@ -63,7 +61,7 @@ describe("createRhythmSettingsSummary", () => {
       dailyStart: "05:00",
       focusMinutes: 50,
       restMinutes: 10,
-    }, status({ notificationSound: muted.notificationSound }), { isOutsideDailyRhythm: true, nextAlarmTime: "05:50", status: "ready" }, text);
+    }, preferences({ notificationSound: muted.notificationSound }), { isOutsideDailyRhythm: true, nextAlarmTime: "05:50", status: "ready" }, text);
 
     expect(summary.text).toBe("50분 집중 · 10분 휴식 · 05:00-18:00 · 무음");
     expect(summary.chips).toContain("무음");
@@ -78,7 +76,7 @@ describe("createRhythmSettingsSummary", () => {
       dailyStart: "05:00",
       focusMinutes: 50,
       restMinutes: 10,
-    }, status({ initialSetupCompleted: false }), { isOutsideDailyRhythm: false, nextAlarmTime: "05:50", status: "ready" }, text);
+    }, preferences({ initialSetupCompleted: false }), { isOutsideDailyRhythm: false, nextAlarmTime: "05:50", status: "ready" }, text);
 
     expect(summary.shouldOpenOnInitialRender).toBe(true);
   });

@@ -1,7 +1,10 @@
 import { CalendarPage } from "../ui/components/CalendarPage";
 import { DataPage } from "../ui/components/DataPage";
 import { SegmentedControl } from "../ui/components/SegmentedControl";
-import { ThemePage } from "../ui/components/ThemePage";
+import { ThemePage } from "../contexts/preferences/presentation/theme/ThemePage";
+import { usePreferencesApp } from "../contexts/preferences/presentation/usePreferencesApp";
+import type { RhythmStatusSnapshot } from "../contexts/rhythm/public";
+import { createTranslator } from "../ui/textCatalog";
 import { useLayoutMode } from "../ui/useLayoutMode";
 import { useRhythmApp } from "../ui/useRhythmApp";
 import { useTodoApp } from "../ui/useTodoApp";
@@ -16,15 +19,19 @@ interface ClockRhythmAppProps {
   initialPreferences?: UserPreferencesSnapshot;
 }
 
-export function ClockRhythmApp({ modules, initialNow = new Date() }: ClockRhythmAppProps): React.JSX.Element {
+export function ClockRhythmApp({ modules, initialNow = new Date(), initialPreferences }: ClockRhythmAppProps): React.JSX.Element {
   const navigation = useAppNavigation();
   const rhythm = useRhythmApp(modules, initialNow);
-  const todo = useTodoApp(modules, rhythm.now, rhythm.text);
-  const text = rhythm.text;
+  const preferences = usePreferencesApp(
+    modules.preferences,
+    initialPreferences ?? preferencesSnapshotFromStatus(rhythm.status),
+  );
+  const text = createTranslator(preferences.preferences.language);
+  const todo = useTodoApp(modules, rhythm.now, text);
   const { containerRef, layoutMode } = useLayoutMode();
 
   return (
-    <main className="app-shell" data-theme={rhythm.status.theme} ref={containerRef}>
+    <main className="app-shell" data-theme={preferences.preferences.theme} ref={containerRef}>
       <section className={`box box--${layoutMode}`}>
         <nav className="app-nav" aria-label={text.navigation.aria}>
           <SegmentedControl
@@ -40,24 +47,38 @@ export function ClockRhythmApp({ modules, initialNow = new Date() }: ClockRhythm
           />
           <SegmentedControl
             ariaLabel={text.language.label}
-            onChange={rhythm.changeLanguage}
+            onChange={preferences.changeLanguage}
             options={[
               { ariaLabel: text.language.korName, label: text.language.kor, value: "kor" },
               { ariaLabel: text.language.enName, label: text.language.en, value: "en" },
             ]}
-            value={rhythm.status.language}
+            value={preferences.preferences.language}
           />
         </nav>
         {navigation.page === "clock" ? (
-          <ClockPage rhythm={rhythm} text={text} todo={todo} />
+          <ClockPage preferences={preferences} rhythm={rhythm} text={text} todo={todo} />
         ) : navigation.page === "calendar" ? (
-          <CalendarPage language={rhythm.status.language} todo={todo} text={text} />
+          <CalendarPage language={preferences.preferences.language} todo={todo} text={text} />
         ) : navigation.page === "data" ? (
           <DataPage todo={todo} text={text} />
         ) : (
-          <ThemePage rhythm={rhythm} text={text} />
+          <ThemePage preferences={preferences} text={text} />
         )}
       </section>
     </main>
   );
+}
+
+function preferencesSnapshotFromStatus(status: RhythmStatusSnapshot): UserPreferencesSnapshot {
+  return {
+    autoStartEnabled: status.autoStartEnabled,
+    dailyEnd: status.dailyEnd,
+    dailyStart: status.dailyStart,
+    focusMinutes: status.focusMinutes,
+    initialSetupCompleted: status.initialSetupCompleted,
+    language: status.language,
+    notificationSound: status.notificationSound,
+    restMinutes: status.restMinutes,
+    theme: status.theme,
+  };
 }
