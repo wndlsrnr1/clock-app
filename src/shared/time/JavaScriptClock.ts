@@ -5,4 +5,3 @@ export class JavaScriptClock implements Clock {
     return new Date();
   }
 }
-

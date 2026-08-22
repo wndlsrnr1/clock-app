@@ -18,4 +18,3 @@ export interface SchedulerPort {
 export interface TrayPort {
   updateStatus(status: string): Promise<void>;
 }
-

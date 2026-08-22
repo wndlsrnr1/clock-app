@@ -70,4 +70,3 @@ export function composeBrowserApplication(): RuntimeApplication {
     modules: { dataTransfer, preferences, rhythm, todo },
   };
 }
-
