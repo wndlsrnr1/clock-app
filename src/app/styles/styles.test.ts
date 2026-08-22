@@ -8,7 +8,7 @@ function readStyle(name: string): string {
 
 describe("app styles", (): void => {
   it("imports owner styles in an explicit cascade order", (): void => {
-    expect(readStyle("index.css").trim().split("\n")).toEqual([
+    expect(readStyle("index.css").trim().split(/\r?\n/)).toEqual([
       '@import "./foundation.css";',
       '@import "./shell.css";',
       '@import "../../shared/ui/styles/controls.css";',
