@@ -21,7 +21,7 @@ export function NotificationSoundPanel({ preferences, text }: NotificationSoundP
   const muteActionIcon = sound.mode === "muted" ? "volume" : "volumeMuted";
 
   return (
-    <section className="sound-panel" aria-labelledby="sound-title">
+    <section className="sound-panel panel-surface" aria-labelledby="sound-title">
       <div className="panel-header compact-header">
         <div>
           <p className="eyebrow">{text.sound.eyebrow}</p>

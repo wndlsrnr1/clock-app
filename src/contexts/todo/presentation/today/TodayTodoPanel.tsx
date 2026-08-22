@@ -22,7 +22,7 @@ export function TodayTodoPanel({ todo, text }: TodayTodoPanelProps): React.JSX.E
     .join(" ") || undefined;
 
   return (
-    <section className="todo-panel" aria-labelledby="today-todo-title">
+    <section className="todo-panel panel-surface" aria-labelledby="today-todo-title">
       <div className="panel-header">
         <div>
           <p className="eyebrow">{text.todo.today.eyebrow}</p>
@@ -63,12 +63,13 @@ export function TodayTodoPanel({ todo, text }: TodayTodoPanelProps): React.JSX.E
           </div>
         </div>
         {todo.form.timeEnabled ? (
-          <TimePickerField label={text.todo.list.editTime} onChange={todo.changeTime} text={text} value={todo.form.time} />
+          <TimePickerField label={text.todo.list.editTime} onChange={todo.changeTime} text={text.timePicker} value={todo.form.time} />
         ) : (
           <IconButton icon="clock" label={text.todo.actions.addTime} onClick={todo.showTimeInput} />
         )}
         <IconButton disabled={!titleValidation.isValid} icon="plus" label={text.todo.actions.add} type="submit" variant="primary" />
       </form>
+      {todo.message ? <p className="status-message" role="status">{todo.message}</p> : null}
       <TodoListPanel
         edit={todo.edit}
         onCancelEditing={todo.cancelEditing}

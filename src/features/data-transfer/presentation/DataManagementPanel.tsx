@@ -9,7 +9,7 @@ interface DataManagementPanelProps {
 
 export function DataManagementPanel({ dataTransfer, text }: DataManagementPanelProps): React.JSX.Element {
   return (
-    <section className="data-panel" aria-labelledby="data-management-title">
+    <section className="data-panel panel-surface" aria-labelledby="data-management-title">
       <div className="panel-header compact-header">
         <div>
           <p className="eyebrow">{text.backup.eyebrow}</p>

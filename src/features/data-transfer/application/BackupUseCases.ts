@@ -1,5 +1,5 @@
-import type { TodoItemSnapshot } from "../../../contexts/todo/public";
-import type { UserPreferencesSnapshot } from "../../../contexts/preferences/public";
+import { TodoItem, type TodoItemSnapshot } from "../../../contexts/todo/public";
+import { UserPreferences, type UserPreferencesSnapshot } from "../../../contexts/preferences/public";
 import type { Clock } from "../../../shared/time/Clock";
 import type { BackupFilePort, PreferencesBackupPort, TodoBackupPort } from "./ports";
 
@@ -56,8 +56,15 @@ export class ImportBackupUseCase {
 
   public async execute(preparedImport: PreparedBackupImport): Promise<void> {
     const backup = parseBackup(preparedImport.backupText);
+    const preferences = sanitizePreferencesForImport(backup.preferences);
+
+    UserPreferences.restore(preferences);
+    backup.todos.forEach((todo: TodoItemSnapshot): void => {
+      TodoItem.restore(todo);
+    });
+
     await this.todos.replaceSnapshots(backup.todos);
-    await this.preferences.replaceSnapshot(sanitizePreferencesForImport(backup.preferences));
+    await this.preferences.replaceSnapshot(preferences);
   }
 }
 

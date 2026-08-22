@@ -244,6 +244,39 @@ describe("backup use cases", () => {
     expect((await todos.getAll())[0]?.snapshot().id).toBe("old-todo");
   });
 
+  it("does not replace todos when preference restoration fails", async () => {
+    const settings = new InMemorySettingsRepository(UserPreferences.default().changeTerms(50, 10));
+    const todos = new InMemoryTodoRepository([
+      TodoItem.create({
+        date: "2026-06-01",
+        id: "old-todo",
+        now: new Date("2026-06-01T09:00:00.000Z"),
+        title: "기존 할 일",
+      }),
+    ]);
+    const files = new InMemoryBackupFilePort();
+    files.textToRead = JSON.stringify({
+      appName: "Clock Rhythm",
+      exportedAt: "2026-06-02T10:00:00.000Z",
+      schemaVersion: 1,
+      preferences: {
+        autoStartEnabled: false,
+        dailyEnd: "18:00",
+        dailyStart: "05:00",
+        focusMinutes: 999,
+        restMinutes: 15,
+      },
+      todos: [todoSnapshot({ id: "new-todo", title: "가져온 할 일" })],
+    });
+
+    const preparedImport = await preparedImportFrom(files);
+
+    await expect(new ImportBackupUseCase(settings, todos).execute(preparedImport)).rejects.toThrow();
+
+    expect((await settings.get()).focusMinutes.value).toBe(50);
+    expect((await todos.getAll()).map((todo: TodoItem): string => todo.snapshot().id)).toEqual(["old-todo"]);
+  });
+
   it("replaces current preferences and todos on import", async () => {
     const settings = new InMemorySettingsRepository();
     const todos = new InMemoryTodoRepository([

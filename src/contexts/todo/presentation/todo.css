@@ -11,6 +11,12 @@
   box-shadow: 0 0 0.75rem color-mix(in srgb, var(--glow-a), transparent 70%) inset;
 }
 
+.todo-form input:focus-visible,
+.todo-edit input:focus-visible {
+  outline: 2px solid var(--accent-focus);
+  outline-offset: 2px;
+}
+
 .todo-form {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
@@ -277,4 +283,48 @@
   background: rgba(0, 0, 0, 0.24);
   font-size: 0.65rem;
   font-weight: 800;
+}
+
+@media (max-width: 35rem) {
+  .todo-form,
+  .calendar-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .todo-form .btn {
+    width: 100%;
+  }
+
+  .calendar-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .calendar-nav {
+    justify-content: space-between;
+  }
+
+  .calendar-grid,
+  .calendar-weekdays {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0.24rem;
+  }
+
+  .calendar-day {
+    min-height: 3.1rem;
+    padding: 0.32rem;
+  }
+
+  .calendar-day-number {
+    top: 0.32rem;
+    left: 0.36rem;
+    font-size: 0.78rem;
+  }
+
+  .calendar-todo-badge {
+    bottom: 0.32rem;
+    left: 0.34rem;
+    padding: 0.08rem 0.28rem;
+    font-size: 0.56rem;
+  }
 }

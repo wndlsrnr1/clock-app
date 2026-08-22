@@ -103,20 +103,20 @@
       "titleRequired": "할 일을 입력해주세요.",
       "titleTooLong": "할 일은 {max}자 이하로 입력해주세요.",
       "titleCounter": "{count}/{max}"
-    },
-    "timePicker": {
-      "placeholder": "시간 선택",
-      "directLabel": "직접 입력",
-      "directInput": "{label} 직접 입력",
-      "editing": "입력 중",
-      "hourGroup": "시 선택",
-      "minuteGroup": "분 선택",
-      "hourOption": "{hour}시",
-      "minuteOption": "{minute}분",
-      "clear": "비우기",
-      "close": "닫기",
-      "invalid": "시간은 00:00-23:59로 입력해주세요."
     }
+  },
+  "timePicker": {
+    "placeholder": "시간 선택",
+    "directLabel": "직접 입력",
+    "directInput": "{label} 직접 입력",
+    "editing": "입력 중",
+    "hourGroup": "시 선택",
+    "minuteGroup": "분 선택",
+    "hourOption": "{hour}시",
+    "minuteOption": "{minute}분",
+    "clear": "비우기",
+    "close": "닫기",
+    "invalid": "시간은 00:00-23:59로 입력해주세요."
   },
   "calendar": {
     "eyebrow": "달력",

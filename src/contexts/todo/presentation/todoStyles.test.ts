@@ -8,4 +8,7 @@ it("keeps Todo list and calendar selectors in the Todo module", (): void => {
   expect(css).toContain(".todo-row.dragging");
   expect(css).toContain(".calendar-grid");
   expect(css).toContain(".calendar-day.today::after");
+  expect(css.indexOf("@media (max-width: 35rem)")).toBeGreaterThan(css.indexOf(".todo-form"));
+  expect(css).toContain("  .todo-form,");
+  expect(css).toContain("  .calendar-layout");
 });

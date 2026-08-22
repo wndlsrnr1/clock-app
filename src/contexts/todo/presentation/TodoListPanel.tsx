@@ -138,7 +138,7 @@ export function TodoListPanel({
                 onCancel={onCancelEditing}
                 onChange={onChangeEditTime}
                 onCommit={() => void onSaveEdit()}
-                text={text}
+                text={text.timePicker}
                 value={edit.time}
               />
               <div className="todo-edit-actions">

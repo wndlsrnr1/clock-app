@@ -56,6 +56,7 @@ export function ClockPage({ preferences, rhythm, text, todo }: ClockPageProps): 
               status={rhythm.status.sessionStatus}
               text={text}
             />
+            {rhythm.message ? <p className="status-message" role="status">{rhythm.message}</p> : null}
           </div>
         </div>
       </div>

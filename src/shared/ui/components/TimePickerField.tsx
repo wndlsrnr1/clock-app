@@ -1,12 +1,11 @@
 import { useLayoutEffect, useRef, useState } from "react";
-import type { TextCatalog } from "../../i18n/catalog";
 import { formatText } from "../../i18n/formatText";
 import { normalizeOptionalTimeText } from "../../time/normalizeTimeText";
 import { SvgIcon } from "./SvgIcon";
 
 interface TimePickerFieldProps {
   label: string;
-  text: TextCatalog;
+  text: TimePickerText;
   value: string;
   onChange(value: string): void;
   onCancel?: () => void;
@@ -37,7 +36,7 @@ export function TimePickerField({
   const [isOpen, setIsOpen] = useState(false);
   const [isDirectInputFocused, setIsDirectInputFocused] = useState(false);
   const selectedTime = parsedTimeParts(value);
-  const directInputLabel = formatText(text.todo.timePicker.directInput, { label });
+  const directInputLabel = formatText(text.directInput, { label });
   const displayValue = displayTimeValue(value);
   const directDisplay = displayDirectInputValue(value);
   const isInvalid = required ? !isOptionalTimeInputValid(value) || value.trim().length === 0 : !isOptionalTimeInputValid(value);
@@ -81,7 +80,7 @@ export function TimePickerField({
           type="button"
         >
           <SvgIcon name="clock" />
-          <span>{displayValue || text.todo.timePicker.placeholder}</span>
+          <span>{displayValue || text.placeholder}</span>
         </button>
         {isOpen ? (
           <div
@@ -94,8 +93,8 @@ export function TimePickerField({
             <div className="time-picker-dialog" onClick={(event: React.MouseEvent<HTMLDivElement>) => event.stopPropagation()}>
               <label className="time-picker-direct">
                 <span className="time-picker-direct-label">
-                  <span>{text.todo.timePicker.directLabel}</span>
-                  {isDirectInputFocused ? <span className="input-state-pill">{text.todo.timePicker.editing}</span> : null}
+                  <span>{text.directLabel}</span>
+                  {isDirectInputFocused ? <span className="input-state-pill">{text.editing}</span> : null}
                 </span>
                 <span
                   className={isDirectInputFocused ? "time-picker-direct-entry editing" : "time-picker-direct-entry"}
@@ -143,10 +142,10 @@ export function TimePickerField({
                 </span>
               </label>
               <div className="field-feedback">
-                {isInvalid ? <p className="field-error">{text.todo.timePicker.invalid}</p> : null}
+                {isInvalid ? <p className="field-error">{text.invalid}</p> : null}
               </div>
               <div className="time-picker-columns">
-                <div aria-label={text.todo.timePicker.hourGroup} className="time-picker-options" role="group">
+                <div aria-label={text.hourGroup} className="time-picker-options" role="group">
                   {hourOptions.map((hour: string): React.JSX.Element => (
                     <button
                       aria-pressed={selectedTime?.hour === hour}
@@ -155,11 +154,11 @@ export function TimePickerField({
                       onClick={() => onChange(`${hour}:${selectedTime?.minute ?? "00"}`)}
                       type="button"
                     >
-                      {formatText(text.todo.timePicker.hourOption, { hour })}
+                      {formatText(text.hourOption, { hour })}
                     </button>
                   ))}
                 </div>
-                <div aria-label={text.todo.timePicker.minuteGroup} className="time-picker-options" role="group">
+                <div aria-label={text.minuteGroup} className="time-picker-options" role="group">
                   {minuteOptions.map((minute: string): React.JSX.Element => (
                     <button
                       aria-pressed={selectedTime?.minute === minute}
@@ -168,7 +167,7 @@ export function TimePickerField({
                       onClick={() => onChange(`${selectedTime?.hour ?? "00"}:${minute}`)}
                       type="button"
                     >
-                      {formatText(text.todo.timePicker.minuteOption, { minute })}
+                      {formatText(text.minuteOption, { minute })}
                     </button>
                   ))}
                 </div>
@@ -176,11 +175,11 @@ export function TimePickerField({
               <div className="time-picker-actions">
                 {required ? null : (
                   <button className="mini-button" onClick={() => onChange("")} type="button">
-                    {text.todo.timePicker.clear}
+                    {text.clear}
                   </button>
                 )}
                 <button className="mini-button" onClick={() => setIsOpen(false)} type="button">
-                  {text.todo.timePicker.close}
+                  {text.close}
                 </button>
               </div>
             </div>
@@ -204,6 +203,20 @@ function parsedTimeParts(value: string): TimeParts | null {
 
 function twoDigit(value: number): string {
   return String(value).padStart(2, "0");
+}
+
+export interface TimePickerText {
+  clear: string;
+  close: string;
+  directInput: string;
+  directLabel: string;
+  editing: string;
+  hourGroup: string;
+  hourOption: string;
+  invalid: string;
+  minuteGroup: string;
+  minuteOption: string;
+  placeholder: string;
 }
 
 function isOptionalTimeInputValid(value: string): boolean {

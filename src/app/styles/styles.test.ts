@@ -40,5 +40,8 @@ describe("app styles", (): void => {
     expect(shellRule?.groups?.body).toContain("overflow: hidden;");
     expect(boxRule?.groups?.body).toContain("--clock-stage-size: min(17.5rem, 70vw);");
     expect(css).toContain(".box--verticalCompact .ui-grid");
+    expect(css).not.toContain(".todo-form");
+    expect(css).not.toContain(".calendar-layout");
+    expect(css).not.toContain("  .grid,");
   });
 });

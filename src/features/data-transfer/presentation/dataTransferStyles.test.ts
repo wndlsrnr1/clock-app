@@ -8,4 +8,7 @@ it("keeps data transfer page and confirmation selectors in the feature", (): voi
   expect(css).toContain(".data-page");
   expect(css).toContain(".confirm-modal");
   expect(css).toContain(".backup-summary");
+  expect(css.indexOf("@media (max-width: 35rem)")).toBeGreaterThan(css.indexOf(".data-page"));
+  expect(css).toContain("  .buttons {");
+  expect(css).toContain("  .buttons .btn");
 });

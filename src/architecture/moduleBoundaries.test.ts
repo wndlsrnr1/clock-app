@@ -26,21 +26,20 @@ describe("module boundaries", (): void => {
   });
 
   it("rejects a representative Todo deep import", async (): Promise<void> => {
+    const configuration = loadConfiguration();
     const result = await cruise(["test-fixtures/architecture/forbiddenTodoDeepImport.ts"], {
-      baseDir: process.cwd(),
+      ...configuration.options,
       outputType: "err",
       ruleSet: {
-        forbidden: [{
-          name: "todo-internals-are-private",
-          severity: "error",
-          from: { path: "^(?!src/contexts/todo/)" },
-          to: { path: "^src/contexts/todo/(?!public(?:-model)?\\.ts$|composition\\.ts$)" },
-        }],
+        allowed: configuration.allowed,
+        allowedSeverity: configuration.allowedSeverity,
+        forbidden: configuration.forbidden,
+        required: configuration.required,
       },
-      tsConfig: { fileName: "tsconfig.json" },
       validate: true,
     });
 
     expect(result.exitCode).toBe(1);
+    expect(String(result.output)).toContain("todo-internals-are-private");
   });
 });

@@ -18,12 +18,12 @@ interface ClockRhythmAppProps {
 
 export function ClockRhythmApp({ modules, initialNow = new Date(), initialPreferences }: ClockRhythmAppProps): React.JSX.Element {
   const navigation = useAppNavigation();
-  const rhythm = useRhythmApp(modules.rhythm, initialNow);
   const preferences = usePreferencesApp(
     modules.preferences,
     initialPreferences,
   );
   const text = createTranslator(preferences.preferences.language);
+  const rhythm = useRhythmApp(modules.rhythm, initialNow, text);
   const todo = useTodoApp(modules.todo, rhythm.now, text);
   const dataTransfer = useDataTransfer(modules.dataTransfer, text, async (): Promise<void> => {
     await preferences.refresh();

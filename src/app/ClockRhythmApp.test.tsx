@@ -391,18 +391,40 @@ describe("RhythmApp", () => {
     expect(screen.getByText("시간은 00:00-23:59로 입력해주세요.")).toBeInTheDocument();
   });
 
-  it("delegates start and pause commands to use cases", async () => {
+  it("shows localized success messages for every rhythm command", async () => {
     const user = userEvent.setup();
     const services = createServices();
 
     render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
 
     await user.click(screen.getByRole("button", { name: "시작" }));
+    expect(await screen.findByRole("status")).toHaveTextContent("집중 시간대가 실행 중입니다.");
+
     await user.click(screen.getByRole("button", { name: "일시정지" }));
+    expect(await screen.findByRole("status")).toHaveTextContent("집중 시간대를 일시정지했습니다.");
+
+    await user.click(screen.getByRole("button", { name: "시작" }));
+    expect(await screen.findByRole("status")).toHaveTextContent("집중 시간대가 실행 중입니다.");
+
+    await user.click(screen.getByRole("button", { name: "오늘 종료" }));
+    expect(await screen.findByRole("status")).toHaveTextContent("오늘의 집중 시간대를 종료했습니다.");
 
     expect(services.startRhythm.execute).toHaveBeenCalledOnce();
     expect(services.pauseRhythm.execute).toHaveBeenCalledOnce();
-    expect(screen.queryByRole("button", { name: "재개" })).not.toBeInTheDocument();
+    expect(services.resumeRhythm.execute).toHaveBeenCalledOnce();
+    expect(services.stopForToday.execute).toHaveBeenCalledOnce();
+  });
+
+  it("shows rhythm command failures near the clock controls", async () => {
+    const user = userEvent.setup();
+    const services = createServices();
+    services.startRhythm = { execute: vi.fn(() => Promise.reject(new Error("start unavailable"))) };
+
+    render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
+
+    await user.click(screen.getByRole("button", { name: "시작" }));
+
+    expect(await screen.findByRole("status")).toHaveTextContent("start unavailable");
   });
 
   it("uses the play control to resume when the rhythm is paused", async () => {
@@ -496,6 +518,19 @@ describe("RhythmApp", () => {
       title: "보고서 정리",
     });
     expect(await screen.findByText("보고서 정리")).toBeInTheDocument();
+  });
+
+  it("shows todo command failures in the owning todo panel", async () => {
+    const user = userEvent.setup();
+    const services = createServices();
+    services.addTodo = { execute: vi.fn(() => Promise.reject(new Error("save unavailable"))) };
+
+    render(<RhythmApp initialNow={new Date("2026-06-02T05:10:00")} services={services} />);
+
+    await user.type(screen.getByLabelText("오늘 할 일 입력"), "보고서 정리");
+    await user.click(screen.getByRole("button", { name: "추가" }));
+
+    expect(await screen.findByRole("status")).toHaveTextContent("Todo 작업 실패: save unavailable");
   });
 
   it("prevents empty today todo titles before calling the add use case", async () => {

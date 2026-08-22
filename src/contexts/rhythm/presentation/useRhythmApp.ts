@@ -1,5 +1,6 @@
 import { useEffect, useReducer, type Dispatch } from "react";
 import type { RhythmModule, RhythmStatusSnapshot } from "../public";
+import type { TextCatalog } from "../../../shared/i18n/catalog";
 
 interface RhythmAppState {
   now: Date;
@@ -25,6 +26,7 @@ export interface RhythmAppViewModel {
 export function useRhythmApp(
   rhythm: RhythmModule,
   initialNow: Date,
+  text: TextCatalog,
 ): RhythmAppViewModel {
   const [state, dispatch] = useReducer(reducer, {
     message: "",
@@ -42,10 +44,10 @@ export function useRhythmApp(
 
   return {
     ...state,
-    pause: async (): Promise<void> => runStatusAction(() => rhythm.pause.execute(), dispatch),
-    resume: async (): Promise<void> => runStatusAction(() => rhythm.resume.execute(), dispatch),
-    start: async (): Promise<void> => runStatusAction(() => rhythm.start.execute(), dispatch),
-    stopForToday: async (): Promise<void> => runStatusAction(() => rhythm.stopForToday.execute(), dispatch),
+    pause: async (): Promise<void> => runStatusAction(() => rhythm.pause.execute(), text.messages.rhythmPaused, dispatch),
+    resume: async (): Promise<void> => runStatusAction(() => rhythm.resume.execute(), text.messages.rhythmRunning, dispatch),
+    start: async (): Promise<void> => runStatusAction(() => rhythm.start.execute(), text.messages.rhythmRunning, dispatch),
+    stopForToday: async (): Promise<void> => runStatusAction(() => rhythm.stopForToday.execute(), text.messages.rhythmStoppedForToday, dispatch),
   };
 }
 
@@ -63,10 +65,12 @@ function reducer(state: RhythmAppState, action: RhythmAppAction): RhythmAppState
 
 async function runStatusAction(
   action: () => Promise<RhythmStatusSnapshot>,
+  successMessage: string,
   dispatch: Dispatch<RhythmAppAction>,
 ): Promise<void> {
   try {
     dispatch({ type: "STATUS_CHANGED", status: await action() });
+    dispatch({ type: "MESSAGE_CHANGED", message: successMessage });
   } catch (error) {
     dispatch({ type: "MESSAGE_CHANGED", message: error instanceof Error ? error.message : "Unknown error" });
   }

@@ -102,20 +102,20 @@
       "titleRequired": "Enter a task.",
       "titleTooLong": "Tasks must be {max} characters or less.",
       "titleCounter": "{count}/{max}"
-    },
-    "timePicker": {
-      "placeholder": "Select time",
-      "directLabel": "Direct input",
-      "directInput": "{label} direct input",
-      "editing": "Editing",
-      "hourGroup": "Select hour",
-      "minuteGroup": "Select minute",
-      "hourOption": "{hour}:00",
-      "minuteOption": "{minute} min",
-      "clear": "Clear",
-      "close": "Close",
-      "invalid": "Enter time from 00:00 to 23:59."
     }
+  },
+  "timePicker": {
+    "placeholder": "Select time",
+    "directLabel": "Direct input",
+    "directInput": "{label} direct input",
+    "editing": "Editing",
+    "hourGroup": "Select hour",
+    "minuteGroup": "Select minute",
+    "hourOption": "{hour}:00",
+    "minuteOption": "{minute} min",
+    "clear": "Clear",
+    "close": "Close",
+    "invalid": "Enter time from 00:00 to 23:59."
   },
   "calendar": {
     "eyebrow": "Calendar",

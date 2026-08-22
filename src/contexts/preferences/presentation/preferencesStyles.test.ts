@@ -8,4 +8,6 @@ it("keeps preference themes, settings, and sound controls colocated", (): void =
   expect(css).toContain(".theme-card.selected");
   expect(css).toContain(".settings-disclosure__content");
   expect(css).toContain(".volume-slider-wrap");
+  expect(css.indexOf("@media (max-width: 35rem)")).toBeGreaterThan(css.indexOf(".grid"));
+  expect(css).toContain("  .grid {");
 });

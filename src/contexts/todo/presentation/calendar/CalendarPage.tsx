@@ -16,13 +16,14 @@ export function CalendarPage({ language, text, todo }: CalendarPageProps): React
   const monthLabel = formatMonthLabel(todo.calendarMonth, language);
 
   return (
-    <section className="calendar-page" aria-labelledby="calendar-title">
+    <section className="calendar-page panel-surface" aria-labelledby="calendar-title">
       <div className="panel-header calendar-page-header">
         <div>
           <p className="eyebrow">{text.calendar.eyebrow}</p>
           <h2 id="calendar-title">{text.calendar.title}</h2>
         </div>
       </div>
+      {todo.message ? <p className="status-message" role="status">{todo.message}</p> : null}
       <div className="calendar-layout">
         <section className="calendar-board" aria-labelledby="calendar-month-title">
           <div className="calendar-toolbar">
@@ -45,7 +46,7 @@ export function CalendarPage({ language, text, todo }: CalendarPageProps): React
             {calendarDays(todo.calendarMonth).map((cell: CalendarDayCell, index: number): React.JSX.Element => renderCalendarCell(todo, text, cell, index))}
           </div>
         </section>
-        <section className="selected-day-panel" aria-labelledby="selected-date-title">
+        <section className="selected-day-panel panel-surface" aria-labelledby="selected-date-title">
           <div className="panel-header compact-header">
             <div>
               <p className="eyebrow">{text.calendar.selectedEyebrow}</p>

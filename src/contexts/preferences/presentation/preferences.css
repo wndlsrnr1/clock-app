@@ -288,3 +288,9 @@
 .volume-slider-wrap input[type="range"] {
   accent-color: var(--accent-a);
 }
+
+@media (max-width: 35rem) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

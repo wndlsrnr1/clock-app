@@ -30,8 +30,6 @@
   outline-offset: 2px;
 }
 
-.todo-form input:focus-visible,
-.todo-edit input:focus-visible,
 .btn:focus-visible,
 .mini-button:focus-visible,
 .icon-button:focus-visible,
@@ -104,10 +102,6 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 0.55rem;
-}
-
-.rhythm-toolbar {
-  margin-top: 0.85rem;
 }
 
 .icon-action {
@@ -433,11 +427,7 @@
   color: var(--danger);
 }
 
-.sound-panel,
-.todo-panel,
-.calendar-page,
-.data-panel,
-.selected-day-panel {
+.panel-surface {
   margin-top: 1rem;
   border: 1px solid var(--border-subtle);
   border-radius: 0.5rem;
