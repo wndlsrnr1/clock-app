@@ -1,12 +1,8 @@
-import { init } from "@neutralinojs/lib";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { composeApplication } from "./bootstrap/composeApplication";
-import { composeBrowserPreviewApplication } from "./bootstrap/composeBrowserPreviewApplication";
 import { ClockRhythmApp } from "./app/ClockRhythmApp";
+import { composeRuntimeApplication } from "./app/composition/composeRuntimeApplication";
 import "./app/styles/index.css";
-import { isNeutralinoRuntime } from "./platform/neutralino/NeutralinoRuntimeGlobals";
-import { createAppModules } from "./app/composition/createAppModules";
 
 const rootElement = document.getElementById("root");
 
@@ -18,20 +14,14 @@ void renderApplication(rootElement);
 
 async function renderApplication(rootElement: HTMLElement): Promise<void> {
   const application = await composeRuntimeApplication();
-  const modules = createAppModules(application.services);
 
   createRoot(rootElement).render(
     <StrictMode>
-      <ClockRhythmApp initialPreferences={application.initialPreferences} modules={modules} />
+      <ClockRhythmApp
+        initialNow={application.initialNow}
+        initialPreferences={application.initialPreferences}
+        modules={application.modules}
+      />
     </StrictMode>,
   );
-}
-
-async function composeRuntimeApplication(): Promise<Awaited<ReturnType<typeof composeApplication>>> {
-  if (!isNeutralinoRuntime()) {
-    return composeBrowserPreviewApplication();
-  }
-
-  init();
-  return composeApplication();
 }

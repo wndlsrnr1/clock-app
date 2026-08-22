@@ -1,17 +1,15 @@
-import { AnalogClock } from "../../contexts/rhythm/presentation/AnalogClock";
-import { DigitalClock } from "../../contexts/rhythm/presentation/DigitalClock";
-import { NotificationSoundPanel } from "../../contexts/preferences/presentation/sound/NotificationSoundPanel";
-import { RhythmControls } from "../../contexts/rhythm/presentation/RhythmControls";
-import { RhythmSettingsDisclosure } from "../../contexts/preferences/presentation/settings/RhythmSettingsDisclosure";
-import { RhythmSettingsPanel } from "../../contexts/preferences/presentation/settings/RhythmSettingsPanel";
-import { TodayTodoPanel } from "../../contexts/todo/presentation/today/TodayTodoPanel";
-import { previewRhythmSettings } from "../../contexts/preferences/application/queries/PreviewRhythmSettings";
-import { createRhythmSettingsSummary } from "../../contexts/preferences/presentation/settings/rhythmSettingsSummary";
-import type { PreferencesAppViewModel } from "../../contexts/preferences/presentation/usePreferencesApp";
+import {
+  createRhythmSettingsSummary,
+  NotificationSoundPanel,
+  previewRhythmSettings,
+  RhythmSettingsDisclosure,
+  RhythmSettingsPanel,
+  type PreferencesAppViewModel,
+} from "../../contexts/preferences/public-presentation";
+import { AnalogClock, DigitalClock, RhythmControls, type RhythmAppViewModel } from "../../contexts/rhythm/public-presentation";
+import { TodayTodoPanel, type TodoAppViewModel } from "../../contexts/todo/public-presentation";
 import type { TextCatalog } from "../../shared/i18n/catalog";
 import { formatText } from "../../shared/i18n/formatText";
-import type { RhythmAppViewModel } from "../../contexts/rhythm/presentation/useRhythmApp";
-import type { TodoAppViewModel } from "../../contexts/todo/presentation/useTodoApp";
 
 interface ClockPageProps {
   preferences: PreferencesAppViewModel;

@@ -1,5 +1,5 @@
 import { useEffect, useReducer } from "react";
-import type { AppModules } from "../../../app/contracts/AppModules";
+import type { TodoModule } from "../public";
 import { normalizeOptionalTimeText } from "../../../shared/time/normalizeTimeText";
 import { validateTodoTitleInput } from "./validation/todoTitleValidation";
 import type { TextCatalog } from "../../../shared/i18n/catalog";
@@ -77,17 +77,15 @@ export interface TodoAppViewModel {
   refresh(): Promise<void>;
 }
 
-type TodoAppModules = Pick<AppModules, "todo">;
-
-export function useTodoApp(modules: TodoAppModules, currentNow: Date, text: TextCatalog): TodoAppViewModel {
+export function useTodoApp(todo: TodoModule, currentNow: Date, text: TextCatalog): TodoAppViewModel {
   const [state, dispatch] = useReducer(reducer, createInitialState(currentNow));
   const currentTodayDate = formatDateKey(currentNow);
 
   useEffect((): void => {
-    void refreshToday(modules, state.todayDate, dispatch);
-    void refreshSelectedDate(modules, state.selectedDate, dispatch);
-    void refreshCalendarSummary(modules, state.calendarMonth, dispatch);
-  }, [modules, state.todayDate, state.selectedDate, state.calendarMonth]);
+    void refreshToday(todo, state.todayDate, dispatch);
+    void refreshSelectedDate(todo, state.selectedDate, dispatch);
+    void refreshCalendarSummary(todo, state.calendarMonth, dispatch);
+  }, [todo, state.todayDate, state.selectedDate, state.calendarMonth]);
 
   useEffect((): void => {
     if (state.todayDate !== currentTodayDate) {
@@ -97,7 +95,7 @@ export function useTodoApp(modules: TodoAppModules, currentNow: Date, text: Text
 
   const changeCalendarMonth = async (month: string): Promise<void> => {
     dispatch({ type: "CALENDAR_MONTH_CHANGED", month });
-    await refreshCalendarSummary(modules, month, dispatch);
+    await refreshCalendarSummary(todo, month, dispatch);
   };
 
   return {
@@ -115,9 +113,9 @@ export function useTodoApp(modules: TodoAppModules, currentNow: Date, text: Text
       }
 
       await runTodoAction(async (): Promise<void> => {
-        await modules.todo.add.execute({ date: state.todayDate, time: time.value, title: state.form.title });
+        await todo.add.execute({ date: state.todayDate, time: time.value, title: state.form.title });
         dispatch({ type: "TODO_FORM_CLEARED" });
-        await refreshTodoViews(modules, state, dispatch);
+        await refreshTodoViews(todo, state, dispatch);
       }, text, dispatch);
     },
     cancelEditing: (): void => dispatch({ type: "EDIT_CLEARED" }),
@@ -129,14 +127,14 @@ export function useTodoApp(modules: TodoAppModules, currentNow: Date, text: Text
     changeTitle: (title: string): void => dispatch({ type: "TODO_FORM_CHANGED", field: "title", value: title }),
     deleteTodo: async (id: string): Promise<void> => {
       await runTodoAction(async (): Promise<void> => {
-        await modules.todo.delete.execute(id);
-        await refreshTodoViews(modules, state, dispatch);
+        await todo.delete.execute(id);
+        await refreshTodoViews(todo, state, dispatch);
       }, text, dispatch);
     },
     goToTodayMonth: async (): Promise<void> => {
       const todayMonth = state.todayDate.slice(0, 7);
       dispatch({ type: "SELECTED_DATE_CHANGED", date: state.todayDate });
-      await refreshSelectedDate(modules, state.todayDate, dispatch);
+      await refreshSelectedDate(todo, state.todayDate, dispatch);
       await changeCalendarMonth(todayMonth);
     },
     moveCalendarMonth: async (offset: -1 | 1): Promise<void> => {
@@ -144,11 +142,11 @@ export function useTodoApp(modules: TodoAppModules, currentNow: Date, text: Text
     },
     reorderTodos: async (date: string, orderedIds: Array<string>): Promise<void> => {
       await runTodoAction(async (): Promise<void> => {
-        await modules.todo.reorder.execute({ date, orderedIds });
-        await refreshTodoViews(modules, state, dispatch);
+        await todo.reorder.execute({ date, orderedIds });
+        await refreshTodoViews(todo, state, dispatch);
       }, text, dispatch);
     },
-    refresh: async (): Promise<void> => refreshTodoViews(modules, state, dispatch),
+    refresh: async (): Promise<void> => refreshTodoViews(todo, state, dispatch),
     saveEdit: async (): Promise<void> => {
       if (!state.edit) {
         return;
@@ -168,26 +166,26 @@ export function useTodoApp(modules: TodoAppModules, currentNow: Date, text: Text
       }
 
       await runTodoAction(async (): Promise<void> => {
-        await modules.todo.update.execute({
+        await todo.update.execute({
           date: edit.date,
           id: edit.id,
           time: time.value,
           title: edit.title,
         });
         dispatch({ type: "EDIT_CLEARED" });
-        await refreshTodoViews(modules, state, dispatch);
+        await refreshTodoViews(todo, state, dispatch);
       }, text, dispatch);
     },
     selectDate: async (date: string): Promise<void> => {
       dispatch({ type: "SELECTED_DATE_CHANGED", date });
-      await refreshSelectedDate(modules, date, dispatch);
+      await refreshSelectedDate(todo, date, dispatch);
     },
     showTimeInput: (): void => dispatch({ type: "TODO_FORM_CHANGED", field: "timeEnabled", value: true }),
     startEditing: (todo: TodoItemSnapshot): void => dispatch({ type: "EDIT_STARTED", todo }),
     toggleTodo: async (id: string): Promise<void> => {
       await runTodoAction(async (): Promise<void> => {
-        await modules.todo.toggle.execute(id);
-        await refreshTodoViews(modules, state, dispatch);
+        await todo.toggle.execute(id);
+        await refreshTodoViews(todo, state, dispatch);
       }, text, dispatch);
     },
   };
@@ -278,37 +276,37 @@ function reducer(state: TodoAppState, action: TodoAppAction): TodoAppState {
 }
 
 async function refreshToday(
-  modules: TodoAppModules,
+  todo: TodoModule,
   todayDate: string,
   dispatch: React.Dispatch<TodoAppAction>,
 ): Promise<void> {
-  dispatch({ type: "TODAY_TODOS_LOADED", todos: await modules.todo.getByDate.execute(todayDate) });
+  dispatch({ type: "TODAY_TODOS_LOADED", todos: await todo.getByDate.execute(todayDate) });
 }
 
 async function refreshSelectedDate(
-  modules: TodoAppModules,
+  todo: TodoModule,
   selectedDate: string,
   dispatch: React.Dispatch<TodoAppAction>,
 ): Promise<void> {
-  dispatch({ type: "SELECTED_DATE_TODOS_LOADED", todos: await modules.todo.getByDate.execute(selectedDate) });
+  dispatch({ type: "SELECTED_DATE_TODOS_LOADED", todos: await todo.getByDate.execute(selectedDate) });
 }
 
 async function refreshCalendarSummary(
-  modules: TodoAppModules,
+  todo: TodoModule,
   calendarMonth: string,
   dispatch: React.Dispatch<TodoAppAction>,
 ): Promise<void> {
-  dispatch({ type: "CALENDAR_SUMMARY_LOADED", summary: await modules.todo.getCalendarSummary.execute(calendarMonth) });
+  dispatch({ type: "CALENDAR_SUMMARY_LOADED", summary: await todo.getCalendarSummary.execute(calendarMonth) });
 }
 
 async function refreshTodoViews(
-  modules: TodoAppModules,
+  todo: TodoModule,
   state: TodoAppState,
   dispatch: React.Dispatch<TodoAppAction>,
 ): Promise<void> {
-  await refreshToday(modules, state.todayDate, dispatch);
-  await refreshSelectedDate(modules, state.selectedDate, dispatch);
-  await refreshCalendarSummary(modules, state.calendarMonth, dispatch);
+  await refreshToday(todo, state.todayDate, dispatch);
+  await refreshSelectedDate(todo, state.selectedDate, dispatch);
+  await refreshCalendarSummary(todo, state.calendarMonth, dispatch);
 }
 
 function normalizedTodoTime(

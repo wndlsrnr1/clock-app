@@ -1,13 +1,10 @@
-import { CalendarPage } from "../contexts/todo/presentation/calendar/CalendarPage";
-import { DataPage } from "../features/data-transfer/presentation/DataPage";
-import { useDataTransfer } from "../features/data-transfer/presentation/useDataTransfer";
+import { CalendarPage, useTodoApp } from "../contexts/todo/public-presentation";
+import { DataPage, useDataTransfer } from "../features/data-transfer/public-presentation";
 import { SegmentedControl } from "../shared/ui/components/SegmentedControl";
-import { ThemePage } from "../contexts/preferences/presentation/theme/ThemePage";
-import { usePreferencesApp } from "../contexts/preferences/presentation/usePreferencesApp";
+import { ThemePage, usePreferencesApp } from "../contexts/preferences/public-presentation";
 import { createTranslator } from "../shared/i18n/catalog";
 import { useLayoutMode } from "../shared/ui/layout/useLayoutMode";
-import { useRhythmApp } from "../contexts/rhythm/presentation/useRhythmApp";
-import { useTodoApp } from "../contexts/todo/presentation/useTodoApp";
+import { useRhythmApp } from "../contexts/rhythm/public-presentation";
 import type { AppModules } from "./contracts/AppModules";
 import type { UserPreferencesSnapshot } from "../contexts/preferences/public";
 import { useAppNavigation } from "./navigation/useAppNavigation";
@@ -27,7 +24,7 @@ export function ClockRhythmApp({ modules, initialNow = new Date(), initialPrefer
     initialPreferences,
   );
   const text = createTranslator(preferences.preferences.language);
-  const todo = useTodoApp(modules, rhythm.now, text);
+  const todo = useTodoApp(modules.todo, rhythm.now, text);
   const dataTransfer = useDataTransfer(modules.dataTransfer, text, async (): Promise<void> => {
     await preferences.refresh();
     await todo.refresh();

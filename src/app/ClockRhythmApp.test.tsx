@@ -1,14 +1,14 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import type { RhythmStatusSnapshot } from "../contexts/rhythm/application/RhythmStatusSnapshot";
+import type { RhythmStatusSnapshot } from "../contexts/rhythm/public";
 import type { PreparedBackupImport } from "../features/data-transfer/public";
-import { UserPreferences as Preferences } from "../contexts/preferences/domain/UserPreferences";
-import type { UserPreferencesSnapshot } from "../contexts/preferences/domain/UserPreferences";
+import { UserPreferences as Preferences } from "../contexts/preferences/public";
 import type { TodoDaySummary, TodoItemSnapshot } from "../contexts/todo/public";
-import { createAppModules } from "./composition/createAppModules";
 import { ClockRhythmApp as GroupedRhythmApp } from "./ClockRhythmApp";
-import type { RhythmAppServices } from "../ui/RhythmAppServices";
+import type { AppModules } from "./contracts/AppModules";
+
+type TestRhythmAppServices = ReturnType<typeof createServices>;
 
 interface LegacyRhythmAppProps {
   services: TestRhythmAppServices;
@@ -16,7 +16,7 @@ interface LegacyRhythmAppProps {
 }
 
 function RhythmApp({ services, initialNow }: LegacyRhythmAppProps): React.JSX.Element {
-  return <GroupedRhythmApp initialNow={initialNow} initialPreferences={services.initialPreferences} modules={createAppModules(services)} />;
+  return <GroupedRhythmApp initialNow={initialNow} initialPreferences={services.initialPreferences} modules={createTestAppModules(services)} />;
 }
 
 function runningStatus(): RhythmStatusSnapshot {
@@ -41,11 +41,7 @@ function stoppedForTodayStatus(): RhythmStatusSnapshot {
   return { ...runningStatus(), sessionStatus: "stoppedForToday" };
 }
 
-interface TestRhythmAppServices extends RhythmAppServices {
-  initialPreferences: UserPreferencesSnapshot;
-}
-
-function createServices(initialTodos: Array<TodoItemSnapshot> = []): TestRhythmAppServices {
+function createServices(initialTodos: Array<TodoItemSnapshot> = []) {
   const todos: Array<TodoItemSnapshot> = [...initialTodos];
 
   return {
@@ -120,6 +116,44 @@ function createServices(initialTodos: Array<TodoItemSnapshot> = []): TestRhythmA
     exportBackup: { execute: vi.fn(() => Promise.resolve()) },
     previewImportBackup: { execute: vi.fn(() => Promise.resolve(defaultPreparedBackupImport())) },
     importBackup: { execute: vi.fn(() => Promise.resolve()) },
+  };
+}
+
+function createTestAppModules(services: TestRhythmAppServices): AppModules {
+  return {
+    rhythm: {
+      getStatus: services.getStatus,
+      pause: services.pauseRhythm,
+      resume: services.resumeRhythm,
+      start: services.startRhythm,
+      stopForToday: services.stopForToday,
+    },
+    preferences: {
+      get: services.getPreferences,
+      changeLanguage: services.changeLanguage,
+      changeTheme: services.changeTheme,
+      chooseCustomNotificationSound: services.chooseCustomNotificationSound,
+      muteNotificationSound: services.muteNotificationSound,
+      previewNotificationSound: services.previewNotificationSound,
+      stopNotificationSoundPreview: services.stopNotificationSoundPreview,
+      update: services.updatePreferences,
+      updateNotificationSoundVolume: services.updateNotificationSoundVolume,
+      useDefaultNotificationSound: services.useDefaultNotificationSound,
+    },
+    todo: {
+      add: services.addTodo,
+      delete: services.deleteTodo,
+      getByDate: services.getTodosByDate,
+      getCalendarSummary: services.getTodoCalendarSummary,
+      reorder: services.reorderTodos,
+      toggle: services.toggleTodo,
+      update: services.updateTodo,
+    },
+    dataTransfer: {
+      exportBackup: services.exportBackup,
+      importBackup: services.importBackup,
+      previewImport: services.previewImportBackup,
+    },
   };
 }
 
