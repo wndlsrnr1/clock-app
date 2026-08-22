@@ -1,6 +1,7 @@
 import { UserPreferences } from "../domain/UserPreferences";
-import type { RhythmRuntime } from "../../rhythm/application/RhythmRuntime";
-import type { AutoStartPort, SettingsRepository } from "../../rhythm/application/ports";
+import type { AutoStartPort } from "./ports/AutoStartPort";
+import type { PreferencesChangedPort } from "./ports/PreferencesChangedPort";
+import type { SettingsRepository } from "./ports/SettingsRepository";
 
 export interface UpdatePreferencesCommand {
   focusMinutes: number;
@@ -10,16 +11,11 @@ export interface UpdatePreferencesCommand {
   autoStartEnabled: boolean;
 }
 
-export interface PreferenceChangeRescheduler {
-  rescheduleIfRunning(): void;
-}
-
 export class UpdatePreferencesUseCase {
   public constructor(
     private readonly settingsRepository: SettingsRepository,
     private readonly autoStart: AutoStartPort,
-    private readonly runtime: RhythmRuntime | null = null,
-    private readonly rescheduler: PreferenceChangeRescheduler | null = null,
+    private readonly preferencesChanged: PreferencesChangedPort | null = null,
   ) {}
 
   public async execute(command: UpdatePreferencesCommand): Promise<UserPreferences> {
@@ -29,8 +25,7 @@ export class UpdatePreferencesUseCase {
       .changeAutoStart(command.autoStartEnabled)
       .completeInitialSetup();
     await this.settingsRepository.save(preferences);
-    this.runtime?.replacePreferences(preferences);
-    this.rescheduler?.rescheduleIfRunning();
+    this.preferencesChanged?.notify(preferences);
 
     if (preferences.autoStart.enabled) {
       await this.autoStart.enable();

@@ -1,6 +1,7 @@
 import type { RhythmStatusSnapshot } from "./RhythmStatusSnapshot";
 import { RhythmRuntime } from "./RhythmRuntime";
-import type { SchedulerPort, SystemClock, TrayPort } from "./ports";
+import type { Clock } from "../../../shared/time/Clock";
+import type { SchedulerPort, TrayPort } from "./ports";
 import { snapshotRhythmStatus } from "./snapshotRhythmStatus";
 
 export class StopRhythmForTodayUseCase {
@@ -8,7 +9,7 @@ export class StopRhythmForTodayUseCase {
     private readonly runtime: RhythmRuntime,
     private readonly scheduler: SchedulerPort,
     private readonly tray: TrayPort,
-    private readonly clock: SystemClock,
+    private readonly clock: Clock,
   ) {}
 
   public async execute(): Promise<RhythmStatusSnapshot> {

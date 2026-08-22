@@ -1,12 +1,10 @@
-import { ClockTime } from "../../rhythm/domain/ClockTime";
-import { DailyRhythm } from "../../rhythm/domain/DailyRhythm";
-import { DurationMinutes } from "../../rhythm/domain/DurationMinutes";
+import { ClockTime, DailyRhythm, DurationMinutes } from "../../rhythm/public-model";
+import type { LanguagePreference } from "../../../shared/i18n/LanguagePreference";
 
 export interface AutoStartPreference {
   enabled: boolean;
 }
 
-export type LanguagePreference = "kor" | "en";
 export type ThemePreference =
   | "current"
   | "tokyo-night"

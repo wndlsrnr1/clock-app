@@ -1,0 +1,170 @@
+.analog-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 0;
+}
+
+.analog-clock {
+  width: var(--clock-stage-size);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  position: relative;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0) 64%, color-mix(in srgb, var(--accent-a), transparent 78%) 66%, color-mix(in srgb, var(--accent-b), transparent 80%) 68%, rgba(0, 0, 0, 0) 70%),
+    radial-gradient(circle at 50% 50%, #0a0a0f 0%, #0a0a0f 60%, #09090d 100%);
+  box-shadow: 0 0 0 2px var(--border-strong), 0 0 40px color-mix(in srgb, var(--glow-a), transparent 55%), inset 0 0 50px rgba(0, 0, 0, 0.6);
+}
+
+.ticks {
+  position: absolute;
+  inset: 0;
+}
+
+.tick {
+  position: absolute;
+  left: 50%;
+  top: 0.625rem;
+  width: 0.1875rem;
+  height: 1rem;
+  background: linear-gradient(to bottom, var(--accent-a), var(--accent-b));
+  transform-origin: 50% calc(var(--clock-stage-size) / 2 - 0.625rem);
+  border-radius: 0.125rem;
+  box-shadow: 0 0 0.5rem var(--glow-a);
+}
+
+.tick:nth-child(1) {
+  transform: rotate(0deg);
+}
+
+.tick:nth-child(2) {
+  transform: rotate(30deg);
+}
+
+.tick:nth-child(3) {
+  transform: rotate(60deg);
+}
+
+.tick:nth-child(4) {
+  transform: rotate(90deg);
+  height: 1.25rem;
+}
+
+.tick:nth-child(5) {
+  transform: rotate(120deg);
+}
+
+.tick:nth-child(6) {
+  transform: rotate(150deg);
+}
+
+.tick:nth-child(7) {
+  transform: rotate(180deg);
+  height: 1.25rem;
+}
+
+.tick:nth-child(8) {
+  transform: rotate(210deg);
+}
+
+.tick:nth-child(9) {
+  transform: rotate(240deg);
+}
+
+.tick:nth-child(10) {
+  transform: rotate(270deg);
+  height: 1.25rem;
+}
+
+.tick:nth-child(11) {
+  transform: rotate(300deg);
+}
+
+.tick:nth-child(12) {
+  transform: rotate(330deg);
+}
+
+.hand {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform-origin: 50% 90%;
+  border-radius: 0.375rem;
+  will-change: transform;
+}
+
+.hand.hour {
+  width: 0.5rem;
+  height: 28%;
+  background: linear-gradient(180deg, var(--accent-a), var(--accent-b));
+  box-shadow: 0 0 0.625rem var(--glow-a);
+}
+
+.hand.minute {
+  width: 0.375rem;
+  height: 36%;
+  background: linear-gradient(180deg, var(--accent-a), var(--accent-b));
+  box-shadow: 0 0 0.625rem var(--glow-b);
+}
+
+.hand.second {
+  width: 0.1875rem;
+  height: 42%;
+  background: var(--danger-strong);
+  box-shadow: 0 0 0.875rem var(--glow-b);
+}
+
+.center-cap {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0.875rem;
+  height: 0.875rem;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--text-main) 0%, var(--accent-a) 40%, var(--accent-b) 80%);
+  box-shadow: 0 0 0.75rem var(--glow-a), 0 0 1.125rem var(--glow-b);
+}
+
+.time {
+  margin-top: 1.125rem;
+  color: var(--text-main);
+  font-size: clamp(2.3rem, 8vw, 3rem);
+  font-weight: 800;
+  letter-spacing: 0;
+  text-align: center;
+  text-shadow: 0 0 0.5rem var(--glow-a), 0 0 1.125rem var(--glow-b);
+}
+
+.controls {
+  margin-top: 1.125rem;
+  padding: 1rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: 0.5rem;
+  background: var(--surface-strong);
+  box-shadow: inset 0 0 1.875rem rgba(0, 0, 0, 0.4);
+}
+
+.status-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-main);
+}
+
+.status-strip span {
+  color: var(--text-accent);
+  font-size: 0.8rem;
+}
+
+.status-strip strong {
+  font-size: 0.9rem;
+}
+
+.rhythm-toolbar {
+  margin-top: 0.85rem;
+}

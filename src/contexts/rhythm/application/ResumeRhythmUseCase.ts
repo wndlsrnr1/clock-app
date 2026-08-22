@@ -1,6 +1,7 @@
 import type { RhythmStatusSnapshot } from "./RhythmStatusSnapshot";
 import { RhythmRuntime } from "./RhythmRuntime";
-import type { NotificationPort, SchedulerPort, SoundPort, SystemClock, TrayPort } from "./ports";
+import type { Clock } from "../../../shared/time/Clock";
+import type { NotificationPort, SchedulerPort, SoundPort, TrayPort } from "./ports";
 import { scheduleNextRhythmEvent } from "./scheduleNextRhythmEvent";
 import { snapshotRhythmStatus } from "./snapshotRhythmStatus";
 
@@ -9,7 +10,7 @@ export class ResumeRhythmUseCase {
     private readonly runtime: RhythmRuntime,
     private readonly scheduler: SchedulerPort,
     private readonly tray: TrayPort,
-    private readonly clock: SystemClock,
+    private readonly clock: Clock,
     private readonly notification: NotificationPort | null = null,
     private readonly sound: SoundPort | null = null,
   ) {}

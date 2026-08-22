@@ -157,21 +157,26 @@ npm run package:mac:download
 
 본 프로젝트는 **Neutralinojs + React + TypeScript** 환경으로 구축된 데스크톱 애플리케이션입니다. 깨끗한 아키텍처를 유지하기 위해 명확한 도메인 경계와 의존성 규칙을 따르고 있습니다.
 
-### 🧩 핵심 도메인 및 레이어 경계
-- `src/contexts/rhythm`: 집중/휴식 시간대와 관련된 핵심 비즈니스 로직 및 도메인
-- `src/contexts/todo`: 할 일(Todo) 관리와 관련된 도메인 로직
-- `src/contexts/preferences`: 앱 전반의 설정, 언어 변경, 테마, 알림음 관련 도메인
-- `src/contexts/backup`: JSON 데이터 내보내기/가져오기를 처리하는 백업 도메인
-- `src/platform`: Neutralino Native API 연동, 브라우저 프리뷰(Fallback), 알림 스케줄러 등의 어댑터(Adapter) 구현부
-- `src/ui`: 사용자 인터페이스(UI), React 컴포넌트, 스타일시트 및 UI 상태 관리를 위한 커스텀 훅
-- `src/bootstrap`: 전체 의존성 구성 및 컴포넌트 간 조립(Composition Root) 담당
+### 🧩 모듈 지도와 데이터 소유권
+
+- `src/app`: 앱 셸, 화면 이동, 런타임 선택, Composition Root를 소유합니다. `main.tsx`는 이 영역과 React 진입점만 참조합니다.
+- `src/contexts/rhythm`: 집중/휴식 세션, 일정 계산, 알림·소리·트레이·스케줄러 어댑터와 시계 화면을 소유합니다.
+- `src/contexts/todo`: Todo 도메인과 유스케이스, `todos` 저장소, 캘린더/목록 화면을 소유합니다.
+- `src/contexts/preferences`: 사용자 설정 도메인과 유스케이스, `user-preferences` 저장소, 자동 시작·알림음 파일 어댑터와 설정 화면을 소유합니다.
+- `src/features/data-transfer`: Preferences와 Todo의 공개 백업 계약을 조합해 JSON 내보내기/가져오기를 수행합니다. 각 컨텍스트의 저장소를 직접 참조하지 않습니다.
+- `src/shared`: 비즈니스 모듈에 의존하지 않는 i18n, 시간 계약, 재사용 UI 컨트롤만 포함합니다.
+
+각 비즈니스 모듈은 `public.ts`로 애플리케이션 계약을, 필요한 경우 `public-model.ts`와 `public-presentation.ts`로 모델 및 화면 계약을 공개합니다. 외부 모듈은 이 공개 표면만 사용하며, `composition.ts`는 `src/app/composition`에서만 호출할 수 있습니다.
 
 ### 📐 의존성 규칙 (Dependency Rules)
-1. **도메인 독립성 (Domain Isolation)**: 도메인 레이어는 React, Neutralino, 브라우저 API 등 외부 라이브러리나 런타임 환경에 대해 일절 알지 못합니다.
-2. **유스케이스 중심 (Use Case Driven)**: 애플리케이션 유스케이스는 비즈니스 도메인과 포트(Port, 인터페이스)만을 사용하여 흐름을 제어합니다.
-3. **어댑터 구현 (Platform Adaptability)**: `platform` 레이어는 도메인이 정의한 포트(Port)에 대한 실질적인 구현체 역할을 수행합니다.
-4. **UI 역할 제한**: UI 레이어는 오직 사용자 이벤트의 수신 및 화면 렌더링만을 담당하며, 모든 핵심 비즈니스 정책은 도메인과 유스케이스 레이어에 위임합니다.
-5. **조립 및 초기화 (Bootstrap)**: 오직 `bootstrap` 영역에서만 모든 구체적인 구현체들을 인스턴스화하고 결합합니다.
+
+1. Domain은 Application, Infrastructure, Presentation, React, Neutralino에 의존하지 않습니다.
+2. Application은 Infrastructure와 Presentation에 의존하지 않으며, 외부 효과는 포트로 표현합니다.
+3. 컨텍스트와 기능은 `app`을 참조하지 않고, `shared`는 어떤 비즈니스 모듈도 참조하지 않습니다.
+4. Rhythm은 Preferences를 참조하지 않습니다. 유일하게 허용된 비즈니스 방향은 Preferences가 Rhythm의 `public-model.ts`를 사용하는 것입니다.
+5. Data Transfer는 Preferences와 Todo의 공개 계약만 사용하고 저장소나 내부 도메인 경로를 직접 가져오지 않습니다.
+6. 브라우저와 Neutralino 구현은 사용하는 모듈의 `infrastructure`에 위치하며, 구체 구현의 조립은 `src/app/composition`에서만 수행합니다.
+7. 위 규칙은 `.dependency-cruiser.cjs`와 `src/architecture` 회귀 테스트로 검증합니다.
 
 > [!TIP]
 > AI 에이전트와 개발자는 프로젝트 내 코드를 수정하기 전에 반드시 루트 디렉터리에 위치한 [AGENTS.md](AGENTS.md) 파일을 함께 정독해야 합니다. 이 `README.md`가 전체 프로젝트의 아웃라인을 설명한다면, [AGENTS.md](AGENTS.md)는 개발 작업 규정 및 구체적인 코드 품질 검증 요건을 포함하고 있습니다.

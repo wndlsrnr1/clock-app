@@ -1,22 +1,23 @@
 import { describe, expect, it, vi } from "vitest";
-import { UserPreferences } from "../../preferences/domain/UserPreferences";
+import type { RhythmConfigurationReader } from "./ports/RhythmConfigurationReader";
+import { ClockTime } from "../domain/ClockTime";
+import { DailyRhythm } from "../domain/DailyRhythm";
+import { DurationMinutes } from "../domain/DurationMinutes";
+import { RhythmConfiguration } from "../domain/RhythmConfiguration";
 import { GetRhythmStatusUseCase } from "./GetRhythmStatusUseCase";
 import { PauseRhythmUseCase } from "./PauseRhythmUseCase";
 import { ResumeRhythmUseCase } from "./ResumeRhythmUseCase";
 import { RhythmRuntime } from "./RhythmRuntime";
 import { StartRhythmUseCase } from "./StartRhythmUseCase";
 import { StopRhythmForTodayUseCase } from "./StopRhythmForTodayUseCase";
-import type { SchedulerPort, SettingsRepository, SoundPort, SystemClock, TrayPort } from "./ports";
+import type { Clock } from "../../../shared/time/Clock";
+import type { SchedulerPort, SoundPort, TrayPort } from "./ports";
 
-class FakeSettingsRepository implements SettingsRepository {
-  public constructor(private preferences: UserPreferences = UserPreferences.default()) {}
+class FakeRhythmConfigurationReader implements RhythmConfigurationReader {
+  public constructor(private readonly configuration: RhythmConfiguration = defaultConfiguration()) {}
 
-  public async get(): Promise<UserPreferences> {
-    return this.preferences;
-  }
-
-  public async save(preferences: UserPreferences): Promise<void> {
-    this.preferences = preferences;
+  public async get(): Promise<RhythmConfiguration> {
+    return this.configuration;
   }
 }
 
@@ -51,7 +52,7 @@ class FakeTray implements TrayPort {
   }
 }
 
-class FixedClock implements SystemClock {
+class FixedClock implements Clock {
   public constructor(private readonly fixedNow: Date) {}
 
   public now(): Date {
@@ -71,7 +72,7 @@ function createUseCases(now: Date): {
   status: GetRhythmStatusUseCase;
 } {
   const runtime = RhythmRuntime.empty();
-  const settingsRepository = new FakeSettingsRepository();
+  const configurationReader = new FakeRhythmConfigurationReader();
   const scheduler = new FakeScheduler();
   const sound = new FakeSound();
   const tray = new FakeTray();
@@ -82,7 +83,7 @@ function createUseCases(now: Date): {
     scheduler,
     sound,
     tray,
-    start: new StartRhythmUseCase(runtime, settingsRepository, scheduler, sound, tray, clock),
+    start: new StartRhythmUseCase(runtime, configurationReader, scheduler, sound, tray, clock),
     pause: new PauseRhythmUseCase(runtime, scheduler, tray),
     resume: new ResumeRhythmUseCase(runtime, scheduler, tray, clock),
     stopForToday: new StopRhythmForTodayUseCase(runtime, scheduler, tray, clock),
@@ -90,13 +91,13 @@ function createUseCases(now: Date): {
   };
 }
 
-function createUseCasesWithPreferences(now: Date, preferences: UserPreferences): {
+function createUseCasesWithConfiguration(now: Date, configuration: RhythmConfiguration): {
   scheduler: FakeScheduler;
   sound: FakeSound;
   start: StartRhythmUseCase;
 } {
   const runtime = RhythmRuntime.empty();
-  const settingsRepository = new FakeSettingsRepository(preferences);
+  const configurationReader = new FakeRhythmConfigurationReader(configuration);
   const scheduler = new FakeScheduler();
   const sound = new FakeSound();
   const tray = new FakeTray();
@@ -105,8 +106,16 @@ function createUseCasesWithPreferences(now: Date, preferences: UserPreferences):
   return {
     scheduler,
     sound,
-    start: new StartRhythmUseCase(runtime, settingsRepository, scheduler, sound, tray, clock),
+    start: new StartRhythmUseCase(runtime, configurationReader, scheduler, sound, tray, clock),
   };
+}
+
+function defaultConfiguration(): RhythmConfiguration {
+  return RhythmConfiguration.create({
+    dailyRhythm: DailyRhythm.default(),
+    focusTerm: DurationMinutes.create(50),
+    restTerm: DurationMinutes.create(10),
+  });
 }
 
 describe("Rhythm use cases", () => {
@@ -122,10 +131,15 @@ describe("Rhythm use cases", () => {
   });
 
   it("starts a late night one minute rhythm and schedules the first ring one minute later", async () => {
-    const preferences = UserPreferences.default()
-      .changeTerms(1, 1)
-      .changeDailyRhythm("23:00", "23:55");
-    const useCases = createUseCasesWithPreferences(new Date("2026-06-02T23:00:00"), preferences);
+    const configuration = RhythmConfiguration.create({
+      dailyRhythm: DailyRhythm.create({
+        end: ClockTime.fromText("23:55"),
+        start: ClockTime.fromText("23:00"),
+      }),
+      focusTerm: DurationMinutes.create(1),
+      restTerm: DurationMinutes.create(1),
+    });
+    const useCases = createUseCasesWithConfiguration(new Date("2026-06-02T23:00:00"), configuration);
 
     await useCases.start.execute();
 
@@ -157,12 +171,17 @@ describe("Rhythm use cases", () => {
     expect(useCases.runtime.session.isStoppedFor(new Date("2026-06-02T17:00:00"))).toBe(true);
   });
 
-  it("reports the current notification sound preference in the rhythm status", () => {
+  it("reports the current rhythm configuration in the status", () => {
     const useCases = createUseCases(new Date("2026-06-02T05:10:00"));
-    useCases.runtime.replacePreferences(UserPreferences.default().toggleNotificationSoundMute());
+    useCases.runtime.replaceConfiguration(RhythmConfiguration.create({
+      dailyRhythm: DailyRhythm.default(),
+      focusTerm: DurationMinutes.create(20),
+      restTerm: DurationMinutes.create(5),
+    }));
 
     const status = useCases.status.execute();
 
-    expect(status.notificationSound.mode).toBe("muted");
+    expect(status.focusMinutes).toBe(20);
+    expect(status.restMinutes).toBe(5);
   });
 });

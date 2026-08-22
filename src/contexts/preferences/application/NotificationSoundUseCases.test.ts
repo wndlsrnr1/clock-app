@@ -1,14 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
 import { UserPreferences } from "../domain/UserPreferences";
-import type { SettingsRepository, SoundPort } from "../../rhythm/application/ports";
+import type { SettingsRepository } from "./ports/SettingsRepository";
+import type { SoundPreviewPort } from "./ports/SoundPreviewPort";
 import {
   ChooseCustomNotificationSoundUseCase,
   PreviewNotificationSoundUseCase,
   SetNotificationSoundModeUseCase,
   StopNotificationSoundPreviewUseCase,
   UpdateNotificationSoundVolumeUseCase,
-  type NotificationSoundFilePort,
 } from "./NotificationSoundUseCases";
+import type { NotificationSoundFilePort } from "./ports/NotificationSoundFilePort";
 
 class FakeSettingsRepository implements SettingsRepository {
   public saved: UserPreferences | null = null;
@@ -71,8 +72,7 @@ describe("Notification sound use cases", () => {
   });
 
   it("previews the current notification sound through the sound port", async () => {
-    const sound: SoundPort = {
-      prepare: vi.fn<() => Promise<void>>(() => Promise.resolve()),
+    const sound: SoundPreviewPort = {
       play: vi.fn<() => Promise<void>>(() => Promise.resolve()),
       stop: vi.fn<() => Promise<void>>(() => Promise.resolve()),
     };
@@ -84,8 +84,7 @@ describe("Notification sound use cases", () => {
   });
 
   it("stops the current notification sound preview through the sound port", async () => {
-    const sound: SoundPort = {
-      prepare: vi.fn<() => Promise<void>>(() => Promise.resolve()),
+    const sound: SoundPreviewPort = {
       play: vi.fn<() => Promise<void>>(() => Promise.resolve()),
       stop: vi.fn<() => Promise<void>>(() => Promise.resolve()),
     };
